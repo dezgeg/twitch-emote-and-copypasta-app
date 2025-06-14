@@ -18,11 +18,9 @@
 
     // Reactive filtering using Svelte 5 $derived
     let filteredEmotes = $derived(
-        !searchTerm.trim()
-            ? allEmotes
-            : allEmotes.filter((emote) =>
-                  emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
-              ),
+        allEmotes.filter((emote) =>
+            emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
     );
 
     onMount(async () => {
@@ -72,16 +70,9 @@
                         "Client-Id": TWITCH_CLIENT_ID,
                     },
                 }),
-                // Current channel emotes
-                fetch(`https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${broadcasterId}`, {
-                    headers: {
-                        Authorization: `Bearer ${apiKey}`,
-                        "Client-Id": TWITCH_CLIENT_ID,
-                    },
-                }),
             ];
 
-            // Add subscriber emotes if we have user ID
+            // Add user emotes (includes channel and subscriber emotes) if we have user ID
             if (userId) {
                 requests.push(
                     fetch(
@@ -112,39 +103,26 @@
                 allTwitchEmotes = [...allTwitchEmotes, ...globalEmotes];
             }
 
-            // Process channel emotes
-            if (responses[1].ok) {
-                const channelData = await responses[1].json();
-                const channelEmotes = channelData.data.map((emote: any) => ({
-                    id: emote.id,
-                    name: emote.name,
-                    url: emote.images.url_2x || emote.images.url_1x,
-                    type: "twitch" as const,
-                    source: `Channel: ${channel}`,
-                }));
-                allTwitchEmotes = [...allTwitchEmotes, ...channelEmotes];
-            }
-
-            // Process subscriber emotes if available
-            if (responses[2] && responses[2].ok) {
-                const subscriberData = await responses[2].json();
-                const subscriberEmotes = subscriberData.data.map((emote: any) => {
-                    // Subscriber emotes use template URL format
-                    const url = subscriberData.template
+            // Process user emotes if available (includes channel and subscriber emotes)
+            if (responses[1] && responses[1].ok) {
+                const userData = await responses[1].json();
+                const userEmotes = userData.data.map((emote: any) => {
+                    // User emotes use template URL format
+                    const url = userData.template
                         .replace("{{id}}", emote.id)
                         .replace("{{format}}", emote.format[0] || "static")
                         .replace("{{theme_mode}}", emote.theme_mode[0] || "light")
                         .replace("{{scale}}", "2.0");
 
                     return {
-                        id: `sub_${emote.id}`,
+                        id: `user_${emote.id}`,
                         name: emote.name,
                         url: url,
                         type: "twitch" as const,
-                        source: "Subscriber",
+                        source: "Available",
                     };
                 });
-                allTwitchEmotes = [...allTwitchEmotes, ...subscriberEmotes];
+                allTwitchEmotes = [...allTwitchEmotes, ...userEmotes];
             }
 
             twitchEmotes = allTwitchEmotes;
