@@ -40,6 +40,19 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Em
 }
 
 /**
+ * Helper function to build Twitch emote URL from template
+ */
+function buildTwitchEmoteUrl(template: string, emote: any): string {
+    // Prefer animated format if available, otherwise use first available format
+    const format = emote.format.includes("animated") ? "animated" : (emote.format[0] || "static");
+    return template
+        .replace("{{id}}", emote.id)
+        .replace("{{format}}", format)
+        .replace("{{theme_mode}}", emote.theme_mode[0] || "light")
+        .replace("{{scale}}", "2.0");
+}
+
+/**
  * Load Twitch emotes (global and user emotes)
  */
 async function loadTwitchEmotes(
@@ -74,48 +87,26 @@ async function loadTwitchEmotes(
         // Process global emotes
         if (responses[0].ok) {
             const globalData = await responses[0].json();
-            const globalEmotes = globalData.data.map((emote: any) => {
-                // Global emotes use template URL format like user emotes
-                // Prefer animated format if available, otherwise use first available format
-                const format = emote.format.includes("animated") ? "animated" : (emote.format[0] || "static");
-                const url = globalData.template
-                    .replace("{{id}}", emote.id)
-                    .replace("{{format}}", format)
-                    .replace("{{theme_mode}}", emote.theme_mode[0] || "light")
-                    .replace("{{scale}}", "2.0");
-
-                return {
-                    id: `global_${emote.id}`,
-                    name: emote.name,
-                    url: url,
-                    type: "twitch" as const,
-                    source: "Global",
-                };
-            });
+            const globalEmotes = globalData.data.map((emote: any) => ({
+                id: `global_${emote.id}`,
+                name: emote.name,
+                url: buildTwitchEmoteUrl(globalData.template, emote),
+                type: "twitch" as const,
+                source: "Global",
+            }));
             twitchEmotes.push(...globalEmotes);
         }
 
         // Process user emotes
         if (responses[1].ok) {
             const userData = await responses[1].json();
-            const userEmotes = userData.data.map((emote: any) => {
-                // User emotes use template URL format
-                // Prefer animated format if available, otherwise use first available format
-                const format = emote.format.includes("animated") ? "animated" : (emote.format[0] || "static");
-                const url = userData.template
-                    .replace("{{id}}", emote.id)
-                    .replace("{{format}}", format)
-                    .replace("{{theme_mode}}", emote.theme_mode[0] || "light")
-                    .replace("{{scale}}", "2.0");
-
-                return {
-                    id: `user_${emote.id}`,
-                    name: emote.name,
-                    url,
-                    type: "twitch" as const,
-                    source: "Available",
-                };
-            });
+            const userEmotes = userData.data.map((emote: any) => ({
+                id: `user_${emote.id}`,
+                name: emote.name,
+                url: buildTwitchEmoteUrl(userData.template, emote),
+                type: "twitch" as const,
+                source: "Available",
+            }));
             twitchEmotes.push(...userEmotes);
         }
     } catch (err) {
