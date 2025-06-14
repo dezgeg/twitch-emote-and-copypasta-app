@@ -26,9 +26,6 @@
         try {
             // First get user info to get user ID
             const user = await getUser(apiKey);
-            if (!user) {
-                throw new Error("Could not get user information");
-            }
 
             // Get followed channels
             const followsResponse = await fetch(

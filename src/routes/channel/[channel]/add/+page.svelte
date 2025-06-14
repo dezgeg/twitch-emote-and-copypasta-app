@@ -37,13 +37,11 @@
 
             // Get broadcaster info first, then load both emote sources
             const broadcaster = await getUser(apiKey, channel);
-            if (broadcaster) {
-                // Load both Twitch and 7TV emotes in parallel
-                await Promise.all([
-                    loadTwitchEmotes(apiKey, broadcaster.id),
-                    load7TVEmotes(broadcaster.id),
-                ]);
-            }
+            // Load both Twitch and 7TV emotes in parallel
+            await Promise.all([
+                loadTwitchEmotes(apiKey, broadcaster.id),
+                load7TVEmotes(broadcaster.id),
+            ]);
 
             allEmotes = [...twitchEmotes, ...seventvEmotes];
         } catch (err) {
@@ -59,7 +57,7 @@
         try {
             // First get the current user's ID
             const currentUser = await getUser(apiKey);
-            const userId = currentUser?.id || null;
+            const userId = currentUser.id;
 
             // Get all available emote sources in parallel
             const requests = [
@@ -72,20 +70,18 @@
                 }),
             ];
 
-            // Add user emotes (includes channel and subscriber emotes) if we have user ID
-            if (userId) {
-                requests.push(
-                    fetch(
-                        `https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${apiKey}`,
-                                "Client-Id": TWITCH_CLIENT_ID,
-                            },
+            // Add user emotes (includes channel and subscriber emotes)
+            requests.push(
+                fetch(
+                    `https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${apiKey}`,
+                            "Client-Id": TWITCH_CLIENT_ID,
                         },
-                    ),
-                );
-            }
+                    },
+                ),
+            );
 
             const responses = await Promise.all(requests);
             let allTwitchEmotes: any[] = [];
@@ -103,8 +99,8 @@
                 allTwitchEmotes = [...allTwitchEmotes, ...globalEmotes];
             }
 
-            // Process user emotes if available (includes channel and subscriber emotes)
-            if (responses[1] && responses[1].ok) {
+            // Process user emotes (includes channel and subscriber emotes)
+            if (responses[1].ok) {
                 const userData = await responses[1].json();
                 const userEmotes = userData.data.map((emote: any) => {
                     // User emotes use template URL format
