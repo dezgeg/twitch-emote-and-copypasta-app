@@ -131,9 +131,21 @@
                         type: "7tv" as const,
                     }));
                 }
+            } else if (response.status === 404) {
+                // Channel doesn't have 7TV emotes set up - this is normal
+                console.log(`Channel ${channel} does not have 7TV emotes configured`);
+                seventvEmotes = [];
+            } else {
+                console.warn(`7TV API returned ${response.status} for channel ${channel}`);
+                seventvEmotes = [];
             }
         } catch (err) {
-            console.error("Error loading 7TV emotes:", err);
+            // Network error or other issues - don't show error to user
+            console.log(
+                "7TV emotes not available:",
+                err instanceof Error ? err.message : "Unknown error",
+            );
+            seventvEmotes = [];
         }
     }
 
