@@ -75,9 +75,6 @@
         localStorage.setItem(`favorites_${channel}`, JSON.stringify(favoriteNames));
     }
 
-    function goBack() {
-        goto(`/channel/${channel}`);
-    }
 </script>
 
 <svelte:head>
@@ -86,7 +83,7 @@
 
 <main>
     <nav>
-        <button on:click={goBack}>Back to {channel} Favorites</button>
+        <a href="/channel/{channel}" class="button">Back to {channel} Favorites</a>
     </nav>
 
     <h1>Add Emotes to {channel}</h1>
