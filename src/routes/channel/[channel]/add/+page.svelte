@@ -1,0 +1,338 @@
+<script lang="ts">
+    import { page } from "$app/stores";
+    import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
+    import { TWITCH_CLIENT_ID } from "$lib/config";
+
+    let channel: string;
+    let twitchEmotes: Array<{ id: string; name: string; url: string; type: "twitch" }> = [];
+    let seventvEmotes: Array<{ id: string; name: string; url: string; type: "7tv" }> = [];
+    let allEmotes: Array<{ id: string; name: string; url: string; type: "twitch" | "7tv" }> = [];
+    let filteredEmotes: Array<{ id: string; name: string; url: string; type: "twitch" | "7tv" }> =
+        [];
+    let searchTerm = "";
+    let loading = true;
+    let error = "";
+
+    $: channel = $page.params.channel;
+    $: filterEmotes();
+
+    onMount(async () => {
+        await loadEmotes();
+    });
+
+    function filterEmotes() {
+        if (!searchTerm.trim()) {
+            filteredEmotes = allEmotes;
+        } else {
+            const term = searchTerm.toLowerCase();
+            filteredEmotes = allEmotes.filter((emote) => emote.name.toLowerCase().includes(term));
+        }
+    }
+
+    async function loadEmotes() {
+        try {
+            const apiKey = localStorage.getItem("twitchApiKey");
+            if (!apiKey) {
+                goto("/setup");
+                return;
+            }
+
+            // Load both Twitch and 7TV emotes in parallel
+            await Promise.all([loadTwitchEmotes(apiKey), load7TVEmotes()]);
+
+            allEmotes = [...twitchEmotes, ...seventvEmotes];
+            filteredEmotes = allEmotes;
+        } catch (err) {
+            console.error("Error loading emotes:", err);
+            error = err instanceof Error ? err.message : "Failed to load emotes";
+        } finally {
+            loading = false;
+        }
+    }
+
+    async function loadTwitchEmotes(apiKey: string) {
+        try {
+            // Get broadcaster info first
+            const userResponse = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    "Client-Id": TWITCH_CLIENT_ID,
+                },
+            });
+
+            if (!userResponse.ok) {
+                throw new Error(`Failed to get user info: ${userResponse.status}`);
+            }
+
+            const userData = await userResponse.json();
+            const broadcasterId = userData.data[0]?.id;
+
+            if (!broadcasterId) {
+                throw new Error("Channel not found");
+            }
+
+            // Get channel emotes (subscriber emotes)
+            const emotesResponse = await fetch(
+                `https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${broadcasterId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${apiKey}`,
+                        "Client-Id": TWITCH_CLIENT_ID,
+                    },
+                },
+            );
+
+            if (emotesResponse.ok) {
+                const emotesData = await emotesResponse.json();
+                twitchEmotes = emotesData.data.map((emote: any) => ({
+                    id: emote.id,
+                    name: emote.name,
+                    url: emote.images.url_2x || emote.images.url_1x,
+                    type: "twitch" as const,
+                }));
+            }
+
+            // Also get global emotes
+            const globalResponse = await fetch("https://api.twitch.tv/helix/chat/emotes/global", {
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    "Client-Id": TWITCH_CLIENT_ID,
+                },
+            });
+
+            if (globalResponse.ok) {
+                const globalData = await globalResponse.json();
+                const globalEmotes = globalData.data.map((emote: any) => ({
+                    id: `global_${emote.id}`,
+                    name: emote.name,
+                    url: emote.images.url_2x || emote.images.url_1x,
+                    type: "twitch" as const,
+                }));
+                twitchEmotes = [...twitchEmotes, ...globalEmotes];
+            }
+        } catch (err) {
+            console.error("Error loading Twitch emotes:", err);
+        }
+    }
+
+    async function load7TVEmotes() {
+        try {
+            // Get 7TV emotes for the channel
+            const response = await fetch(`https://7tv.io/v3/users/twitch/${channel}`);
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.emote_set?.emotes) {
+                    seventvEmotes = data.emote_set.emotes.map((emote: any) => ({
+                        id: emote.id,
+                        name: emote.name,
+                        url: `https://cdn.7tv.app/emote/${emote.id}/2x.webp`,
+                        type: "7tv" as const,
+                    }));
+                }
+            }
+        } catch (err) {
+            console.error("Error loading 7TV emotes:", err);
+        }
+    }
+
+    function addToFavorites(emote: { id: string; name: string; url: string; type: string }) {
+        const favorites = getFavorites();
+
+        // Check if already exists
+        if (favorites.find((fav) => fav.id === emote.id)) {
+            alert(`${emote.name} is already in your favorites!`);
+            return;
+        }
+
+        // Add to favorites
+        favorites.push(emote);
+        saveFavorites(favorites);
+
+        alert(`Added ${emote.name} to favorites!`);
+    }
+
+    function getFavorites() {
+        const stored = localStorage.getItem(`favorites_${channel}`);
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveFavorites(favorites: any[]) {
+        localStorage.setItem(`favorites_${channel}`, JSON.stringify(favorites));
+    }
+
+    function goBack() {
+        goto(`/channel/${channel}`);
+    }
+</script>
+
+<svelte:head>
+    <title>Emote App - Add Emotes to {channel}</title>
+</svelte:head>
+
+<main>
+    <h1>Add Emotes to {channel}</h1>
+
+    {#if loading}
+        <p>Loading emotes...</p>
+    {:else if error}
+        <div class="error">
+            <p>Error: {error}</p>
+        </div>
+    {:else}
+        <div class="search-container">
+            <input
+                type="text"
+                placeholder="Search emotes..."
+                bind:value={searchTerm}
+                class="search-input"
+            />
+            <div class="results-count">
+                {filteredEmotes.length} emotes found
+            </div>
+        </div>
+
+        <div class="emotes-grid">
+            {#each filteredEmotes as emote}
+                <button class="emote-card" on:click={() => addToFavorites(emote)}>
+                    <img src={emote.url} alt={emote.name} />
+                    <span class="emote-name">{emote.name}</span>
+                    <span class="emote-type {emote.type === '7tv' ? 'seventv' : emote.type}"
+                        >{emote.type.toUpperCase()}</span
+                    >
+                </button>
+            {:else}
+                <p>No emotes found matching "{searchTerm}"</p>
+            {/each}
+        </div>
+    {/if}
+
+    <nav>
+        <button on:click={goBack}>Back to {channel} Favorites</button>
+    </nav>
+</main>
+
+<style>
+    main {
+        padding: 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .search-container {
+        margin: 2rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .search-input {
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1rem;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .results-count {
+        font-size: 0.875rem;
+        color: #666;
+    }
+
+    .emotes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+
+    .emote-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+    .emote-card:hover {
+        background: #f5f5f5;
+        border-color: #999;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .emote-card img {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 0.5rem;
+    }
+
+    .emote-name {
+        font-size: 0.875rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+        word-break: break-word;
+    }
+
+    .emote-type {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .emote-type.twitch {
+        background: #9146ff;
+        color: white;
+    }
+
+    .emote-type.seventv {
+        background: #00f5ff;
+        color: black;
+    }
+
+    .error {
+        padding: 1rem;
+        background: #fee;
+        border: 1px solid #fcc;
+        border-radius: 8px;
+        color: #c00;
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    nav {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+    }
+
+    nav button:hover {
+        background: #f5f5f5;
+    }
+
+    @media (max-width: 600px) {
+        .emotes-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+
+        .search-input {
+            max-width: 100%;
+        }
+    }
+</style>
