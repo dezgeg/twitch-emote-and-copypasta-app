@@ -47,9 +47,30 @@
                 cursor: not-allowed;
             }
 
-            /* Navigation base */
+            /* Navigation breadcrumb styles */
             nav {
                 margin-bottom: 2rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            nav a {
+                color: #0066cc;
+                text-decoration: none;
+                padding: 0.25rem 0.5rem;
+                border-radius: 3px;
+            }
+
+            nav a:hover {
+                background: #f0f8ff;
+                text-decoration: underline;
+            }
+
+            nav .separator {
+                color: #666;
+                font-weight: normal;
             }
         </style>
         %sveltekit.head%

@@ -28,7 +28,9 @@
 
 <main>
     <nav>
-        <a href="/" class="button">Back to Channels</a>
+        <a href="/">Channels</a>
+        <span class="separator">›</span>
+        <span>Setup</span>
     </nav>
 
     <h1>Setup</h1>

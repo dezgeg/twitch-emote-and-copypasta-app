@@ -83,7 +83,11 @@
 
 <main>
     <nav>
-        <a href="/channel/{channel}" class="button">Back to {channel} Favorites</a>
+        <a href="/">Channels</a>
+        <span class="separator">›</span>
+        <a href="/channel/{channel}">{channel}</a>
+        <span class="separator">›</span>
+        <span>Add Emotes</span>
     </nav>
 
     <h1>Add Emotes to {channel}</h1>
@@ -212,9 +216,6 @@
         color: white;
     }
 
-    nav {
-        text-align: center;
-    }
 
     @media (max-width: 600px) {
         .emotes-grid {

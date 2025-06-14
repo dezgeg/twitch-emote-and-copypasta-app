@@ -59,7 +59,9 @@
 
 <main>
     <nav>
-        <a href="/setup" class="button">Setup</a>
+        <span>Channels</span>
+        <span class="separator">•</span>
+        <a href="/setup">Setup</a>
     </nav>
 
     <h1>Your Followed Channels</h1>
@@ -117,7 +119,4 @@
         margin-bottom: 0.25rem;
     }
 
-    nav {
-        text-align: center;
-    }
 </style>

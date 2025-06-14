@@ -96,9 +96,13 @@
 
 <main>
     <nav>
-        <a href="/channel/{channel}/edit" class="button">Edit Favorites</a>
-        <a href="/channel/{channel}/add" class="button">Add Emotes</a>
-        <a href="/" class="button">Back to Channels</a>
+        <a href="/">Channels</a>
+        <span class="separator">›</span>
+        <span>{channel}</span>
+        <span class="separator">•</span>
+        <a href="/channel/{channel}/edit">Edit</a>
+        <span class="separator">•</span>
+        <a href="/channel/{channel}/add">Add Emotes</a>
     </nav>
 
     <h1>{channel} - Favorite Emotes</h1>
@@ -184,16 +188,6 @@
         word-break: break-word;
     }
 
-    nav {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .button {
-        text-align: center;
-    }
 
     @media (max-width: 600px) {
         .emotes-grid {
