@@ -4,31 +4,29 @@
     import { onMount } from "svelte";
     import { TWITCH_CLIENT_ID } from "$lib/config";
 
-    let channel: string;
     let twitchEmotes: Array<{ id: string; name: string; url: string; type: "twitch" }> = [];
     let seventvEmotes: Array<{ id: string; name: string; url: string; type: "7tv" }> = [];
-    let allEmotes: Array<{ id: string; name: string; url: string; type: "twitch" | "7tv" }> = [];
-    let filteredEmotes: Array<{ id: string; name: string; url: string; type: "twitch" | "7tv" }> =
-        [];
-    let searchTerm = "";
-    let loading = true;
-    let error = "";
+    let allEmotes: Array<{ id: string; name: string; url: string; type: "twitch" | "7tv" }> =
+        $state([]);
+    let searchTerm = $state("");
+    let loading = $state(true);
+    let error = $state("");
 
-    $: channel = $page.params.channel;
-    $: filterEmotes();
+    // Use $derived for reactive channel value
+    let channel = $derived($page.params.channel);
+
+    // Reactive filtering using Svelte 5 $derived
+    let filteredEmotes = $derived(
+        !searchTerm.trim()
+            ? allEmotes
+            : allEmotes.filter((emote) =>
+                  emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
+              ),
+    );
 
     onMount(async () => {
         await loadEmotes();
     });
-
-    function filterEmotes() {
-        if (!searchTerm.trim()) {
-            filteredEmotes = allEmotes;
-        } else {
-            const term = searchTerm.toLowerCase();
-            filteredEmotes = allEmotes.filter((emote) => emote.name.toLowerCase().includes(term));
-        }
-    }
 
     async function loadEmotes() {
         try {
@@ -49,7 +47,6 @@
             }
 
             allEmotes = [...twitchEmotes, ...seventvEmotes];
-            filteredEmotes = allEmotes;
         } catch (err) {
             console.error("Error loading emotes:", err);
             error = err instanceof Error ? err.message : "Failed to load emotes";
