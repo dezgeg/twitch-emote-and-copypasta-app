@@ -38,8 +38,15 @@
                 return;
             }
 
-            // Load both Twitch and 7TV emotes in parallel
-            await Promise.all([loadTwitchEmotes(apiKey), load7TVEmotes()]);
+            // Get broadcaster ID first, then load both emote sources
+            const broadcasterId = await getBroadcasterId(apiKey);
+            if (broadcasterId) {
+                // Load both Twitch and 7TV emotes in parallel
+                await Promise.all([
+                    loadTwitchEmotes(apiKey, broadcasterId),
+                    load7TVEmotes(broadcasterId),
+                ]);
+            }
 
             allEmotes = [...twitchEmotes, ...seventvEmotes];
             filteredEmotes = allEmotes;
@@ -51,9 +58,8 @@
         }
     }
 
-    async function loadTwitchEmotes(apiKey: string) {
+    async function getBroadcasterId(apiKey: string): Promise<string | null> {
         try {
-            // Get broadcaster info first
             const userResponse = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
                 headers: {
                     Authorization: `Bearer ${apiKey}`,
@@ -72,6 +78,15 @@
                 throw new Error("Channel not found");
             }
 
+            return broadcasterId;
+        } catch (err) {
+            console.error("Error getting broadcaster ID:", err);
+            return null;
+        }
+    }
+
+    async function loadTwitchEmotes(apiKey: string, broadcasterId: string) {
+        try {
             // Get channel emotes (subscriber emotes)
             const emotesResponse = await fetch(
                 `https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${broadcasterId}`,
@@ -116,10 +131,10 @@
         }
     }
 
-    async function load7TVEmotes() {
+    async function load7TVEmotes(broadcasterId: string) {
         try {
-            // Get 7TV emotes for the channel
-            const response = await fetch(`https://7tv.io/v3/users/twitch/${channel}`);
+            // Get 7TV emotes for the channel using broadcaster ID
+            const response = await fetch(`https://7tv.io/v3/users/twitch/${broadcasterId}`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -133,10 +148,14 @@
                 }
             } else if (response.status === 404) {
                 // Channel doesn't have 7TV emotes set up - this is normal
-                console.log(`Channel ${channel} does not have 7TV emotes configured`);
+                console.log(
+                    `Channel ${channel} (ID: ${broadcasterId}) does not have 7TV emotes configured`,
+                );
                 seventvEmotes = [];
             } else {
-                console.warn(`7TV API returned ${response.status} for channel ${channel}`);
+                console.warn(
+                    `7TV API returned ${response.status} for channel ${channel} (ID: ${broadcasterId})`,
+                );
                 seventvEmotes = [];
             }
         } catch (err) {
