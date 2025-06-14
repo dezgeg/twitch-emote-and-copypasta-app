@@ -27,6 +27,10 @@
 </svelte:head>
 
 <main>
+    <nav>
+        <a href="/" class="button">Back to Channels</a>
+    </nav>
+
     <h1>Setup</h1>
 
     <div class="setup-form">
@@ -40,7 +44,6 @@
 
         <div class="buttons">
             <button on:click={saveApiKey}> Save </button>
-            <a href="/" class="button"> Back to Channels </a>
         </div>
     </div>
 

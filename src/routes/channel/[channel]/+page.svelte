@@ -95,6 +95,12 @@
 </svelte:head>
 
 <main>
+    <nav>
+        <a href="/channel/{channel}/edit" class="button">Edit Favorites</a>
+        <a href="/channel/{channel}/add" class="button">Add Emotes</a>
+        <a href="/" class="button">Back to Channels</a>
+    </nav>
+
     <h1>{channel} - Favorite Emotes</h1>
 
     {#if loading}
@@ -122,12 +128,6 @@
                 </p>
             {/each}
         </div>
-
-        <nav>
-            <a href="/channel/{channel}/edit" class="button">Edit Favorites</a>
-            <a href="/channel/{channel}/add" class="button">Add Emotes</a>
-            <a href="/" class="button">Back to Channels</a>
-        </nav>
     {/if}
 </main>
 

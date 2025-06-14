@@ -58,6 +58,10 @@
 </svelte:head>
 
 <main>
+    <nav>
+        <a href="/setup" class="button">Setup</a>
+    </nav>
+
     <h1>Your Followed Channels</h1>
 
     {#if loading}
@@ -67,9 +71,6 @@
             <p>Error: {error}</p>
             <p>Please check your API key configuration.</p>
         </div>
-        <nav>
-            <a href="/setup" class="button">Setup</a>
-        </nav>
     {:else}
         <div class="channels">
             {#each channels as channel}
@@ -80,10 +81,6 @@
                 <p>No followed channels found.</p>
             {/each}
         </div>
-
-        <nav>
-            <a href="/setup" class="button">Setup</a>
-        </nav>
     {/if}
 </main>
 

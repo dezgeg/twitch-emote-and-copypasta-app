@@ -85,6 +85,10 @@
 </svelte:head>
 
 <main>
+    <nav>
+        <button on:click={goBack}>Back to {channel} Favorites</button>
+    </nav>
+
     <h1>Add Emotes to {channel}</h1>
 
     {#if loading}
@@ -120,10 +124,6 @@
             {/each}
         </div>
     {/if}
-
-    <nav>
-        <button on:click={goBack}>Back to {channel} Favorites</button>
-    </nav>
 </main>
 
 <style>
