@@ -133,9 +133,7 @@
 
 <style>
     main {
-        padding: 1rem;
         max-width: 800px;
-        margin: 0 auto;
     }
 
     .emotes-grid {
@@ -186,40 +184,15 @@
         word-break: break-word;
     }
 
-    .error {
-        padding: 1rem;
-        background: #fee;
-        border: 1px solid #fcc;
-        border-radius: 8px;
-        color: #c00;
-        text-align: center;
-        margin: 2rem 0;
-    }
-
     nav {
         display: flex;
         gap: 1rem;
         flex-wrap: wrap;
         justify-content: center;
-        margin-top: 2rem;
     }
 
-    button,
     .button {
-        padding: 0.5rem 1rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-        color: inherit;
         text-align: center;
-    }
-
-    button:hover,
-    .button:hover {
-        background: #f5f5f5;
     }
 
     @media (max-width: 600px) {

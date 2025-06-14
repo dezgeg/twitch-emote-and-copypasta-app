@@ -72,9 +72,7 @@
 
 <style>
     main {
-        padding: 1rem;
         max-width: 600px;
-        margin: 0 auto;
     }
 
     .setup-form {
@@ -105,25 +103,8 @@
     button,
     .button {
         padding: 0.75rem 1.5rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
         font-size: 1rem;
-        text-decoration: none;
-        display: inline-block;
         text-align: center;
-        color: inherit;
-    }
-
-    button:hover:not(:disabled),
-    .button:hover {
-        background: #f5f5f5;
-    }
-
-    button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
     }
 
     .help {

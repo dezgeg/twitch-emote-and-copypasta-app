@@ -128,9 +128,7 @@
 
 <style>
     main {
-        padding: 1rem;
         max-width: 1200px;
-        margin: 0 auto;
     }
 
     .search-container {
@@ -217,31 +215,8 @@
         color: white;
     }
 
-    .error {
-        padding: 1rem;
-        background: #fee;
-        border: 1px solid #fcc;
-        border-radius: 8px;
-        color: #c00;
-        text-align: center;
-        margin: 2rem 0;
-    }
-
     nav {
         text-align: center;
-        margin-top: 2rem;
-    }
-
-    button {
-        padding: 0.5rem 1rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-    }
-
-    nav button:hover {
-        background: #f5f5f5;
     }
 
     @media (max-width: 600px) {
