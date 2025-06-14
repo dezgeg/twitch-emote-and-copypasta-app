@@ -87,9 +87,6 @@
 </main>
 
 <style>
-    main {
-        max-width: 800px;
-    }
 
     .channels {
         display: grid;

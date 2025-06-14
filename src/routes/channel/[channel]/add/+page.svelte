@@ -128,9 +128,6 @@
 </main>
 
 <style>
-    main {
-        max-width: 1200px;
-    }
 
     .search-container {
         margin: 2rem 0;

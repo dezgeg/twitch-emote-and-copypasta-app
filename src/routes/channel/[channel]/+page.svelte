@@ -136,9 +136,6 @@
 </main>
 
 <style>
-    main {
-        max-width: 800px;
-    }
 
     .emotes-grid {
         display: grid;

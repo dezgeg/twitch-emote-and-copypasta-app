@@ -76,9 +76,6 @@
 </main>
 
 <style>
-    main {
-        max-width: 600px;
-    }
 
     .setup-form {
         margin: 2rem 0;
