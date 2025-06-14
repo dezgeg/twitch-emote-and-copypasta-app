@@ -5,12 +5,12 @@ export interface Emote {
     id: string;
     name: string;
     url: string;
-    type: "twitch" | "7tv";
+    type: "twitch" | "7tv" | "bttv";
     source?: string;
 }
 
 /**
- * Load all available emotes for a channel (global, user, and 7TV emotes)
+ * Load all available emotes for a channel (global, user, 7TV, and BetterTTV emotes)
  */
 export async function loadAllEmotes(apiKey: string, channel: string): Promise<Emote[]> {
     const allEmotes: Emote[] = [];
@@ -27,6 +27,10 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Em
         // Fetch 7TV emotes
         const seventvEmotes = await load7TVEmotes(broadcaster.id);
         allEmotes.push(...seventvEmotes);
+
+        // Fetch BetterTTV emotes
+        const bttvEmotes = await loadBetterTTVEmotes(broadcaster.id);
+        allEmotes.push(...bttvEmotes);
     } catch (err) {
         console.error("Error loading emotes:", err);
         throw err;
@@ -140,4 +144,73 @@ async function load7TVEmotes(broadcasterId: string): Promise<Emote[]> {
     }
 
     return [];
+}
+
+/**
+ * Load BetterTTV emotes for a channel
+ */
+async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
+    const bttvEmotes: Emote[] = [];
+
+    try {
+        // Fetch both global and channel BetterTTV emotes in parallel
+        const responses = await Promise.all([
+            // Global BetterTTV emotes
+            fetch("https://api.betterttv.net/3/cached/emotes/global"),
+            // Channel BetterTTV emotes
+            fetch(`https://api.betterttv.net/3/cached/users/twitch/${broadcasterId}`)
+        ]);
+
+        // Process global BTTV emotes
+        if (responses[0].ok) {
+            const globalData = await responses[0].json();
+            const globalEmotes = globalData.map((emote: any) => ({
+                id: emote.id,
+                name: emote.code,
+                url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
+                type: "bttv" as const,
+                source: "Global",
+            }));
+            bttvEmotes.push(...globalEmotes);
+        }
+
+        // Process channel BTTV emotes
+        if (responses[1].ok) {
+            const channelData = await responses[1].json();
+            if (channelData.channelEmotes) {
+                const channelEmotes = channelData.channelEmotes.map((emote: any) => ({
+                    id: emote.id,
+                    name: emote.code,
+                    url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
+                    type: "bttv" as const,
+                    source: "Channel",
+                }));
+                bttvEmotes.push(...channelEmotes);
+            }
+            // Also include shared emotes
+            if (channelData.sharedEmotes) {
+                const sharedEmotes = channelData.sharedEmotes.map((emote: any) => ({
+                    id: emote.id,
+                    name: emote.code,
+                    url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
+                    type: "bttv" as const,
+                    source: "Shared",
+                }));
+                bttvEmotes.push(...sharedEmotes);
+            }
+        } else if (responses[1].status === 404) {
+            // Channel doesn't have BetterTTV emotes set up - this is normal
+            console.log(`Channel (ID: ${broadcasterId}) does not have BetterTTV emotes configured`);
+        } else {
+            console.warn(`BetterTTV API returned ${responses[1].status} for channel (ID: ${broadcasterId})`);
+        }
+    } catch (err) {
+        // Network error or other issues - don't show error to user
+        console.log(
+            "BetterTTV emotes not available:",
+            err instanceof Error ? err.message : "Unknown error",
+        );
+    }
+
+    return bttvEmotes;
 }
