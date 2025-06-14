@@ -84,45 +84,102 @@
 
     async function loadTwitchEmotes(apiKey: string, broadcasterId: string) {
         try {
-            // Get channel emotes (subscriber emotes)
-            const emotesResponse = await fetch(
-                `https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${broadcasterId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${apiKey}`,
-                        "Client-Id": TWITCH_CLIENT_ID,
-                    },
-                },
-            );
-
-            if (emotesResponse.ok) {
-                const emotesData = await emotesResponse.json();
-                twitchEmotes = emotesData.data.map((emote: any) => ({
-                    id: emote.id,
-                    name: emote.name,
-                    url: emote.images.url_2x || emote.images.url_1x,
-                    type: "twitch" as const,
-                }));
-            }
-
-            // Also get global emotes
-            const globalResponse = await fetch("https://api.twitch.tv/helix/chat/emotes/global", {
+            // First get the current user's ID
+            const currentUserResponse = await fetch("https://api.twitch.tv/helix/users", {
                 headers: {
                     Authorization: `Bearer ${apiKey}`,
                     "Client-Id": TWITCH_CLIENT_ID,
                 },
             });
 
-            if (globalResponse.ok) {
-                const globalData = await globalResponse.json();
+            let userId = null;
+            if (currentUserResponse.ok) {
+                const currentUserData = await currentUserResponse.json();
+                userId = currentUserData.data[0]?.id;
+            }
+
+            // Get all available emote sources in parallel
+            const requests = [
+                // Global emotes
+                fetch("https://api.twitch.tv/helix/chat/emotes/global", {
+                    headers: {
+                        Authorization: `Bearer ${apiKey}`,
+                        "Client-Id": TWITCH_CLIENT_ID,
+                    },
+                }),
+                // Current channel emotes  
+                fetch(`https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${broadcasterId}`, {
+                    headers: {
+                        Authorization: `Bearer ${apiKey}`,
+                        "Client-Id": TWITCH_CLIENT_ID,
+                    },
+                }),
+            ];
+
+            // Add subscriber emotes if we have user ID
+            if (userId) {
+                requests.push(
+                    fetch(`https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`, {
+                        headers: {
+                            Authorization: `Bearer ${apiKey}`,
+                            "Client-Id": TWITCH_CLIENT_ID,
+                        },
+                    })
+                );
+            }
+
+            const responses = await Promise.all(requests);
+            let allTwitchEmotes: any[] = [];
+
+            // Process global emotes
+            if (responses[0].ok) {
+                const globalData = await responses[0].json();
                 const globalEmotes = globalData.data.map((emote: any) => ({
                     id: `global_${emote.id}`,
                     name: emote.name,
                     url: emote.images.url_2x || emote.images.url_1x,
                     type: "twitch" as const,
+                    source: "Global",
                 }));
-                twitchEmotes = [...twitchEmotes, ...globalEmotes];
+                allTwitchEmotes = [...allTwitchEmotes, ...globalEmotes];
             }
+
+            // Process channel emotes
+            if (responses[1].ok) {
+                const channelData = await responses[1].json();
+                const channelEmotes = channelData.data.map((emote: any) => ({
+                    id: emote.id,
+                    name: emote.name,
+                    url: emote.images.url_2x || emote.images.url_1x,
+                    type: "twitch" as const,
+                    source: `Channel: ${channel}`,
+                }));
+                allTwitchEmotes = [...allTwitchEmotes, ...channelEmotes];
+            }
+
+            // Process subscriber emotes if available
+            if (responses[2] && responses[2].ok) {
+                const subscriberData = await responses[2].json();
+                const subscriberEmotes = subscriberData.data.map((emote: any) => {
+                    // Subscriber emotes use template URL format
+                    const url = subscriberData.template
+                        .replace('{{id}}', emote.id)
+                        .replace('{{format}}', emote.format[0] || 'static')
+                        .replace('{{theme_mode}}', emote.theme_mode[0] || 'light')
+                        .replace('{{scale}}', '2.0');
+                    
+                    return {
+                        id: `sub_${emote.id}`,
+                        name: emote.name,
+                        url: url,
+                        type: "twitch" as const,
+                        source: "Subscriber",
+                    };
+                });
+                allTwitchEmotes = [...allTwitchEmotes, ...subscriberEmotes];
+            }
+
+            twitchEmotes = allTwitchEmotes;
         } catch (err) {
             console.error("Error loading Twitch emotes:", err);
         }
