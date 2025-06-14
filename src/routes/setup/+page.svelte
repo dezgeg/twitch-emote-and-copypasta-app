@@ -1,0 +1,165 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+
+	let apiKey = '';
+	let saving = false;
+
+	onMount(() => {
+		const storedApiKey = localStorage.getItem('twitchApiKey');
+		if (storedApiKey) {
+			apiKey = storedApiKey;
+		}
+	});
+
+	async function saveApiKey() {
+		if (!apiKey.trim()) {
+			alert('Please enter a valid API key');
+			return;
+		}
+
+		saving = true;
+		localStorage.setItem('twitchApiKey', apiKey.trim());
+		
+		setTimeout(() => {
+			saving = false;
+			goto('/');
+		}, 500);
+	}
+
+	function goHome() {
+		goto('/');
+	}
+</script>
+
+<svelte:head>
+	<title>Emote App - Setup</title>
+</svelte:head>
+
+<main>
+	<h1>Setup</h1>
+	
+	<div class="setup-form">
+		<label for="apiKey">Twitch API Key:</label>
+		<input 
+			id="apiKey"
+			type="password" 
+			bind:value={apiKey} 
+			placeholder="Enter your Twitch API key"
+			disabled={saving}
+		/>
+		
+		<div class="buttons">
+			<button on:click={saveApiKey} disabled={saving}>
+				{saving ? 'Saving...' : 'Save'}
+			</button>
+			<button on:click={goHome} disabled={saving}>
+				Back to Channels
+			</button>
+		</div>
+	</div>
+
+	<div class="help">
+		<h3>Setup Requirements:</h3>
+		<div class="setup-step">
+			<h4>1. Configure Client ID</h4>
+			<p>Edit <code>src/lib/config.ts</code> and replace <code>your-twitch-client-id</code> with your actual Client ID.</p>
+		</div>
+		
+		<div class="setup-step">
+			<h4>2. Get Access Token</h4>
+			<p>The API key above should be a Twitch access token with appropriate scopes.</p>
+		</div>
+
+		<h3>How to get these:</h3>
+		<ol>
+			<li>Go to <a href="https://dev.twitch.tv/console" target="_blank">Twitch Developer Console</a></li>
+			<li>Register your application with redirect URI: <code>http://localhost:3000</code></li>
+			<li>Copy the Client ID to <code>src/lib/config.ts</code></li>
+			<li>Generate an access token using OAuth flow or <a href="https://twitchtokengenerator.com/" target="_blank">Twitch Token Generator</a></li>
+			<li>Paste the access token in the field above</li>
+		</ol>
+	</div>
+</main>
+
+<style>
+	main {
+		padding: 1rem;
+		max-width: 600px;
+		margin: 0 auto;
+	}
+
+	.setup-form {
+		margin: 2rem 0;
+	}
+
+	label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-weight: bold;
+	}
+
+	input {
+		width: 100%;
+		padding: 0.75rem;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		font-size: 1rem;
+		margin-bottom: 1rem;
+		box-sizing: border-box;
+	}
+
+	.buttons {
+		display: flex;
+		gap: 1rem;
+	}
+
+	button {
+		padding: 0.75rem 1.5rem;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		background: white;
+		cursor: pointer;
+		font-size: 1rem;
+	}
+
+	button:hover:not(:disabled) {
+		background: #f5f5f5;
+	}
+
+	button:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.help {
+		margin-top: 3rem;
+		padding: 1rem;
+		background: #f9f9f9;
+		border-radius: 8px;
+	}
+
+	.help h3 {
+		margin-top: 0;
+	}
+
+	.help a {
+		color: #0066cc;
+	}
+
+	.setup-step {
+		margin-bottom: 1.5rem;
+	}
+
+	.setup-step h4 {
+		margin-bottom: 0.5rem;
+		color: #333;
+	}
+
+	code {
+		background: #f1f1f1;
+		padding: 0.2rem 0.4rem;
+		border-radius: 3px;
+		font-family: monospace;
+	}
+</style>
