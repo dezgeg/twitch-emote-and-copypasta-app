@@ -3,7 +3,6 @@
     import { onMount } from "svelte";
 
     let apiKey = "";
-    let saving = false;
 
     onMount(() => {
         const storedApiKey = localStorage.getItem("twitchApiKey");
@@ -12,24 +11,16 @@
         }
     });
 
-    async function saveApiKey() {
+    function saveApiKey() {
         if (!apiKey.trim()) {
             alert("Please enter a valid API key");
             return;
         }
 
-        saving = true;
         localStorage.setItem("twitchApiKey", apiKey.trim());
-
-        setTimeout(() => {
-            saving = false;
-            goto("/");
-        }, 500);
-    }
-
-    function goHome() {
         goto("/");
     }
+
 </script>
 
 <svelte:head>
@@ -46,29 +37,20 @@
             type="password"
             bind:value={apiKey}
             placeholder="Enter your Twitch API key"
-            disabled={saving}
         />
 
         <div class="buttons">
-            <button on:click={saveApiKey} disabled={saving}>
-                {saving ? "Saving..." : "Save"}
+            <button on:click={saveApiKey}>
+                Save
             </button>
-            <button on:click={goHome} disabled={saving}> Back to Channels </button>
+            <a href="/" class="button"> Back to Channels </a>
         </div>
     </div>
 
     <div class="help">
         <h3>Setup Requirements:</h3>
         <div class="setup-step">
-            <h4>1. Configure Client ID</h4>
-            <p>
-                Edit <code>src/lib/config.ts</code> and replace <code>your-twitch-client-id</code> with
-                your actual Client ID.
-            </p>
-        </div>
-
-        <div class="setup-step">
-            <h4>2. Get Access Token</h4>
+            <h4>Get Access Token</h4>
             <p>The API key above should be a Twitch access token with appropriate scopes.</p>
         </div>
 
@@ -80,7 +62,6 @@
                 >
             </li>
             <li>Register your application with redirect URI: <code>http://localhost:3000</code></li>
-            <li>Copy the Client ID to <code>src/lib/config.ts</code></li>
             <li>
                 Generate an access token using OAuth flow or <a
                     href="https://twitchtokengenerator.com/"
@@ -124,16 +105,22 @@
         gap: 1rem;
     }
 
-    button {
+    button,
+    .button {
         padding: 0.75rem 1.5rem;
         border: 1px solid #ccc;
         border-radius: 4px;
         background: white;
         cursor: pointer;
         font-size: 1rem;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        color: inherit;
     }
 
-    button:hover:not(:disabled) {
+    button:hover:not(:disabled),
+    .button:hover {
         background: #f5f5f5;
     }
 
