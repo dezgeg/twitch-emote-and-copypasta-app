@@ -107,7 +107,7 @@
                         "Client-Id": TWITCH_CLIENT_ID,
                     },
                 }),
-                // Current channel emotes  
+                // Current channel emotes
                 fetch(`https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${broadcasterId}`, {
                     headers: {
                         Authorization: `Bearer ${apiKey}`,
@@ -119,12 +119,15 @@
             // Add subscriber emotes if we have user ID
             if (userId) {
                 requests.push(
-                    fetch(`https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`, {
-                        headers: {
-                            Authorization: `Bearer ${apiKey}`,
-                            "Client-Id": TWITCH_CLIENT_ID,
+                    fetch(
+                        `https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${apiKey}`,
+                                "Client-Id": TWITCH_CLIENT_ID,
+                            },
                         },
-                    })
+                    ),
                 );
             }
 
@@ -163,11 +166,11 @@
                 const subscriberEmotes = subscriberData.data.map((emote: any) => {
                     // Subscriber emotes use template URL format
                     const url = subscriberData.template
-                        .replace('{{id}}', emote.id)
-                        .replace('{{format}}', emote.format[0] || 'static')
-                        .replace('{{theme_mode}}', emote.theme_mode[0] || 'light')
-                        .replace('{{scale}}', '2.0');
-                    
+                        .replace("{{id}}", emote.id)
+                        .replace("{{format}}", emote.format[0] || "static")
+                        .replace("{{theme_mode}}", emote.theme_mode[0] || "light")
+                        .replace("{{scale}}", "2.0");
+
                     return {
                         id: `sub_${emote.id}`,
                         name: emote.name,

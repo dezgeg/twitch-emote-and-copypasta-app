@@ -20,7 +20,6 @@
         localStorage.setItem("twitchApiKey", apiKey.trim());
         goto("/");
     }
-
 </script>
 
 <svelte:head>
@@ -40,9 +39,7 @@
         />
 
         <div class="buttons">
-            <button on:click={saveApiKey}>
-                Save
-            </button>
+            <button on:click={saveApiKey}> Save </button>
             <a href="/" class="button"> Back to Channels </a>
         </div>
     </div>

@@ -66,14 +66,6 @@
             loading = false;
         }
     }
-
-    function goToChannel(channel: string) {
-        goto(`/channel/${channel}`);
-    }
-
-    function goToSetup() {
-        goto("/setup");
-    }
 </script>
 
 <svelte:head>
@@ -91,25 +83,21 @@
             <p>Please check your API key configuration.</p>
         </div>
         <nav>
-            <button on:click={goToSetup}>Setup</button>
+            <a href="/setup" class="button">Setup</a>
         </nav>
     {:else}
         <div class="channels">
             {#each channels as channel}
-                <button
-                    class="channel-card"
-                    on:click={() => goToChannel(channel.broadcaster_login)}
-                >
+                <a class="channel-card" href="/channel/{channel.broadcaster_login}">
                     <div class="channel-name">{channel.broadcaster_name}</div>
-                    <div class="channel-login">@{channel.broadcaster_login}</div>
-                </button>
+                </a>
             {:else}
                 <p>No followed channels found.</p>
             {/each}
         </div>
 
         <nav>
-            <button on:click={goToSetup}>Setup</button>
+            <a href="/setup" class="button">Setup</a>
         </nav>
     {/if}
 </main>
@@ -135,6 +123,9 @@
         background: white;
         cursor: pointer;
         font-size: 1rem;
+        text-decoration: none;
+        display: block;
+        color: inherit;
     }
 
     .channel-card:hover {
@@ -144,11 +135,6 @@
     .channel-name {
         font-weight: bold;
         margin-bottom: 0.25rem;
-    }
-
-    .channel-login {
-        font-size: 0.875rem;
-        color: #666;
     }
 
     .error {
@@ -166,15 +152,20 @@
         text-align: center;
     }
 
-    button {
+    button,
+    .button {
         padding: 0.5rem 1rem;
         border: 1px solid #ccc;
         border-radius: 4px;
         background: white;
         cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        color: inherit;
     }
 
-    button:hover {
+    button:hover,
+    .button:hover {
         background: #f5f5f5;
     }
 </style>
