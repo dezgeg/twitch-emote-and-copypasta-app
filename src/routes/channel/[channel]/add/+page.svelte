@@ -2,6 +2,7 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
+    import { getUser } from "$lib/twitch-api";
     import { TWITCH_CLIENT_ID } from "$lib/config";
 
     let twitchEmotes: Array<{ id: string; name: string; url: string; type: "twitch" }> = [];
@@ -36,13 +37,13 @@
                 return;
             }
 
-            // Get broadcaster ID first, then load both emote sources
-            const broadcasterId = await getBroadcasterId(apiKey);
-            if (broadcasterId) {
+            // Get broadcaster info first, then load both emote sources
+            const broadcaster = await getUser(apiKey, channel);
+            if (broadcaster) {
                 // Load both Twitch and 7TV emotes in parallel
                 await Promise.all([
-                    loadTwitchEmotes(apiKey, broadcasterId),
-                    load7TVEmotes(broadcasterId),
+                    loadTwitchEmotes(apiKey, broadcaster.id),
+                    load7TVEmotes(broadcaster.id),
                 ]);
             }
 
@@ -55,48 +56,12 @@
         }
     }
 
-    async function getBroadcasterId(apiKey: string): Promise<string | null> {
-        try {
-            const userResponse = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
-                headers: {
-                    Authorization: `Bearer ${apiKey}`,
-                    "Client-Id": TWITCH_CLIENT_ID,
-                },
-            });
-
-            if (!userResponse.ok) {
-                throw new Error(`Failed to get user info: ${userResponse.status}`);
-            }
-
-            const userData = await userResponse.json();
-            const broadcasterId = userData.data[0]?.id;
-
-            if (!broadcasterId) {
-                throw new Error("Channel not found");
-            }
-
-            return broadcasterId;
-        } catch (err) {
-            console.error("Error getting broadcaster ID:", err);
-            return null;
-        }
-    }
 
     async function loadTwitchEmotes(apiKey: string, broadcasterId: string) {
         try {
             // First get the current user's ID
-            const currentUserResponse = await fetch("https://api.twitch.tv/helix/users", {
-                headers: {
-                    Authorization: `Bearer ${apiKey}`,
-                    "Client-Id": TWITCH_CLIENT_ID,
-                },
-            });
-
-            let userId = null;
-            if (currentUserResponse.ok) {
-                const currentUserData = await currentUserResponse.json();
-                userId = currentUserData.data[0]?.id;
-            }
+            const currentUser = await getUser(apiKey);
+            const userId = currentUser?.id || null;
 
             // Get all available emote sources in parallel
             const requests = [

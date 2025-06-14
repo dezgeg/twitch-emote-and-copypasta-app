@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
+    import { getUser } from "$lib/twitch-api";
     import { TWITCH_CLIENT_ID } from "$lib/config";
 
     let channels: Array<{
@@ -24,27 +25,14 @@
     async function fetchFollowedChannels(apiKey: string) {
         try {
             // First get user info to get user ID
-            const userResponse = await fetch("https://api.twitch.tv/helix/users", {
-                headers: {
-                    Authorization: `Bearer ${apiKey}`,
-                    "Client-Id": TWITCH_CLIENT_ID,
-                },
-            });
-
-            if (!userResponse.ok) {
-                throw new Error(`Failed to get user info: ${userResponse.status}`);
-            }
-
-            const userData = await userResponse.json();
-            const userId = userData.data[0]?.id;
-
-            if (!userId) {
-                throw new Error("Could not get user ID");
+            const user = await getUser(apiKey);
+            if (!user) {
+                throw new Error("Could not get user information");
             }
 
             // Get followed channels
             const followsResponse = await fetch(
-                `https://api.twitch.tv/helix/channels/followed?user_id=${userId}`,
+                `https://api.twitch.tv/helix/channels/followed?user_id=${user.id}`,
                 {
                     headers: {
                         Authorization: `Bearer ${apiKey}`,
