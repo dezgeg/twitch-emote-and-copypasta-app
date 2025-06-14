@@ -25,18 +25,6 @@
         console.log(`Sending emote to chat: ${emote.name}`);
         alert(`Would send "${emote.name}" to ${channel}'s chat`);
     }
-
-    function goToEdit() {
-        goto(`/channel/${channel}/edit`);
-    }
-
-    function goToAdd() {
-        goto(`/channel/${channel}/add`);
-    }
-
-    function goHome() {
-        goto("/");
-    }
 </script>
 
 <svelte:head>
@@ -56,14 +44,18 @@
                     <span>{emote.name}</span>
                 </button>
             {:else}
-                <p>No favorite emotes yet. <button on:click={goToAdd}>Add some!</button></p>
+                <p>
+                    No favorite emotes yet. <a href="/channel/{channel}/add" class="button"
+                        >Add some!</a
+                    >
+                </p>
             {/each}
         </div>
 
         <nav>
-            <button on:click={goToEdit}>Edit Favorites</button>
-            <button on:click={goToAdd}>Add Emotes</button>
-            <button on:click={goHome}>Back to Channels</button>
+            <a href="/channel/{channel}/edit" class="button">Edit Favorites</a>
+            <a href="/channel/{channel}/add" class="button">Add Emotes</a>
+            <a href="/" class="button">Back to Channels</a>
         </nav>
     {/if}
 </main>
@@ -118,15 +110,21 @@
         margin-top: 2rem;
     }
 
-    button {
+    button,
+    .button {
         padding: 0.5rem 1rem;
         border: 1px solid #ccc;
         border-radius: 4px;
         background: white;
         cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        color: inherit;
+        text-align: center;
     }
 
-    button:hover {
+    button:hover,
+    .button:hover {
         background: #f5f5f5;
     }
 
@@ -139,7 +137,8 @@
             flex-direction: column;
         }
 
-        nav button {
+        nav button,
+        nav .button {
             width: 100%;
         }
     }

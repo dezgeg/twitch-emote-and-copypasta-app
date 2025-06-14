@@ -20,10 +20,10 @@ export interface TwitchUser {
  * @throws Error if user not found or API request fails
  */
 export async function getUser(apiKey: string, login?: string | null): Promise<TwitchUser> {
-    const url = login 
+    const url = login
         ? `https://api.twitch.tv/helix/users?login=${login}`
         : "https://api.twitch.tv/helix/users";
-        
+
     const response = await fetch(url, {
         headers: {
             Authorization: `Bearer ${apiKey}`,
@@ -37,10 +37,10 @@ export async function getUser(apiKey: string, login?: string | null): Promise<Tw
 
     const userData = await response.json();
     const user = userData.data[0];
-    
+
     if (!user) {
         throw new Error(login ? `User "${login}" not found` : "Current user not found");
     }
-    
+
     return user;
 }

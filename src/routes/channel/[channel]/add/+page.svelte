@@ -18,9 +18,7 @@
 
     // Reactive filtering using Svelte 5 $derived
     let filteredEmotes = $derived(
-        allEmotes.filter((emote) =>
-            emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
-        ),
+        allEmotes.filter((emote) => emote.name.toLowerCase().includes(searchTerm.toLowerCase())),
     );
 
     onMount(async () => {
@@ -51,7 +49,6 @@
             loading = false;
         }
     }
-
 
     async function loadTwitchEmotes(apiKey: string, broadcasterId: string) {
         try {
