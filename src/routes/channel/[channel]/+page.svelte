@@ -102,7 +102,7 @@
     {:else}
         <div class="emotes-grid">
             {#each favoriteEmotes as emote}
-                <button class="emote-button" on:click={() => sendEmoteToChat(emote)}>
+                <button class="emote-button" onclick={() => sendEmoteToChat(emote)}>
                     {#if emote.url}
                         <img src={emote.url} alt={emote.name} />
                     {:else}
@@ -177,11 +177,6 @@
 
         nav {
             flex-direction: column;
-        }
-
-        nav button,
-        nav .button {
-            width: 100%;
         }
     }
 </style>

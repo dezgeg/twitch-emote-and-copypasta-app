@@ -103,7 +103,7 @@
 
         <div class="emotes-grid">
             {#each filteredEmotes as emote}
-                <button class="emote-card" on:click={() => addToFavorites(emote)}>
+                <button class="emote-card" onclick={() => addToFavorites(emote)}>
                     <img src={emote.url} alt={emote.name} />
                     <span class="emote-name">{emote.name}</span>
                     <span class="emote-type {emote.type === '7tv' ? 'seventv' : emote.type}"
