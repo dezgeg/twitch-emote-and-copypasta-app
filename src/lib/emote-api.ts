@@ -5,7 +5,6 @@ export interface Emote {
     name: string;
     url: string;
     type: "twitch" | "7tv" | "bttv" | "ffz";
-    source?: string;
 }
 
 /**
@@ -94,7 +93,6 @@ async function loadTwitchEmotes(
                 name: emote.name,
                 url: buildTwitchEmoteUrl(globalData.template, emote),
                 type: "twitch" as const,
-                source: "Global",
             }));
             twitchEmotes.push(...globalEmotes);
         }
@@ -106,7 +104,6 @@ async function loadTwitchEmotes(
                 name: emote.name,
                 url: buildTwitchEmoteUrl(userData.template, emote),
                 type: "twitch" as const,
-                source: "Available",
             }));
             twitchEmotes.push(...userEmotes);
         }
@@ -172,7 +169,6 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
                 name: emote.code,
                 url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
                 type: "bttv" as const,
-                source: "Global",
             }));
             bttvEmotes.push(...globalEmotes);
         }
@@ -185,7 +181,6 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
                     name: emote.code,
                     url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
                     type: "bttv" as const,
-                    source: "Channel",
                 }));
                 bttvEmotes.push(...channelEmotes);
             }
@@ -195,7 +190,6 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
                     name: emote.code,
                     url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
                     type: "bttv" as const,
-                    source: "Shared",
                 }));
                 bttvEmotes.push(...sharedEmotes);
             }
@@ -243,7 +237,6 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
                             name: emote.name,
                             url: emote.urls["2"] || emote.urls["1"],
                             type: "ffz" as const,
-                            source: "Global",
                         }));
                         ffzEmotes.push(...globalEmotes);
                     }
@@ -261,7 +254,6 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
                             name: emote.name,
                             url: emote.urls["2"] || emote.urls["1"],
                             type: "ffz" as const,
-                            source: "Channel",
                         }));
                         ffzEmotes.push(...channelEmotes);
                     }
