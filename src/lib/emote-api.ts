@@ -55,6 +55,32 @@ function buildTwitchEmoteUrl(template: string, emote: any): string {
 }
 
 /**
+ * Helper function to fetch and process Twitch emotes from a URL
+ */
+async function fetchTwitchEmotes(url: string, apiKey: string): Promise<Emote[]> {
+    const headers = {
+        Authorization: `Bearer ${apiKey}`,
+        "Client-Id": TWITCH_CLIENT_ID,
+    };
+
+    try {
+        const response = await fetch(url, { headers });
+        if (response.ok) {
+            const data = await response.json();
+            return data.data.map((emote: any) => ({
+                name: emote.name,
+                url: buildTwitchEmoteUrl(data.template, emote),
+                type: "twitch" as const,
+            }));
+        }
+    } catch (err) {
+        console.error("Error fetching Twitch emotes:", err);
+    }
+
+    return [];
+}
+
+/**
  * Load Twitch emotes (global and user emotes)
  */
 async function loadTwitchEmotes(
@@ -62,37 +88,12 @@ async function loadTwitchEmotes(
     broadcasterId: string,
     userId: string,
 ): Promise<Emote[]> {
-    const twitchEmotes: Emote[] = [];
+    const [globalEmotes, userSpecificEmotes] = await Promise.all([
+        fetchTwitchEmotes("https://api.twitch.tv/helix/chat/emotes/global", apiKey),
+        fetchTwitchEmotes(`https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`, apiKey),
+    ]);
 
-    try {
-        const headers = {
-            Authorization: `Bearer ${apiKey}`,
-            "Client-Id": TWITCH_CLIENT_ID,
-        };
-
-        // Fetch global and user emotes in parallel
-        const responses = await Promise.all([
-            fetch("https://api.twitch.tv/helix/chat/emotes/global", { headers }),
-            fetch(`https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`, { headers }),
-        ]);
-
-        // Process both global and user emotes
-        for (const response of responses) {
-            if (response.ok) {
-                const data = await response.json();
-                const emotes = data.data.map((emote: any) => ({
-                    name: emote.name,
-                    url: buildTwitchEmoteUrl(data.template, emote),
-                    type: "twitch" as const,
-                }));
-                twitchEmotes.push(...emotes);
-            }
-        }
-    } catch (err) {
-        console.error("Error loading Twitch emotes:", err);
-    }
-
-    return twitchEmotes;
+    return globalEmotes.concat(userSpecificEmotes);
 }
 
 /**
