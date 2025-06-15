@@ -55,7 +55,7 @@ function buildTwitchEmoteUrl(template: string, emote: any): string {
 }
 
 /**
- * Helper function to fetch and process Twitch emotes from a URL
+ * Helper function to fetch and process Twitch emotes from a URL with pagination support
  */
 async function fetchTwitchEmotes(url: string, apiKey: string): Promise<Emote[]> {
     const headers = {
@@ -63,21 +63,41 @@ async function fetchTwitchEmotes(url: string, apiKey: string): Promise<Emote[]> 
         "Client-Id": TWITCH_CLIENT_ID,
     };
 
+    const allEmotes: Emote[] = [];
+    let currentUrl = url;
+
     try {
-        const response = await fetch(url, { headers });
-        if (response.ok) {
-            const data = await response.json();
-            return data.data.map((emote: any) => ({
-                name: emote.name,
-                url: buildTwitchEmoteUrl(data.template, emote),
-                type: "twitch" as const,
-            }));
+        while (currentUrl) {
+            const response = await fetch(currentUrl, { headers });
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Process emotes from current page
+                const emotes = data.data.map((emote: any) => ({
+                    name: emote.name,
+                    url: buildTwitchEmoteUrl(data.template, emote),
+                    type: "twitch" as const,
+                }));
+                allEmotes.push(...emotes);
+
+                // Check for next page
+                const cursor = data.pagination?.cursor;
+                if (cursor) {
+                    const urlObj = new URL(currentUrl);
+                    urlObj.searchParams.set('after', cursor);
+                    currentUrl = urlObj.toString();
+                } else {
+                    currentUrl = null;
+                }
+            } else {
+                break;
+            }
         }
     } catch (err) {
         console.error("Error fetching Twitch emotes:", err);
     }
 
-    return [];
+    return allEmotes;
 }
 
 /**
