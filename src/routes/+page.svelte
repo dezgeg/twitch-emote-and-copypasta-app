@@ -1,15 +1,10 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { getUser } from "$lib/twitch-api";
-    import { TWITCH_CLIENT_ID } from "$lib/config";
+    import { getFollowedChannels, type FollowedChannel } from "$lib/twitch-api";
     import { twitchApiKey } from "$lib/stores";
 
-    let channels: Array<{
-        broadcaster_id: string;
-        broadcaster_login: string;
-        broadcaster_name: string;
-    }> = [];
+    let channels: FollowedChannel[] = [];
     let loading = true;
     let error = "";
 
@@ -19,31 +14,12 @@
             return;
         }
 
-        await fetchFollowedChannels($twitchApiKey);
+        await loadChannels();
     });
 
-    async function fetchFollowedChannels(apiKey: string) {
+    async function loadChannels() {
         try {
-            // First get user info to get user ID
-            const user = await getUser(apiKey);
-
-            // Get followed channels
-            const followsResponse = await fetch(
-                `https://api.twitch.tv/helix/channels/followed?user_id=${user.id}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${apiKey}`,
-                        "Client-Id": TWITCH_CLIENT_ID,
-                    },
-                },
-            );
-
-            if (!followsResponse.ok) {
-                throw new Error(`Failed to get followed channels: ${followsResponse.status}`);
-            }
-
-            const followsData = await followsResponse.json();
-            channels = followsData.data || [];
+            channels = await getFollowedChannels($twitchApiKey);
         } catch (err) {
             console.error("Error fetching channels:", err);
             error = err instanceof Error ? err.message : "Failed to fetch channels";

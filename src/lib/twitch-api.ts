@@ -13,6 +13,12 @@ export interface TwitchUser {
     created_at: string;
 }
 
+export interface FollowedChannel {
+    broadcaster_id: string;
+    broadcaster_login: string;
+    broadcaster_name: string;
+}
+
 /**
  * Get user information from Twitch API
  * @param apiKey - Twitch API access token
@@ -43,4 +49,32 @@ export async function getUser(apiKey: string, login?: string | null): Promise<Tw
     }
 
     return user;
+}
+
+/**
+ * Get followed channels for the authenticated user
+ * @param apiKey - Twitch API access token
+ * @throws Error if API request fails
+ */
+export async function getFollowedChannels(apiKey: string): Promise<FollowedChannel[]> {
+    // First get user info to get user ID
+    const user = await getUser(apiKey);
+
+    // Get followed channels
+    const followsResponse = await fetch(
+        `https://api.twitch.tv/helix/channels/followed?user_id=${user.id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Client-Id": TWITCH_CLIENT_ID,
+            },
+        },
+    );
+
+    if (!followsResponse.ok) {
+        throw new Error(`Failed to get followed channels: ${followsResponse.status}`);
+    }
+
+    const followsData = await followsResponse.json();
+    return followsData.data || [];
 }
