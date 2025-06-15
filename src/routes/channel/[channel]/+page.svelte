@@ -3,6 +3,7 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
+    import { twitchApiKey } from "$lib/stores";
 
     let channel: string;
     let favoriteEmoteNames: string[] = [];
@@ -45,8 +46,7 @@
 
     async function fetchEmoteUrls() {
         try {
-            const apiKey = localStorage.getItem("twitchApiKey");
-            if (!apiKey) {
+            if (!$twitchApiKey) {
                 // If no API key, show emotes without images
                 favoriteEmotes = favoriteEmoteNames.map((name) => ({
                     id: name,
@@ -58,7 +58,7 @@
             }
 
             // Fetch all available emotes
-            const allEmotes = await loadAllEmotes(apiKey, channel);
+            const allEmotes = await loadAllEmotes($twitchApiKey, channel);
 
             // Match favorite names with current emote data
             favoriteEmotes = favoriteEmoteNames.map((name) => {

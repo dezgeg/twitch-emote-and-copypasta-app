@@ -1,23 +1,15 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { onMount } from "svelte";
-
-    let apiKey = "";
-
-    onMount(() => {
-        const storedApiKey = localStorage.getItem("twitchApiKey");
-        if (storedApiKey) {
-            apiKey = storedApiKey;
-        }
-    });
+    import { twitchApiKey } from "$lib/stores";
 
     function saveApiKey() {
-        if (!apiKey.trim()) {
+        if (!$twitchApiKey.trim()) {
             alert("Please enter a valid API key");
             return;
         }
 
-        localStorage.setItem("twitchApiKey", apiKey.trim());
+        // Store is automatically persisted, just trim the value
+        $twitchApiKey = $twitchApiKey.trim();
         goto("/");
     }
 </script>
@@ -40,7 +32,7 @@
         <input
             id="apiKey"
             type="password"
-            bind:value={apiKey}
+            bind:value={$twitchApiKey}
             placeholder="Enter your Twitch API key"
         />
 

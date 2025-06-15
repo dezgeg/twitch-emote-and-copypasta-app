@@ -3,6 +3,7 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
+    import { twitchApiKey } from "$lib/stores";
 
     let allEmotes: Emote[] = $state([]);
     let searchTerm = $state("");
@@ -23,13 +24,12 @@
 
     async function loadEmotes() {
         try {
-            const apiKey = localStorage.getItem("twitchApiKey");
-            if (!apiKey) {
+            if (!$twitchApiKey) {
                 goto("/setup");
                 return;
             }
 
-            allEmotes = await loadAllEmotes(apiKey, channel);
+            allEmotes = await loadAllEmotes($twitchApiKey, channel);
         } catch (err) {
             console.error("Error loading emotes:", err);
             error = err instanceof Error ? err.message : "Failed to load emotes";

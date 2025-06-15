@@ -3,6 +3,7 @@
     import { goto } from "$app/navigation";
     import { getUser } from "$lib/twitch-api";
     import { TWITCH_CLIENT_ID } from "$lib/config";
+    import { twitchApiKey } from "$lib/stores";
 
     let channels: Array<{
         broadcaster_id: string;
@@ -13,13 +14,12 @@
     let error = "";
 
     onMount(async () => {
-        const apiKey = localStorage.getItem("twitchApiKey");
-        if (!apiKey) {
+        if (!$twitchApiKey) {
             goto("/setup");
             return;
         }
 
-        await fetchFollowedChannels(apiKey);
+        await fetchFollowedChannels($twitchApiKey);
     });
 
     async function fetchFollowedChannels(apiKey: string) {
