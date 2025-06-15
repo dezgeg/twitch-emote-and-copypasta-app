@@ -87,7 +87,7 @@
         </div>
 
         <div class="emotes-grid">
-            {#each filteredEmotes as emote}
+            {#each filteredEmotes as emote (emote.uniqueKey)}
                 <button
                     class="emote-card"
                     class:favorited={isFavorited(emote.name)}

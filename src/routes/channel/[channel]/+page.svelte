@@ -50,6 +50,7 @@
                         name,
                         url: "", // Emote not found, show without image
                         type: "twitch" as const,
+                        uniqueKey: `missing-${name}`,
                     }
                 );
             });
@@ -60,6 +61,7 @@
                 name,
                 url: "",
                 type: "twitch" as const,
+                uniqueKey: `fallback-${name}`,
             }));
         }
     }
@@ -95,7 +97,7 @@
         </div>
     {:else}
         <div class="emotes-grid">
-            {#each favoriteEmotes as emote}
+            {#each favoriteEmotes as emote (emote.uniqueKey)}
                 <button class="emote-button" onclick={() => sendEmoteToChat(emote)}>
                     {#if emote.url}
                         <img src={emote.url} alt={emote.name} />

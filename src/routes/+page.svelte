@@ -52,7 +52,7 @@
         </div>
     {:else}
         <div class="channels">
-            {#each channels as channel}
+            {#each channels as channel (channel.broadcaster_id)}
                 <a class="channel-card" href="/channel/{channel.broadcaster_login}">
                     <div class="channel-name">{channel.broadcaster_name}</div>
                 </a>

@@ -5,6 +5,7 @@ export interface Emote {
     name: string;
     url: string;
     type: "twitch" | "7tv" | "bttv" | "ffz";
+    uniqueKey: string;
 }
 
 /**
@@ -77,6 +78,7 @@ async function fetchTwitchEmotes(url: string, apiKey: string): Promise<Emote[]> 
                     name: emote.name,
                     url: buildTwitchEmoteUrl(data.template, emote),
                     type: "twitch" as const,
+                    uniqueKey: `twitch-${emote.id}`,
                 }));
                 allEmotes.push(...emotes);
 
@@ -113,7 +115,17 @@ async function loadTwitchEmotes(
         fetchTwitchEmotes(`https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`, apiKey),
     ]);
 
-    return globalEmotes.concat(userSpecificEmotes);
+    const allEmotes = globalEmotes.concat(userSpecificEmotes);
+    
+    // Deduplicate by uniqueKey
+    const seen = new Set<string>();
+    return allEmotes.filter(emote => {
+        if (seen.has(emote.uniqueKey)) {
+            return false;
+        }
+        seen.add(emote.uniqueKey);
+        return true;
+    });
 }
 
 /**
@@ -130,6 +142,7 @@ async function load7TVEmotes(broadcasterId: string): Promise<Emote[]> {
                     name: emote.name,
                     url: `https://cdn.7tv.app/emote/${emote.id}/2x.webp`,
                     type: "7tv" as const,
+                    uniqueKey: `7tv-${emote.id}`,
                 }));
             }
         } else if (response.status === 404) {
@@ -171,6 +184,7 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
                 name: emote.code,
                 url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
                 type: "bttv" as const,
+                uniqueKey: `bttv-global-${emote.id}`,
             }));
             bttvEmotes.push(...globalEmotes);
         }
@@ -183,6 +197,7 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
                     name: emote.code,
                     url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
                     type: "bttv" as const,
+                    uniqueKey: `bttv-channel-${emote.id}`,
                 }));
                 bttvEmotes.push(...channelEmotes);
             }
@@ -192,6 +207,7 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
                     name: emote.code,
                     url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
                     type: "bttv" as const,
+                    uniqueKey: `bttv-shared-${emote.id}`,
                 }));
                 bttvEmotes.push(...sharedEmotes);
             }
@@ -239,6 +255,7 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
                             name: emote.name,
                             url: emote.urls["2"] || emote.urls["1"],
                             type: "ffz" as const,
+                            uniqueKey: `ffz-global-${emote.id}`,
                         }));
                         ffzEmotes.push(...globalEmotes);
                     }
@@ -256,6 +273,7 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
                             name: emote.name,
                             url: emote.urls["2"] || emote.urls["1"],
                             type: "ffz" as const,
+                            uniqueKey: `ffz-channel-${emote.id}`,
                         }));
                         ffzEmotes.push(...channelEmotes);
                     }
