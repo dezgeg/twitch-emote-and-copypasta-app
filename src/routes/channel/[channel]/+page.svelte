@@ -38,13 +38,7 @@
     async function fetchEmoteUrls() {
         try {
             if (!$twitchApiKey) {
-                // If no API key, show emotes without images
-                favoriteEmotes = favoriteEmoteNames.map((name) => ({
-                    id: name,
-                    name,
-                    url: "",
-                    type: "twitch" as const,
-                }));
+                goto("/setup");
                 return;
             }
 
