@@ -3,6 +3,7 @@
     import { goto } from "$app/navigation";
     import { getFollowedChannels, type FollowedChannel } from "$lib/twitch-api";
     import { twitchApiKey } from "$lib/stores";
+    import Spinner from "$lib/components/Spinner.svelte";
 
     let channels: FollowedChannel[] = [];
     let loading = true;
@@ -43,7 +44,7 @@
     <h1>Your Followed Channels</h1>
 
     {#if loading}
-        <p>Loading channels...</p>
+        <Spinner />
     {:else if error}
         <div class="error">
             <p>Error: {error}</p>

@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import { twitchApiKey } from "$lib/stores";
+    import Spinner from "$lib/components/Spinner.svelte";
 
     let channel: string;
     let favoriteEmoteNames: string[] = [];
@@ -93,7 +94,7 @@
     <h1>{channel} - Favorite Emotes</h1>
 
     {#if loading}
-        <p>Loading...</p>
+        <Spinner />
     {:else if error}
         <div class="error">
             <p>Error: {error}</p>

@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import { twitchApiKey } from "$lib/stores";
+    import Spinner from "$lib/components/Spinner.svelte";
 
     let allEmotes: Emote[] = $state([]);
     let searchTerm = $state("");
@@ -82,7 +83,7 @@
     <h1>Add Emotes to {channel}</h1>
 
     {#if loading}
-        <p>Loading emotes...</p>
+        <Spinner />
     {:else if error}
         <div class="error">
             <p>Error: {error}</p>
