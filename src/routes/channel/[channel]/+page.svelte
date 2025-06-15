@@ -3,16 +3,16 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
-    import { twitchApiKey } from "$lib/stores";
+    import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
 
     let channel: string;
-    let favoriteEmoteNames: string[] = [];
     let favoriteEmotes: Emote[] = [];
     let loading = true;
     let error = "";
 
     $: channel = $page.params.channel;
+    $: favoriteEmotesStore = getFavoriteEmotesStore(channel);
 
     onMount(async () => {
         await loadFavoriteEmotes();
@@ -20,12 +20,8 @@
 
     async function loadFavoriteEmotes() {
         try {
-            // Load favorite emote names from localStorage
-            const stored = localStorage.getItem(`favorites_${channel}`);
-            favoriteEmoteNames = stored ? JSON.parse(stored) : [];
-
             // If we have favorite emotes, fetch their current URLs
-            if (favoriteEmoteNames.length > 0) {
+            if ($favoriteEmotesStore.length > 0) {
                 await fetchEmoteUrls();
             }
         } catch (err) {
@@ -47,7 +43,7 @@
             const allEmotes = await loadAllEmotes($twitchApiKey, channel);
 
             // Match favorite names with current emote data
-            favoriteEmotes = favoriteEmoteNames.map((name) => {
+            favoriteEmotes = $favoriteEmotesStore.map((name) => {
                 const emote = allEmotes.find((e) => e.name === name);
                 return (
                     emote || {
@@ -61,7 +57,7 @@
         } catch (err) {
             console.error("Error fetching emote URLs:", err);
             // If API fails, show emotes without images
-            favoriteEmotes = favoriteEmoteNames.map((name) => ({
+            favoriteEmotes = $favoriteEmotesStore.map((name) => ({
                 id: name,
                 name,
                 url: "",

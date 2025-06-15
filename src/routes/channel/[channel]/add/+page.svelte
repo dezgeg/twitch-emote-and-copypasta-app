@@ -3,7 +3,7 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
-    import { twitchApiKey } from "$lib/stores";
+    import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
 
     let allEmotes: Emote[] = $state([]);
@@ -13,6 +13,7 @@
 
     // Use $derived for reactive channel value
     let channel = $derived($page.params.channel);
+    let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
 
     // Reactive filtering using Svelte 5 $derived
     let filteredEmotes = $derived(
@@ -40,31 +41,18 @@
     }
 
     function addToFavorites(emote: { id: string; name: string; url: string; type: string }) {
-        const favoriteNames = getFavoriteNames();
-
         // Check if already exists
-        if (favoriteNames.includes(emote.name)) {
+        if ($favoriteEmotesStore.includes(emote.name)) {
             alert(`${emote.name} is already in your favorites!`);
             return;
         }
 
         // Add emote name to favorites
-        favoriteNames.push(emote.name);
-        saveFavoriteNames(favoriteNames);
+        $favoriteEmotesStore = [...$favoriteEmotesStore, emote.name];
 
         alert(`Added ${emote.name} to favorites!`);
     }
 
-    function getFavoriteNames(): string[] {
-        const stored = localStorage.getItem(`favorites_${channel}`);
-        if (!stored) return [];
-
-        return JSON.parse(stored);
-    }
-
-    function saveFavoriteNames(favoriteNames: string[]) {
-        localStorage.setItem(`favorites_${channel}`, JSON.stringify(favoriteNames));
-    }
 </script>
 
 <svelte:head>
