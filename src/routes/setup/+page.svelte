@@ -19,9 +19,11 @@
         <label for="apiKey">Twitch API Key:</label>
         <input
             id="apiKey"
-            type="password"
+            type="text"
             bind:value={$twitchApiKey}
             placeholder="Enter your Twitch API key"
+            autocomplete="off"
+            class="api-key-input"
         />
         <p class="help-text">Your API key is automatically saved as you type.</p>
     </div>
@@ -71,6 +73,10 @@
         font-size: 1rem;
         margin-bottom: 1rem;
         box-sizing: border-box;
+    }
+
+    .api-key-input {
+        -webkit-text-security: circle;
     }
 
     .help-text {
