@@ -117,7 +117,7 @@
                     <img src={emote.url} alt={emote.name} />
                     <span class="emote-name">{emote.name}</span>
                     <span class="emote-type {emote.type === '7tv' ? 'seventv' : emote.type}"
-                        >{emote.type === 'bttv' ? 'BTTV' : emote.type.toUpperCase()}</span
+                        >{emote.type === 'bttv' ? 'BTTV' : emote.type === 'ffz' ? 'FFZ' : emote.type.toUpperCase()}</span
                     >
                 </button>
             {:else}
@@ -210,6 +210,11 @@
 
     .emote-type.bttv {
         background: #d50000;
+        color: white;
+    }
+
+    .emote-type.ffz {
+        background: #755000;
         color: white;
     }
 

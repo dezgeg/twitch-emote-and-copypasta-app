@@ -5,12 +5,12 @@ export interface Emote {
     id: string;
     name: string;
     url: string;
-    type: "twitch" | "7tv" | "bttv";
+    type: "twitch" | "7tv" | "bttv" | "ffz";
     source?: string;
 }
 
 /**
- * Load all available emotes for a channel (global, user, 7TV, and BetterTTV emotes)
+ * Load all available emotes for a channel (global, user, 7TV, BetterTTV, and FrankerFaceZ emotes)
  */
 export async function loadAllEmotes(apiKey: string, channel: string): Promise<Emote[]> {
     const allEmotes: Emote[] = [];
@@ -31,6 +31,10 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Em
         // Fetch BetterTTV emotes
         const bttvEmotes = await loadBetterTTVEmotes(broadcaster.id);
         allEmotes.push(...bttvEmotes);
+
+        // Fetch FrankerFaceZ emotes
+        const ffzEmotes = await loadFFZEmotes(broadcaster.id);
+        allEmotes.push(...ffzEmotes);
     } catch (err) {
         console.error("Error loading emotes:", err);
         throw err;
@@ -217,4 +221,72 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
     }
 
     return bttvEmotes;
+}
+
+/**
+ * Load FrankerFaceZ emotes for a channel
+ */
+async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
+    const ffzEmotes: Emote[] = [];
+
+    try {
+        // Fetch both global and channel FFZ emotes in parallel
+        const responses = await Promise.all([
+            // Global FFZ emotes
+            fetch("https://api.frankerfacez.com/v1/set/global"),
+            // Channel FFZ emotes
+            fetch(`https://api.frankerfacez.com/v1/room/id/${broadcasterId}`)
+        ]);
+
+        // Process global FFZ emotes
+        if (responses[0].ok) {
+            const globalData = await responses[0].json();
+            if (globalData.sets) {
+                Object.values(globalData.sets).forEach((set: any) => {
+                    if (set.emoticons) {
+                        const globalEmotes = set.emoticons.map((emote: any) => ({
+                            id: emote.id.toString(),
+                            name: emote.name,
+                            url: emote.urls["2"] || emote.urls["1"],
+                            type: "ffz" as const,
+                            source: "Global",
+                        }));
+                        ffzEmotes.push(...globalEmotes);
+                    }
+                });
+            }
+        }
+
+        // Process channel FFZ emotes
+        if (responses[1].ok) {
+            const channelData = await responses[1].json();
+            if (channelData.sets) {
+                Object.values(channelData.sets).forEach((set: any) => {
+                    if (set.emoticons) {
+                        const channelEmotes = set.emoticons.map((emote: any) => ({
+                            id: emote.id.toString(),
+                            name: emote.name,
+                            url: emote.urls["2"] || emote.urls["1"],
+                            type: "ffz" as const,
+                            source: "Channel",
+                        }));
+                        ffzEmotes.push(...channelEmotes);
+                    }
+                });
+            }
+        } else if (responses[1].status === 404) {
+            // Channel doesn't have FFZ emotes set up - this is normal
+            console.log(`Channel (ID: ${broadcasterId}) does not have FrankerFaceZ emotes configured`);
+        } else {
+            console.warn(`FrankerFaceZ API returned ${responses[1].status} for channel (ID: ${broadcasterId})`);
+        }
+    } catch (err) {
+        // Network error or other issues - don't show error to user
+        console.log(
+            "FrankerFaceZ emotes not available:",
+            err instanceof Error ? err.message : "Unknown error",
+        );
+    }
+
+    return ffzEmotes;
 }
