@@ -48,7 +48,7 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Em
  */
 function buildTwitchEmoteUrl(template: string, emote: any): string {
     // Prefer animated format if available, otherwise use first available format
-    const format = emote.format.includes("animated") ? "animated" : (emote.format[0] || "static");
+    const format = emote.format.includes("animated") ? "animated" : emote.format[0] || "static";
     return template
         .replace("{{id}}", emote.id)
         .replace("{{format}}", format)
@@ -166,7 +166,7 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
             // Global BetterTTV emotes
             fetch("https://api.betterttv.net/3/cached/emotes/global"),
             // Channel BetterTTV emotes
-            fetch(`https://api.betterttv.net/3/cached/users/twitch/${broadcasterId}`)
+            fetch(`https://api.betterttv.net/3/cached/users/twitch/${broadcasterId}`),
         ]);
 
         // Process global BTTV emotes
@@ -210,7 +210,9 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
             // Channel doesn't have BetterTTV emotes set up - this is normal
             console.log(`Channel (ID: ${broadcasterId}) does not have BetterTTV emotes configured`);
         } else {
-            console.warn(`BetterTTV API returned ${responses[1].status} for channel (ID: ${broadcasterId})`);
+            console.warn(
+                `BetterTTV API returned ${responses[1].status} for channel (ID: ${broadcasterId})`,
+            );
         }
     } catch (err) {
         // Network error or other issues - don't show error to user
@@ -235,7 +237,7 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
             // Global FFZ emotes
             fetch("https://api.frankerfacez.com/v1/set/global"),
             // Channel FFZ emotes
-            fetch(`https://api.frankerfacez.com/v1/room/id/${broadcasterId}`)
+            fetch(`https://api.frankerfacez.com/v1/room/id/${broadcasterId}`),
         ]);
 
         // Process global FFZ emotes
@@ -276,9 +278,13 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
             }
         } else if (responses[1].status === 404) {
             // Channel doesn't have FFZ emotes set up - this is normal
-            console.log(`Channel (ID: ${broadcasterId}) does not have FrankerFaceZ emotes configured`);
+            console.log(
+                `Channel (ID: ${broadcasterId}) does not have FrankerFaceZ emotes configured`,
+            );
         } else {
-            console.warn(`FrankerFaceZ API returned ${responses[1].status} for channel (ID: ${broadcasterId})`);
+            console.warn(
+                `FrankerFaceZ API returned ${responses[1].status} for channel (ID: ${broadcasterId})`,
+            );
         }
     } catch (err) {
         // Network error or other issues - don't show error to user

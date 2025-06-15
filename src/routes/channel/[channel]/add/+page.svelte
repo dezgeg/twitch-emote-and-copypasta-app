@@ -74,7 +74,6 @@
     function saveFavoriteNames(favoriteNames: string[]) {
         localStorage.setItem(`favorites_${channel}`, JSON.stringify(favoriteNames));
     }
-
 </script>
 
 <svelte:head>
@@ -117,7 +116,11 @@
                     <img src={emote.url} alt={emote.name} />
                     <span class="emote-name">{emote.name}</span>
                     <span class="emote-type {emote.type === '7tv' ? 'seventv' : emote.type}"
-                        >{emote.type === 'bttv' ? 'BTTV' : emote.type === 'ffz' ? 'FFZ' : emote.type.toUpperCase()}</span
+                        >{emote.type === "bttv"
+                            ? "BTTV"
+                            : emote.type === "ffz"
+                              ? "FFZ"
+                              : emote.type.toUpperCase()}</span
                     >
                 </button>
             {:else}
@@ -128,7 +131,6 @@
 </main>
 
 <style>
-
     .search-container {
         margin: 2rem 0;
         display: flex;
@@ -217,7 +219,6 @@
         background: #755000;
         color: white;
     }
-
 
     @media (max-width: 600px) {
         .emotes-grid {

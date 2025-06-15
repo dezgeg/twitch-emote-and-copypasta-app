@@ -1,4 +1,4 @@
-import { persisted } from 'svelte-persisted-store';
+import { persisted } from "svelte-persisted-store";
 
 // Persisted store for Twitch API key
-export const twitchApiKey = persisted('twitchApiKey', '');
+export const twitchApiKey = persisted("twitchApiKey", "");

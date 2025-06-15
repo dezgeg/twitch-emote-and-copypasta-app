@@ -1,17 +1,5 @@
 <script lang="ts">
-    import { goto } from "$app/navigation";
     import { twitchApiKey } from "$lib/stores";
-
-    function saveApiKey() {
-        if (!$twitchApiKey.trim()) {
-            alert("Please enter a valid API key");
-            return;
-        }
-
-        // Store is automatically persisted, just trim the value
-        $twitchApiKey = $twitchApiKey.trim();
-        goto("/");
-    }
 </script>
 
 <svelte:head>
@@ -35,10 +23,7 @@
             bind:value={$twitchApiKey}
             placeholder="Enter your Twitch API key"
         />
-
-        <div class="buttons">
-            <button on:click={saveApiKey}> Save </button>
-        </div>
+        <p class="help-text">Your API key is automatically saved as you type.</p>
     </div>
 
     <div class="help">
@@ -68,7 +53,6 @@
 </main>
 
 <style>
-
     .setup-form {
         margin: 2rem 0;
     }
@@ -89,16 +73,11 @@
         box-sizing: border-box;
     }
 
-    .buttons {
-        display: flex;
-        gap: 1rem;
-    }
-
-    button,
-    .button {
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-        text-align: center;
+    .help-text {
+        margin: 0.5rem 0 0 0;
+        font-size: 0.875rem;
+        color: #666;
+        font-style: italic;
     }
 
     .help {

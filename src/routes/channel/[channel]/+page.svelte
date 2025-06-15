@@ -136,7 +136,6 @@
 </main>
 
 <style>
-
     .emotes-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -184,7 +183,6 @@
         font-size: 0.875rem;
         word-break: break-word;
     }
-
 
     @media (max-width: 600px) {
         .emotes-grid {

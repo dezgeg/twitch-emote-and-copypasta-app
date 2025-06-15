@@ -87,7 +87,6 @@
 </main>
 
 <style>
-
     .channels {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -115,5 +114,4 @@
         font-weight: bold;
         margin-bottom: 0.25rem;
     }
-
 </style>
