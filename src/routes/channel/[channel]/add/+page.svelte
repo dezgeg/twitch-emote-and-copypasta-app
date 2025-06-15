@@ -58,17 +58,7 @@
         const stored = localStorage.getItem(`favorites_${channel}`);
         if (!stored) return [];
 
-        const data = JSON.parse(stored);
-        // Handle both old format (full objects) and new format (just names)
-        if (Array.isArray(data) && typeof data[0] === "string") {
-            return data;
-        } else if (Array.isArray(data) && data[0]?.name) {
-            // Migrate from old format
-            const names = data.map((emote: any) => emote.name);
-            saveFavoriteNames(names);
-            return names;
-        }
-        return [];
+        return JSON.parse(stored);
     }
 
     function saveFavoriteNames(favoriteNames: string[]) {

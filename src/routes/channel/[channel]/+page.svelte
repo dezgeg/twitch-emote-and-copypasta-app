@@ -21,16 +21,7 @@
         try {
             // Load favorite emote names from localStorage
             const stored = localStorage.getItem(`favorites_${channel}`);
-            if (stored) {
-                const storedData = JSON.parse(stored);
-                // Handle both old format (full objects) and new format (just names)
-                favoriteEmoteNames =
-                    Array.isArray(storedData) && typeof storedData[0] === "string"
-                        ? storedData
-                        : storedData.map((emote: any) => emote.name);
-            } else {
-                favoriteEmoteNames = [];
-            }
+            favoriteEmoteNames = stored ? JSON.parse(stored) : [];
 
             // If we have favorite emotes, fetch their current URLs
             if (favoriteEmoteNames.length > 0) {
