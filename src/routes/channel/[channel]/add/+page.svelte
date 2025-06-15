@@ -11,11 +11,8 @@
     let loading = $state(true);
     let error = $state("");
 
-    // Use $derived for reactive channel value
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
-
-    // Reactive filtering using Svelte 5 $derived
     let filteredEmotes = $derived(
         allEmotes.filter((emote) => emote.name.toLowerCase().includes(searchTerm.toLowerCase())),
     );
@@ -42,12 +39,10 @@
 
     function toggleFavorite(emote: { id: string; name: string; url: string; type: string }) {
         const isFavorited = $favoriteEmotesStore.includes(emote.name);
-        
+
         if (isFavorited) {
-            // Remove from favorites
-            $favoriteEmotesStore = $favoriteEmotesStore.filter(name => name !== emote.name);
+            $favoriteEmotesStore = $favoriteEmotesStore.filter((name) => name !== emote.name);
         } else {
-            // Add to favorites
             $favoriteEmotesStore = [...$favoriteEmotesStore, emote.name];
         }
     }
@@ -55,7 +50,6 @@
     function isFavorited(emoteName: string): boolean {
         return $favoriteEmotesStore.includes(emoteName);
     }
-
 </script>
 
 <svelte:head>
@@ -94,8 +88,9 @@
 
         <div class="emotes-grid">
             {#each filteredEmotes as emote}
-                <button 
-                    class="emote-card {isFavorited(emote.name) ? 'favorited' : ''}" 
+                <button
+                    class="emote-card"
+                    class:favorited={isFavorited(emote.name)}
                     onclick={() => toggleFavorite(emote)}
                 >
                     <img src={emote.url} alt={emote.name} />
