@@ -40,23 +40,26 @@
         }
     }
 
-    function addToFavorites(emote: { id: string; name: string; url: string; type: string }) {
-        // Check if already exists
-        if ($favoriteEmotesStore.includes(emote.name)) {
-            alert(`${emote.name} is already in your favorites!`);
-            return;
+    function toggleFavorite(emote: { id: string; name: string; url: string; type: string }) {
+        const isFavorited = $favoriteEmotesStore.includes(emote.name);
+        
+        if (isFavorited) {
+            // Remove from favorites
+            $favoriteEmotesStore = $favoriteEmotesStore.filter(name => name !== emote.name);
+        } else {
+            // Add to favorites
+            $favoriteEmotesStore = [...$favoriteEmotesStore, emote.name];
         }
+    }
 
-        // Add emote name to favorites
-        $favoriteEmotesStore = [...$favoriteEmotesStore, emote.name];
-
-        alert(`Added ${emote.name} to favorites!`);
+    function isFavorited(emoteName: string): boolean {
+        return $favoriteEmotesStore.includes(emoteName);
     }
 
 </script>
 
 <svelte:head>
-    <title>Emote App - Add Emotes to {channel}</title>
+    <title>Emote App - Manage Emotes for {channel}</title>
 </svelte:head>
 
 <main>
@@ -68,7 +71,7 @@
         <span>Add Emotes</span>
     </nav>
 
-    <h1>Add Emotes to {channel}</h1>
+    <h1>Manage Emotes for {channel}</h1>
 
     {#if loading}
         <Spinner />
@@ -91,7 +94,10 @@
 
         <div class="emotes-grid">
             {#each filteredEmotes as emote}
-                <button class="emote-card" onclick={() => addToFavorites(emote)}>
+                <button 
+                    class="emote-card {isFavorited(emote.name) ? 'favorited' : ''}" 
+                    onclick={() => toggleFavorite(emote)}
+                >
                     <img src={emote.url} alt={emote.name} />
                     <span class="emote-name">{emote.name}</span>
                     <span class="emote-type {emote.type === '7tv' ? 'seventv' : emote.type}"
@@ -101,6 +107,9 @@
                               ? "FFZ"
                               : emote.type.toUpperCase()}</span
                     >
+                    {#if isFavorited(emote.name)}
+                        <span class="favorite-indicator">★</span>
+                    {/if}
                 </button>
             {:else}
                 <p>No emotes found matching "{searchTerm}"</p>
@@ -149,6 +158,7 @@
         cursor: pointer;
         text-align: center;
         transition: all 0.2s;
+        position: relative;
     }
 
     .emote-card:hover {
@@ -169,6 +179,25 @@
         font-weight: bold;
         margin-bottom: 0.25rem;
         word-break: break-word;
+    }
+
+    .emote-card.favorited {
+        background: #e8f4fd;
+        border-color: #4a90e2;
+    }
+
+    .emote-card.favorited:hover {
+        background: #d1e7fc;
+        border-color: #357abd;
+    }
+
+    .favorite-indicator {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        color: #ffd700;
+        font-size: 1rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .emote-type {
