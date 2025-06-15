@@ -102,9 +102,6 @@
                               ? "FFZ"
                               : emote.type.toUpperCase()}</span
                     >
-                    {#if isFavorited(emote.name)}
-                        <span class="favorite-indicator">★</span>
-                    {/if}
                 </button>
             {:else}
                 <p>No emotes found matching "{searchTerm}"</p>
@@ -186,14 +183,6 @@
         border-color: #357abd;
     }
 
-    .favorite-indicator {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        color: #ffd700;
-        font-size: 1rem;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
 
     .emote-type {
         font-size: 0.75rem;
