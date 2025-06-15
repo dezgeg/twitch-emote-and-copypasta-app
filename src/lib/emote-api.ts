@@ -2,7 +2,6 @@ import { getUser } from "./twitch-api";
 import { TWITCH_CLIENT_ID } from "./config";
 
 export interface Emote {
-    id: string;
     name: string;
     url: string;
     type: "twitch" | "7tv" | "bttv" | "ffz";
@@ -92,7 +91,6 @@ async function loadTwitchEmotes(
         if (responses[0].ok) {
             const globalData = await responses[0].json();
             const globalEmotes = globalData.data.map((emote: any) => ({
-                id: `global_${emote.id}`,
                 name: emote.name,
                 url: buildTwitchEmoteUrl(globalData.template, emote),
                 type: "twitch" as const,
@@ -105,7 +103,6 @@ async function loadTwitchEmotes(
         if (responses[1].ok) {
             const userData = await responses[1].json();
             const userEmotes = userData.data.map((emote: any) => ({
-                id: `user_${emote.id}`,
                 name: emote.name,
                 url: buildTwitchEmoteUrl(userData.template, emote),
                 type: "twitch" as const,
@@ -131,7 +128,6 @@ async function load7TVEmotes(broadcasterId: string): Promise<Emote[]> {
             const data = await response.json();
             if (data.emote_set?.emotes) {
                 return data.emote_set.emotes.map((emote: any) => ({
-                    id: emote.id,
                     name: emote.name,
                     url: `https://cdn.7tv.app/emote/${emote.id}/2x.webp`,
                     type: "7tv" as const,
@@ -173,7 +169,6 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
         if (responses[0].ok) {
             const globalData = await responses[0].json();
             const globalEmotes = globalData.map((emote: any) => ({
-                id: emote.id,
                 name: emote.code,
                 url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
                 type: "bttv" as const,
@@ -187,7 +182,6 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
             const channelData = await responses[1].json();
             if (channelData.channelEmotes) {
                 const channelEmotes = channelData.channelEmotes.map((emote: any) => ({
-                    id: emote.id,
                     name: emote.code,
                     url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
                     type: "bttv" as const,
@@ -198,7 +192,6 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
             // Also include shared emotes
             if (channelData.sharedEmotes) {
                 const sharedEmotes = channelData.sharedEmotes.map((emote: any) => ({
-                    id: emote.id,
                     name: emote.code,
                     url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
                     type: "bttv" as const,
@@ -247,7 +240,6 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
                 Object.values(globalData.sets).forEach((set: any) => {
                     if (set.emoticons) {
                         const globalEmotes = set.emoticons.map((emote: any) => ({
-                            id: emote.id.toString(),
                             name: emote.name,
                             url: emote.urls["2"] || emote.urls["1"],
                             type: "ffz" as const,
@@ -266,7 +258,6 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
                 Object.values(channelData.sets).forEach((set: any) => {
                     if (set.emoticons) {
                         const channelEmotes = set.emoticons.map((emote: any) => ({
-                            id: emote.id.toString(),
                             name: emote.name,
                             url: emote.urls["2"] || emote.urls["1"],
                             type: "ffz" as const,

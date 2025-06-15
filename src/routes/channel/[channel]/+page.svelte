@@ -47,7 +47,6 @@
                 const emote = allEmotes.find((e) => e.name === name);
                 return (
                     emote || {
-                        id: name,
                         name,
                         url: "", // Emote not found, show without image
                         type: "twitch" as const,
@@ -58,7 +57,6 @@
             console.error("Error fetching emote URLs:", err);
             // If API fails, show emotes without images
             favoriteEmotes = $favoriteEmotesStore.map((name) => ({
-                id: name,
                 name,
                 url: "",
                 type: "twitch" as const,
@@ -66,7 +64,7 @@
         }
     }
 
-    function sendEmoteToChat(emote: { id: string; name: string; url: string }) {
+    function sendEmoteToChat(emote: { name: string; url: string }) {
         console.log(`Sending emote to chat: ${emote.name}`);
         alert(`Would send "${emote.name}" to ${channel}'s chat`);
     }

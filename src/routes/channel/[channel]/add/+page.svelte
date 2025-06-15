@@ -37,7 +37,7 @@
         }
     }
 
-    function toggleFavorite(emote: { id: string; name: string; url: string; type: string }) {
+    function toggleFavorite(emote: { name: string; url: string; type: string }) {
         const isFavorited = $favoriteEmotesStore.includes(emote.name);
 
         if (isFavorited) {
