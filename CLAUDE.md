@@ -41,13 +41,13 @@ Technical requirements:
 
 ### Editing favourite emotes (`/channel/<channel>/edit')
 
-- [ ] Shows the user their favourited emotes in a grid, plus a button to delete them.
+- [ ] Shows the user their favourited emotes in a grid, and allows drag&drop to reorder them.
 - [ ] Navigation button back to channel's favourite emotes page (`/channel/<channel>`).
 
 ### Adding favourite emotes (`/channel/<channel>/add')
 
 - [ ] Shows the streamer's all available emotes (both Twitch and 7TV).
-    - [ ] Clicking an emote adds it to favourites.
+    - [ ] Clicking an emote adds/removes it to favourites.
     - [ ] List is searchable by name.
 - [ ] Navigation button back to channel's favourite emotes page (`/channel/<channel>`).
 
