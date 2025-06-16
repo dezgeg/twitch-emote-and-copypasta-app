@@ -74,7 +74,7 @@
 </script>
 
 <svelte:head>
-    <title>Emote App - {channel} Favorites</title>
+    <title>Twitch Emote and Copypasta App - {channel} Favorites</title>
 </svelte:head>
 
 <main>

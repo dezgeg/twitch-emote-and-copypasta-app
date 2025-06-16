@@ -54,7 +54,7 @@
 </script>
 
 <svelte:head>
-    <title>Emote App - Manage Emotes for {channel}</title>
+    <title>Twitch Emote and Copypasta App - Manage Emotes for {channel}</title>
 </svelte:head>
 
 <main>

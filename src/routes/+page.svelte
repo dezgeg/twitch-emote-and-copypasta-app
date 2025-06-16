@@ -31,7 +31,7 @@
 </script>
 
 <svelte:head>
-    <title>Emote App - Channels</title>
+    <title>Twitch Emote and Copypasta App - Channels</title>
 </svelte:head>
 
 <main>

@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-    <title>Emote App - Setup</title>
+    <title>Twitch Emote and Copypasta App - Setup</title>
 </svelte:head>
 
 <main>

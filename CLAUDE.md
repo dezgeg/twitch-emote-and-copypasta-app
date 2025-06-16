@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This project allows the user to quickly use their favourite emotes and copypastas in Twitch chats.
+This project (Twitch Emote and Copypasta App) allows the user to quickly use their favourite emotes and copypastas in Twitch chats.
 
 Functional requirements:
 
