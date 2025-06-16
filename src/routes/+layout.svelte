@@ -1,6 +1,9 @@
 <script>
     import { base } from '$app/paths';
     import { page } from '$app/stores';
+    
+    // Make base available globally for navigation
+    export { base };
 </script>
 
 <main>

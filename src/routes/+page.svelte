@@ -4,6 +4,7 @@
     import { getFollowedChannels, type FollowedChannel } from "$lib/twitch-api";
     import { twitchApiKey } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
+    import { base } from '$app/paths';
 
     let channels: FollowedChannel[] = [];
     let loading = true;
@@ -11,7 +12,7 @@
 
     onMount(async () => {
         if (!$twitchApiKey) {
-            goto("/setup");
+            goto(`${base}/setup`);
             return;
         }
 
@@ -38,7 +39,7 @@
     <nav>
         <span>Channels</span>
         <span class="separator">•</span>
-        <a href="/setup">Setup</a>
+        <a href="{base}/setup">Setup</a>
     </nav>
 
     <h1>Your Followed Channels</h1>
@@ -53,7 +54,7 @@
     {:else}
         <div class="channels">
             {#each channels as channel (channel.broadcaster_id)}
-                <a class="channel-card" href="/channel/{channel.broadcaster_login}">
+                <a class="channel-card" href="{base}/channel/{channel.broadcaster_login}">
                     <div class="channel-name">{channel.broadcaster_name}</div>
                 </a>
             {:else}

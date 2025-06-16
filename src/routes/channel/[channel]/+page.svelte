@@ -6,6 +6,7 @@
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
+    import { base } from '$app/paths';
 
     let channel: string;
     let favoriteEmotes: Emote[] = [];
@@ -36,7 +37,7 @@
     async function fetchEmoteUrls() {
         try {
             if (!$twitchApiKey) {
-                goto("/setup");
+                goto(`${base}/setup`);
                 return;
             }
 
@@ -79,13 +80,13 @@
 
 <main>
     <nav>
-        <a href="/">Channels</a>
+        <a href="{base}/">Channels</a>
         <span class="separator">›</span>
         <span>{channel}</span>
         <span class="separator">•</span>
-        <a href="/channel/{channel}/edit">Edit</a>
+        <a href="{base}/channel/{channel}/edit">Edit</a>
         <span class="separator">•</span>
-        <a href="/channel/{channel}/add">Add Emotes</a>
+        <a href="{base}/channel/{channel}/add">Add Emotes</a>
     </nav>
 
     <h1>{channel} - Favorite Emotes</h1>
@@ -106,7 +107,7 @@
                 />
             {:else}
                 <p>
-                    No favorite emotes yet. <a href="/channel/{channel}/add" class="button"
+                    No favorite emotes yet. <a href="{base}/channel/{channel}/add" class="button"
                         >Add some!</a
                     >
                 </p>

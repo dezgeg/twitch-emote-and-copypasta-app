@@ -6,6 +6,7 @@
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
+    import { base } from '$app/paths';
 
     let allEmotes: Emote[] = $state([]);
     let searchTerm = $state("");
@@ -25,7 +26,7 @@
     async function loadEmotes() {
         try {
             if (!$twitchApiKey) {
-                goto("/setup");
+                goto(`${base}/setup`);
                 return;
             }
 
@@ -59,9 +60,9 @@
 
 <main>
     <nav>
-        <a href="/">Channels</a>
+        <a href="{base}/">Channels</a>
         <span class="separator">›</span>
-        <a href="/channel/{channel}">{channel}</a>
+        <a href="{base}/channel/{channel}">{channel}</a>
         <span class="separator">›</span>
         <span>Add Emotes</span>
     </nav>

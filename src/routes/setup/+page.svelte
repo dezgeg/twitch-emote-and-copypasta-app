@@ -1,5 +1,6 @@
 <script lang="ts">
     import { twitchApiKey } from "$lib/stores";
+    import { base } from '$app/paths';
 </script>
 
 <svelte:head>
@@ -8,7 +9,7 @@
 
 <main>
     <nav>
-        <a href="/">Channels</a>
+        <a href="{base}/">Channels</a>
         <span class="separator">›</span>
         <span>Setup</span>
     </nav>
