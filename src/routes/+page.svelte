@@ -4,6 +4,7 @@
     import { getFollowedChannels, type FollowedChannel } from "$lib/twitch-api";
     import { twitchApiKey } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
+    import NavBar from "$lib/components/NavBar.svelte";
     import { base } from '$app/paths';
 
     let channels: FollowedChannel[] = [];
@@ -36,11 +37,7 @@
 </svelte:head>
 
 <main>
-    <nav>
-        <span>Channels</span>
-        <span class="separator">•</span>
-        <a href="{base}/setup">Setup</a>
-    </nav>
+    <NavBar />
 
     <h1>Your Followed Channels</h1>
 

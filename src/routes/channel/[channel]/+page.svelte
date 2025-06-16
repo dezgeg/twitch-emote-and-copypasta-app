@@ -6,6 +6,7 @@
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
+    import NavBar from "$lib/components/NavBar.svelte";
     import { base } from '$app/paths';
 
     let channel: string;
@@ -79,15 +80,7 @@
 </svelte:head>
 
 <main>
-    <nav>
-        <a href="{base}/">Channels</a>
-        <span class="separator">›</span>
-        <span>{channel}</span>
-        <span class="separator">•</span>
-        <a href="{base}/channel/{channel}/edit">Edit</a>
-        <span class="separator">•</span>
-        <a href="{base}/channel/{channel}/add">Add Emotes</a>
-    </nav>
+    <NavBar {channel} />
 
     <h1>{channel} - Favorite Emotes</h1>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { twitchApiKey } from "$lib/stores";
-    import { base } from '$app/paths';
+    import NavBar from "$lib/components/NavBar.svelte";
 </script>
 
 <svelte:head>
@@ -8,11 +8,7 @@
 </svelte:head>
 
 <main>
-    <nav>
-        <a href="{base}/">Channels</a>
-        <span class="separator">›</span>
-        <span>Setup</span>
-    </nav>
+    <NavBar />
 
     <h1>Setup</h1>
 
