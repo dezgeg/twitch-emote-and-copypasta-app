@@ -220,6 +220,9 @@
             ondragover={handleTrashDragOver}
             ondragleave={handleTrashDragLeave}
             ondrop={handleTrashDrop}
+            role="button"
+            tabindex="0"
+            aria-label="Drop zone to delete emotes"
         >
             <div class="trash-can">
                 🗑️
