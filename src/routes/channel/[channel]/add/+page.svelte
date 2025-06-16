@@ -52,6 +52,13 @@
     function isFavorited(emoteName: string): boolean {
         return $favoriteEmotesStore.includes(emoteName);
     }
+
+    function handleSearchKeydown(event: KeyboardEvent) {
+        if (event.key === 'Enter') {
+            // Blur the input to close virtual keyboard on mobile
+            (event.target as HTMLInputElement).blur();
+        }
+    }
 </script>
 
 <svelte:head>
@@ -71,6 +78,7 @@
                 placeholder="Search emotes..."
                 bind:value={searchTerm}
                 class="search-input"
+                onkeydown={handleSearchKeydown}
             />
             <div class="results-count">
                 {filteredEmotes.length} emotes found

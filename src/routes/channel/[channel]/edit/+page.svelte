@@ -14,6 +14,8 @@
     let draggedIndex = $state<number | null>(null);
     let dragOverIndex = $state<number | null>(null);
     let dragOverTrash = $state(false);
+    let touchStartPos = $state<{x: number, y: number} | null>(null);
+    let isTouchDragging = $state(false);
 
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
@@ -139,6 +141,81 @@
         dragOverTrash = false;
     }
 
+    // Touch event handlers for mobile drag and drop
+    function handleTouchStart(event: TouchEvent, emote: Emote, index?: number) {
+        const touch = event.touches[0];
+        touchStartPos = { x: touch.clientX, y: touch.clientY };
+        draggedIndex = index ?? null;
+        isTouchDragging = false;
+    }
+
+    function handleContextMenu(event: Event) {
+        // Prevent context menu during touch dragging
+        if (isTouchDragging || touchStartPos) {
+            event.preventDefault();
+        }
+    }
+
+    function handleTouchMove(event: TouchEvent) {
+        if (touchStartPos && draggedIndex !== null) {
+            const touch = event.touches[0];
+            const deltaX = Math.abs(touch.clientX - touchStartPos.x);
+            const deltaY = Math.abs(touch.clientY - touchStartPos.y);
+            
+            // Start dragging if moved more than 10px
+            if (deltaX > 10 || deltaY > 10) {
+                isTouchDragging = true;
+                event.preventDefault(); // Prevent scrolling
+                
+                // Find the element under the touch point
+                const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                const emoteCard = elementBelow?.closest('[data-emote-index]');
+                
+                if (emoteCard) {
+                    const targetIndex = parseInt(emoteCard.getAttribute('data-emote-index') || '');
+                    if (!isNaN(targetIndex)) {
+                        dragOverIndex = targetIndex;
+                    }
+                }
+                
+                // Check if over trash zone
+                const trashZone = elementBelow?.closest('.trash-zone');
+                dragOverTrash = !!trashZone;
+            }
+        }
+    }
+
+    function handleTouchEnd(event: TouchEvent) {
+        if (isTouchDragging && draggedIndex !== null) {
+            event.preventDefault();
+            
+            if (dragOverTrash) {
+                // Delete the item
+                removeFromFavoritesByIndex(draggedIndex);
+            } else if (dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+                // Reorder the items
+                const newFavoriteEmotes = [...favoriteEmotes];
+                const newFavoriteNames = [...$favoriteEmotesStore];
+                
+                const draggedEmote = newFavoriteEmotes.splice(draggedIndex, 1)[0];
+                const draggedName = newFavoriteNames.splice(draggedIndex, 1)[0];
+                
+                newFavoriteEmotes.splice(dragOverIndex, 0, draggedEmote);
+                newFavoriteNames.splice(dragOverIndex, 0, draggedName);
+                
+                favoriteEmotes = newFavoriteEmotes;
+                $favoriteEmotesStore = newFavoriteNames;
+            }
+        }
+        
+        // Reset touch state
+        touchStartPos = null;
+        isTouchDragging = false;
+        draggedIndex = null;
+        dragOverIndex = null;
+        dragOverTrash = false;
+    }
+
     // Trash can drag handlers
     function handleTrashDragOver(event: DragEvent) {
         event.preventDefault();
@@ -183,19 +260,27 @@
 
         <div class="emotes-grid">
             {#each favoriteEmotes as emote, index (emote.uniqueKey)}
-                <EmoteCard 
-                    {emote} 
-                    {index}
-                    mode="edit" 
-                    draggable={true}
-                    isDragging={draggedIndex === index}
-                    isDragOver={dragOverIndex === index}
-                    onDragStart={handleDragStart}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onDragEnd={handleDragEnd}
-                />
+                <div 
+                    data-emote-index={index}
+                    ontouchstart={(e) => handleTouchStart(e, emote, index)}
+                    ontouchmove={handleTouchMove}
+                    ontouchend={handleTouchEnd}
+                    oncontextmenu={handleContextMenu}
+                >
+                    <EmoteCard 
+                        {emote} 
+                        {index}
+                        mode="edit" 
+                        draggable={true}
+                        isDragging={draggedIndex === index || (isTouchDragging && draggedIndex === index)}
+                        isDragOver={dragOverIndex === index}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onDragEnd={handleDragEnd}
+                    />
+                </div>
             {:else}
                 <p>
                     No favorite emotes yet. <a href="{base}/channel/{channel}/add" class="button">Add some!</a>
@@ -222,6 +307,15 @@
     {/if}
 
 <style>
+    /* Disable pull-to-refresh to prevent interference with drag and drop */
+    :global(body) {
+        overscroll-behavior-y: contain;
+    }
+    
+    .emotes-grid {
+        touch-action: none;
+    }
+
     .instructions {
         margin: 1rem 0;
         padding: 1rem;
