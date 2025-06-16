@@ -71,18 +71,19 @@
 
     .channel-card {
         padding: 1rem;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
         border-radius: 8px;
-        background: white;
+        background: var(--bg-secondary);
         cursor: pointer;
         font-size: 1rem;
         text-decoration: none;
         display: block;
-        color: inherit;
+        color: var(--text-primary);
+        transition: background-color 0.2s ease;
     }
 
     .channel-card:hover {
-        background: #f5f5f5;
+        background: var(--bg-tertiary);
     }
 
     .channel-name {

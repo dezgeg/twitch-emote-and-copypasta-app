@@ -35,7 +35,7 @@
     }
 
     nav a {
-        color: #007bff;
+        color: var(--accent-primary);
         text-decoration: none;
         font-weight: 500;
     }
@@ -45,7 +45,7 @@
     }
 
     .separator {
-        color: #6c757d;
+        color: var(--text-secondary);
         user-select: none;
     }
 

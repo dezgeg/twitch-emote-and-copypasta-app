@@ -5,7 +5,31 @@
         <link rel="icon" href="%sveltekit.assets%/favicon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style>
-            /* Global styles for common UI elements */
+            /* Global dark theme styles */
+
+            /* Dark theme root styles */
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-secondary: #2d2d2d;
+                --bg-tertiary: #404040;
+                --text-primary: #ffffff;
+                --text-secondary: #b3b3b3;
+                --accent-primary: #9146ff;
+                --accent-hover: #772ce8;
+                --border-color: #555;
+                --error-bg: #4a1a1a;
+                --error-border: #8b0000;
+                --error-text: #ff6b6b;
+            }
+
+            /* Apply dark theme to body */
+            body {
+                background-color: var(--bg-primary);
+                color: var(--text-primary);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                margin: 0;
+                padding: 0;
+            }
 
             /* Main container base */
             main {
@@ -14,13 +38,33 @@
                 max-width: 1200px;
             }
 
+            /* Headings */
+            h1, h2, h3, h4, h5, h6 {
+                color: var(--text-primary);
+            }
+
+            /* Input elements */
+            input, textarea, select {
+                background-color: var(--bg-secondary);
+                color: var(--text-primary);
+                border: 1px solid var(--border-color);
+                border-radius: 4px;
+                padding: 0.5rem;
+            }
+
+            input:focus, textarea:focus, select:focus {
+                outline: none;
+                border-color: var(--accent-primary);
+                box-shadow: 0 0 0 2px rgba(145, 70, 255, 0.2);
+            }
+
             /* Error messages */
             .error {
                 padding: 1rem;
-                background: #fee;
-                border: 1px solid #fcc;
+                background: var(--error-bg);
+                border: 1px solid var(--error-border);
                 border-radius: 8px;
-                color: #c00;
+                color: var(--error-text);
                 text-align: center;
                 margin: 2rem 0;
             }
@@ -29,18 +73,20 @@
             button,
             .button {
                 padding: 0.5rem 1rem;
-                border: 1px solid #ccc;
+                border: 1px solid var(--border-color);
                 border-radius: 4px;
-                background: white;
+                background: var(--bg-secondary);
+                color: var(--text-primary);
                 cursor: pointer;
                 text-decoration: none;
                 display: inline-block;
-                color: inherit;
+                transition: background-color 0.2s ease;
             }
 
             button:hover,
             .button:hover {
-                background: #f5f5f5;
+                background: var(--bg-tertiary);
+                text-decoration: none;
             }
 
             button:disabled {
@@ -58,20 +104,35 @@
             }
 
             nav a {
-                color: #0066cc;
+                color: var(--accent-primary);
                 text-decoration: none;
                 padding: 0.25rem 0.5rem;
                 border-radius: 3px;
+                transition: background-color 0.2s ease;
             }
 
             nav a:hover {
-                background: #f0f8ff;
+                background: var(--bg-secondary);
                 text-decoration: underline;
             }
 
             nav .separator {
-                color: #666;
+                color: var(--text-secondary);
                 font-weight: normal;
+            }
+
+            /* Links */
+            a {
+                color: var(--accent-primary);
+            }
+
+            a:hover {
+                color: var(--accent-hover);
+            }
+
+            /* Paragraphs and general text */
+            p {
+                color: var(--text-primary);
             }
         </style>
         %sveltekit.head%

@@ -4,8 +4,8 @@
     .spinner {
         width: 2rem;
         height: 2rem;
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #9146ff;
+        border: 3px solid var(--bg-tertiary);
+        border-top: 3px solid var(--accent-primary);
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin: 2rem auto;

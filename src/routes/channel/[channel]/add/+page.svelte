@@ -108,16 +108,18 @@
 
     .search-input {
         padding: 0.75rem;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
         border-radius: 8px;
         font-size: 1rem;
         width: 100%;
         max-width: 400px;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
     }
 
     .results-count {
         font-size: 0.875rem;
-        color: #666;
+        color: var(--text-secondary);
     }
 
     .emotes-grid {

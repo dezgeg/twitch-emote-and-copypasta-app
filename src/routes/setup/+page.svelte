@@ -65,11 +65,13 @@
     input {
         width: 100%;
         padding: 0.75rem;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
         border-radius: 4px;
         font-size: 1rem;
         margin-bottom: 1rem;
         box-sizing: border-box;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
     }
 
     .api-key-input {
@@ -79,15 +81,16 @@
     .help-text {
         margin: 0.5rem 0 0 0;
         font-size: 0.875rem;
-        color: #666;
+        color: var(--text-secondary);
         font-style: italic;
     }
 
     .help {
         margin-top: 3rem;
         padding: 1rem;
-        background: #f9f9f9;
+        background: var(--bg-secondary);
         border-radius: 8px;
+        border: 1px solid var(--border-color);
     }
 
     .help h3 {
@@ -95,7 +98,7 @@
     }
 
     .help a {
-        color: #0066cc;
+        color: var(--accent-primary);
     }
 
     .setup-step {
@@ -104,11 +107,12 @@
 
     .setup-step h4 {
         margin-bottom: 0.5rem;
-        color: #333;
+        color: var(--text-primary);
     }
 
     code {
-        background: #f1f1f1;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
         padding: 0.2rem 0.4rem;
         border-radius: 3px;
         font-family: monospace;

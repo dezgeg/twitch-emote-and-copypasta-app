@@ -232,14 +232,14 @@
     .instructions {
         margin: 1rem 0;
         padding: 1rem;
-        background: #f8f9fa;
+        background: var(--bg-secondary);
         border-radius: 8px;
-        border: 1px solid #e9ecef;
+        border: 1px solid var(--border-color);
     }
 
     .instructions p {
         margin: 0;
-        color: #666;
+        color: var(--text-secondary);
         font-size: 0.9rem;
     }
 
@@ -255,9 +255,9 @@
     .trash-zone {
         margin: 2rem auto;
         padding: 2rem;
-        border: 3px dashed #ccc;
+        border: 3px dashed var(--border-color);
         border-radius: 12px;
-        background: #f8f9fa;
+        background: var(--bg-secondary);
         text-align: center;
         max-width: 300px;
         transition: all 0.3s ease;
@@ -265,9 +265,9 @@
 
     .trash-zone.drag-over {
         border-color: #dc3545;
-        background: #f8d7da;
+        background: rgba(220, 53, 69, 0.2);
         transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
     }
 
     .trash-can {
@@ -282,12 +282,12 @@
 
     .trash-zone p {
         margin: 0;
-        color: #666;
+        color: var(--text-secondary);
         font-weight: 500;
     }
 
     .trash-zone.drag-over p {
-        color: #721c24;
+        color: #ff6b6b;
         font-weight: bold;
     }
 

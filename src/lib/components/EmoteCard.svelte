@@ -149,9 +149,10 @@
         flex-direction: column;
         align-items: center;
         padding: 1rem;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
         border-radius: 8px;
-        background: white;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
         text-align: center;
         transition: all 0.2s;
         position: relative;
@@ -193,37 +194,37 @@
     /* Interactive states */
     .emote-card--view:hover,
     .emote-card--add:hover {
-        background: #f5f5f5;
-        border-color: #999;
+        background: var(--bg-tertiary);
+        border-color: var(--accent-primary);
     }
 
     .emote-card--add:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 
     /* Favorited state */
     .emote-card--favorited {
-        background: #e8f4fd;
-        border-color: #4a90e2;
+        background: rgba(145, 70, 255, 0.15);
+        border-color: var(--accent-primary);
     }
 
     .emote-card--favorited:hover {
-        background: #d1e7fc;
-        border-color: #357abd;
+        background: rgba(145, 70, 255, 0.25);
+        border-color: var(--accent-hover);
     }
 
     /* Drag states */
     .emote-card--dragging {
         opacity: 0.5;
         transform: rotate(2deg);
-        border-color: #4a90e2;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-color: var(--accent-primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     .emote-card--drag-over {
-        border-color: #4a90e2;
-        background: #e8f4fd;
+        border-color: var(--accent-primary);
+        background: rgba(145, 70, 255, 0.15);
         transform: scale(1.02);
     }
 
@@ -251,12 +252,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #f0f0f0;
-        border: 2px dashed #ccc;
+        background: var(--bg-tertiary);
+        border: 2px dashed var(--border-color);
         border-radius: 8px;
         font-size: 1.5rem;
         font-weight: bold;
-        color: #666;
+        color: var(--text-secondary);
     }
 
     .emote-card--add .emote-image,
