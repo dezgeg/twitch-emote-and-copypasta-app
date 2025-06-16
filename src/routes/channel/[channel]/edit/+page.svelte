@@ -205,9 +205,6 @@
                     role="button"
                     tabindex="0"
                 >
-                    <div class="drag-handle" title="Drag to reorder">
-                        ⋮⋮
-                    </div>
                     {#if emote.url}
                         <img src={emote.url} alt={emote.name} />
                     {:else}
@@ -300,21 +297,6 @@
     }
 
 
-    .drag-handle {
-        position: absolute;
-        top: 0.25rem;
-        left: 0.25rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #666;
-        font-size: 0.8rem;
-        cursor: grab;
-        user-select: none;
-        z-index: 1;
-    }
 
     .trash-zone {
         margin: 2rem auto;
