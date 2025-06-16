@@ -1,22 +1,26 @@
 <script lang="ts">
     import { base } from '$app/paths';
+    import { page } from '$app/stores';
 
     interface Props {
         channel?: string | null;
     }
 
     let { channel = null }: Props = $props();
+    
+    // Get current route ID for highlighting active nav item
+    let routeId = $derived($page.route.id);
 </script>
 
 <nav>
-    <a href="{base}/">Channels</a>
+    <a href="{base}/" class:active={routeId === '/'}>Channels</a>
     
     {#if channel}
-        <a href="{base}/channel/{channel}">{channel}</a>
-        <a href="{base}/channel/{channel}/add">Add</a>
-        <a href="{base}/channel/{channel}/edit">Edit</a>
+        <a href="{base}/channel/{channel}" class:active={routeId === '/channel/[channel]'}>{channel}</a>
+        <a href="{base}/channel/{channel}/add" class:active={routeId === '/channel/[channel]/add'}>Add</a>
+        <a href="{base}/channel/{channel}/edit" class:active={routeId === '/channel/[channel]/edit'}>Edit</a>
     {:else}
-        <a href="{base}/setup">Setup</a>
+        <a href="{base}/setup" class:active={routeId === '/setup'}>Setup</a>
     {/if}
 </nav>
 
@@ -51,6 +55,16 @@
 
     nav a:hover {
         background: #606060;
+        color: #ffffff;
+    }
+
+    nav a.active {
+        background: #9146ff;
+        color: #ffffff;
+    }
+
+    nav a.active:hover {
+        background: #772ce8;
         color: #ffffff;
     }
 
