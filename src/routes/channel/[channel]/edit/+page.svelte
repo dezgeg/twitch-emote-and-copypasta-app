@@ -170,8 +170,6 @@
     <title>Twitch Emote and Copypasta App - Edit {channel} Favorites</title>
 </svelte:head>
 
-<h1>Edit {channel} Favorites</h1>
-
     {#if loading}
         <Spinner />
     {:else if error}

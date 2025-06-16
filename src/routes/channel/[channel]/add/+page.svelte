@@ -58,8 +58,6 @@
     <title>Twitch Emote and Copypasta App - Manage Emotes for {channel}</title>
 </svelte:head>
 
-<h1>Manage Emotes for {channel}</h1>
-
     {#if loading}
         <Spinner />
     {:else if error}

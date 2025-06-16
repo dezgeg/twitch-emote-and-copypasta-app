@@ -35,8 +35,6 @@
     <title>Twitch Emote and Copypasta App - Channels</title>
 </svelte:head>
 
-<h1>Your Followed Channels</h1>
-
     {#if loading}
         <Spinner />
     {:else if error}
