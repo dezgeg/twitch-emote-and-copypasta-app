@@ -91,7 +91,7 @@
                     {emote} 
                     mode="add" 
                     isFavorited={isFavorited(emote.name)}
-                    onToggleFavorite={toggleFavorite}
+                    onClick={toggleFavorite}
                 />
             {:else}
                 <p>No emotes found matching "{searchTerm}"</p>

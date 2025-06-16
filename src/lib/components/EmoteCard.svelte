@@ -15,7 +15,6 @@
         
         // Event handlers
         onClick?: (emote: Emote) => void;
-        onToggleFavorite?: (emote: Emote) => void;
         
         // Drag and drop support
         draggable?: boolean;
@@ -39,7 +38,6 @@
         isDragging = false,
         isDragOver = false,
         onClick,
-        onToggleFavorite,
         draggable = false,
         onDragStart,
         onDragOver,
@@ -55,10 +53,8 @@
     let isDraggableMode = $derived(mode === 'edit' && draggable);
 
     function handleClick() {
-        if (mode === 'view' && onClick) {
+        if (onClick) {
             onClick(emote);
-        } else if (mode === 'add' && onToggleFavorite) {
-            onToggleFavorite(emote);
         }
     }
 
@@ -80,13 +76,6 @@
         }
     }
 
-    function getEmoteTypeDisplay(type: string): string {
-        switch (type) {
-            case 'bttv': return 'BTTV';
-            case 'ffz': return 'FFZ';
-            default: return type.toUpperCase();
-        }
-    }
 </script>
 
 {#if isClickable}
@@ -102,8 +91,8 @@
         {/if}
         <span class="emote-name">{emote.name}</span>
         {#if mode === 'add'}
-            <span class="emote-type emote-type--{emote.type === '7tv' ? 'seventv' : emote.type}">
-                {getEmoteTypeDisplay(emote.type)}
+            <span class="emote-type emote-type--{emote.type}">
+                {emote.type.toUpperCase()}
             </span>
         {/if}
     </button>
@@ -127,8 +116,8 @@
             <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
         {/if}
         <span class="emote-name">{emote.name}</span>
-        <span class="emote-type emote-type--{emote.type === '7tv' ? 'seventv' : emote.type}">
-            {getEmoteTypeDisplay(emote.type)}
+        <span class="emote-type emote-type--{emote.type}">
+            {emote.type.toUpperCase()}
         </span>
     </div>
 {:else}
@@ -301,7 +290,7 @@
         color: white;
     }
 
-    .emote-type--seventv {
+    .emote-type--7tv {
         background: #00f5ff;
         color: black;
     }
