@@ -5,6 +5,7 @@
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
+    import EmoteCard from "$lib/components/EmoteCard.svelte";
 
     let favoriteEmotes: Emote[] = $state([]);
     let loading = $state(true);
@@ -81,30 +82,30 @@
     }
 
     // Drag and drop handlers
-    function handleDragStart(event: DragEvent, index: number) {
+    function handleDragStart(event: DragEvent, emote: Emote, index?: number) {
         if (event.dataTransfer) {
             event.dataTransfer.effectAllowed = "move";
             event.dataTransfer.setData("text/html", "");
         }
-        draggedIndex = index;
+        draggedIndex = index ?? null;
     }
 
-    function handleDragOver(event: DragEvent, index: number) {
+    function handleDragOver(event: DragEvent, emote: Emote, index?: number) {
         event.preventDefault();
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
         }
-        dragOverIndex = index;
+        dragOverIndex = index ?? null;
     }
 
     function handleDragLeave() {
         dragOverIndex = null;
     }
 
-    function handleDrop(event: DragEvent, dropIndex: number) {
+    function handleDrop(event: DragEvent, emote: Emote, dropIndex?: number) {
         event.preventDefault();
         
-        if (draggedIndex === null || draggedIndex === dropIndex) {
+        if (draggedIndex === null || dropIndex === undefined || draggedIndex === dropIndex) {
             draggedIndex = null;
             dragOverIndex = null;
             return;
@@ -192,33 +193,19 @@
 
         <div class="emotes-grid">
             {#each favoriteEmotes as emote, index (emote.uniqueKey)}
-                <div
-                    class="emote-card"
-                    class:dragging={draggedIndex === index}
-                    class:drag-over={dragOverIndex === index}
-                    draggable="true"
-                    ondragstart={(event) => handleDragStart(event, index)}
-                    ondragover={(event) => handleDragOver(event, index)}
-                    ondragleave={handleDragLeave}
-                    ondrop={(event) => handleDrop(event, index)}
-                    ondragend={handleDragEnd}
-                    role="button"
-                    tabindex="0"
-                >
-                    {#if emote.url}
-                        <img src={emote.url} alt={emote.name} />
-                    {:else}
-                        <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
-                    {/if}
-                    <span class="emote-name">{emote.name}</span>
-                    <span class="emote-type {emote.type === '7tv' ? 'seventv' : emote.type}">
-                        {emote.type === "bttv"
-                            ? "BTTV"
-                            : emote.type === "ffz"
-                              ? "FFZ"
-                              : emote.type.toUpperCase()}
-                    </span>
-                </div>
+                <EmoteCard 
+                    {emote} 
+                    {index}
+                    mode="edit" 
+                    draggable={true}
+                    isDragging={draggedIndex === index}
+                    isDragOver={dragOverIndex === index}
+                    onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onDragEnd={handleDragEnd}
+                />
             {:else}
                 <p>
                     No favorite emotes yet. <a href="/channel/{channel}/add" class="button">Add some!</a>
@@ -264,38 +251,6 @@
         margin: 2rem 0;
     }
 
-    .emote-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 1rem;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        background: white;
-        cursor: grab;
-        text-align: center;
-        transition: all 0.2s;
-        position: relative;
-        user-select: none;
-    }
-
-    .emote-card:active {
-        cursor: grabbing;
-    }
-
-    .emote-card.dragging {
-        opacity: 0.5;
-        transform: rotate(2deg);
-        border-color: #4a90e2;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .emote-card.drag-over {
-        border-color: #4a90e2;
-        background: #e8f4fd;
-        transform: scale(1.02);
-    }
-
 
 
     .trash-zone {
@@ -337,59 +292,6 @@
         font-weight: bold;
     }
 
-    .emote-card img,
-    .emote-placeholder {
-        width: 56px;
-        height: 56px;
-        margin: 0.5rem 0;
-    }
-
-    .emote-placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f0f0f0;
-        border: 2px dashed #ccc;
-        border-radius: 8px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #666;
-    }
-
-    .emote-name {
-        font-size: 0.875rem;
-        font-weight: bold;
-        margin-bottom: 0.25rem;
-        word-break: break-word;
-    }
-
-    .emote-type {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.4rem;
-        border-radius: 12px;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
-
-    .emote-type.twitch {
-        background: #9146ff;
-        color: white;
-    }
-
-    .emote-type.seventv {
-        background: #00f5ff;
-        color: black;
-    }
-
-    .emote-type.bttv {
-        background: #d50000;
-        color: white;
-    }
-
-    .emote-type.ffz {
-        background: #755000;
-        color: white;
-    }
 
     @media (max-width: 600px) {
         .emotes-grid {

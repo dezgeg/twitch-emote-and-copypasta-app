@@ -5,6 +5,7 @@
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
+    import EmoteCard from "$lib/components/EmoteCard.svelte";
 
     let channel: string;
     let favoriteEmotes: Emote[] = [];
@@ -98,14 +99,11 @@
     {:else}
         <div class="emotes-grid">
             {#each favoriteEmotes as emote (emote.uniqueKey)}
-                <button class="emote-button" onclick={() => sendEmoteToChat(emote)}>
-                    {#if emote.url}
-                        <img src={emote.url} alt={emote.name} />
-                    {:else}
-                        <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
-                    {/if}
-                    <span>{emote.name}</span>
-                </button>
+                <EmoteCard 
+                    {emote} 
+                    mode="view" 
+                    onClick={sendEmoteToChat}
+                />
             {:else}
                 <p>
                     No favorite emotes yet. <a href="/channel/{channel}/add" class="button"
@@ -123,47 +121,6 @@
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
         gap: 1rem;
         margin: 2rem 0;
-    }
-
-    .emote-button {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 1rem;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background: white;
-        cursor: pointer;
-        text-align: center;
-    }
-
-    .emote-button:hover {
-        background: #f5f5f5;
-        border-color: #999;
-    }
-
-    .emote-button img,
-    .emote-placeholder {
-        width: 56px;
-        height: 56px;
-        margin-bottom: 0.5rem;
-    }
-
-    .emote-placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f0f0f0;
-        border: 2px dashed #ccc;
-        border-radius: 8px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #666;
-    }
-
-    .emote-button span {
-        font-size: 0.875rem;
-        word-break: break-word;
     }
 
     @media (max-width: 600px) {

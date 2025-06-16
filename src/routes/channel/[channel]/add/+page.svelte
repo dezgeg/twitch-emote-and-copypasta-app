@@ -5,6 +5,7 @@
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
+    import EmoteCard from "$lib/components/EmoteCard.svelte";
 
     let allEmotes: Emote[] = $state([]);
     let searchTerm = $state("");
@@ -88,21 +89,12 @@
 
         <div class="emotes-grid">
             {#each filteredEmotes as emote (emote.uniqueKey)}
-                <button
-                    class="emote-card"
-                    class:favorited={isFavorited(emote.name)}
-                    onclick={() => toggleFavorite(emote)}
-                >
-                    <img src={emote.url} alt={emote.name} />
-                    <span class="emote-name">{emote.name}</span>
-                    <span class="emote-type {emote.type === '7tv' ? 'seventv' : emote.type}"
-                        >{emote.type === "bttv"
-                            ? "BTTV"
-                            : emote.type === "ffz"
-                              ? "FFZ"
-                              : emote.type.toUpperCase()}</span
-                    >
-                </button>
+                <EmoteCard 
+                    {emote} 
+                    mode="add" 
+                    isFavorited={isFavorited(emote.name)}
+                    onToggleFavorite={toggleFavorite}
+                />
             {:else}
                 <p>No emotes found matching "{searchTerm}"</p>
             {/each}
@@ -137,79 +129,6 @@
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 1rem;
         margin: 2rem 0;
-    }
-
-    .emote-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 1rem;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background: white;
-        cursor: pointer;
-        text-align: center;
-        transition: all 0.2s;
-        position: relative;
-    }
-
-    .emote-card:hover {
-        background: #f5f5f5;
-        border-color: #999;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .emote-card img {
-        width: 56px;
-        height: 56px;
-        margin-bottom: 0.5rem;
-    }
-
-    .emote-name {
-        font-size: 0.875rem;
-        font-weight: bold;
-        margin-bottom: 0.25rem;
-        word-break: break-word;
-    }
-
-    .emote-card.favorited {
-        background: #e8f4fd;
-        border-color: #4a90e2;
-    }
-
-    .emote-card.favorited:hover {
-        background: #d1e7fc;
-        border-color: #357abd;
-    }
-
-
-    .emote-type {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.4rem;
-        border-radius: 12px;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
-
-    .emote-type.twitch {
-        background: #9146ff;
-        color: white;
-    }
-
-    .emote-type.seventv {
-        background: #00f5ff;
-        color: black;
-    }
-
-    .emote-type.bttv {
-        background: #d50000;
-        color: white;
-    }
-
-    .emote-type.ffz {
-        background: #755000;
-        color: white;
     }
 
     @media (max-width: 600px) {
