@@ -11,6 +11,7 @@
     let error = $state("");
     let draggedIndex = $state<number | null>(null);
     let dragOverIndex = $state<number | null>(null);
+    let dragOverTrash = $state(false);
 
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
@@ -72,6 +73,13 @@
         favoriteEmotes = favoriteEmotes.filter(emote => emote.name !== emoteName);
     }
 
+    function removeFromFavoritesByIndex(index: number) {
+        const emoteName = favoriteEmotes[index]?.name;
+        if (emoteName) {
+            removeFromFavorites(emoteName);
+        }
+    }
+
     // Drag and drop handlers
     function handleDragStart(event: DragEvent, index: number) {
         if (event.dataTransfer) {
@@ -126,6 +134,33 @@
     function handleDragEnd() {
         draggedIndex = null;
         dragOverIndex = null;
+        dragOverTrash = false;
+    }
+
+    // Trash can drag handlers
+    function handleTrashDragOver(event: DragEvent) {
+        event.preventDefault();
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = "move";
+        }
+        dragOverTrash = true;
+    }
+
+    function handleTrashDragLeave() {
+        dragOverTrash = false;
+    }
+
+    function handleTrashDrop(event: DragEvent) {
+        event.preventDefault();
+        
+        if (draggedIndex !== null) {
+            removeFromFavoritesByIndex(draggedIndex);
+        }
+        
+        // Reset drag state
+        draggedIndex = null;
+        dragOverIndex = null;
+        dragOverTrash = false;
     }
 </script>
 
@@ -152,7 +187,7 @@
         </div>
     {:else}
         <div class="instructions">
-            <p>Drag and drop to reorder your favorite emotes. Click the × to remove an emote from favorites.</p>
+            <p>Drag and drop to reorder your favorite emotes. Drag to the trash can below to delete from favorites.</p>
         </div>
 
         <div class="emotes-grid">
@@ -170,9 +205,6 @@
                     role="button"
                     tabindex="0"
                 >
-                    <button class="remove-button" onclick={() => removeFromFavorites(emote.name)} title="Remove from favorites">
-                        ×
-                    </button>
                     <div class="drag-handle" title="Drag to reorder">
                         ⋮⋮
                     </div>
@@ -195,6 +227,20 @@
                     No favorite emotes yet. <a href="/channel/{channel}/add" class="button">Add some!</a>
                 </p>
             {/each}
+        </div>
+
+        <!-- Trash Can Drop Zone -->
+        <div 
+            class="trash-zone"
+            class:drag-over={dragOverTrash}
+            ondragover={handleTrashDragOver}
+            ondragleave={handleTrashDragLeave}
+            ondrop={handleTrashDrop}
+        >
+            <div class="trash-can">
+                🗑️
+            </div>
+            <p>Drop here to delete</p>
         </div>
     {/if}
 </main>
@@ -253,30 +299,6 @@
         transform: scale(1.02);
     }
 
-    .remove-button {
-        position: absolute;
-        top: 0.25rem;
-        right: 0.25rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        border: none;
-        border-radius: 50%;
-        background: #dc3545;
-        color: white;
-        font-size: 1.1rem;
-        font-weight: bold;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        z-index: 1;
-    }
-
-    .remove-button:hover {
-        background: #c82333;
-        transform: scale(1.1);
-    }
 
     .drag-handle {
         position: absolute;
@@ -292,6 +314,45 @@
         cursor: grab;
         user-select: none;
         z-index: 1;
+    }
+
+    .trash-zone {
+        margin: 2rem auto;
+        padding: 2rem;
+        border: 3px dashed #ccc;
+        border-radius: 12px;
+        background: #f8f9fa;
+        text-align: center;
+        max-width: 300px;
+        transition: all 0.3s ease;
+    }
+
+    .trash-zone.drag-over {
+        border-color: #dc3545;
+        background: #f8d7da;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .trash-can {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+        transition: transform 0.2s ease;
+    }
+
+    .trash-zone.drag-over .trash-can {
+        transform: scale(1.2);
+    }
+
+    .trash-zone p {
+        margin: 0;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .trash-zone.drag-over p {
+        color: #721c24;
+        font-weight: bold;
     }
 
     .emote-card img,
