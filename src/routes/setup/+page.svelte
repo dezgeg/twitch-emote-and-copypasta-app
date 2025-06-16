@@ -1,16 +1,12 @@
 <script lang="ts">
     import { twitchApiKey } from "$lib/stores";
-    import NavBar from "$lib/components/NavBar.svelte";
 </script>
 
 <svelte:head>
     <title>Twitch Emote and Copypasta App - Setup</title>
 </svelte:head>
 
-<main>
-    <NavBar />
-
-    <h1>Setup</h1>
+<h1>Setup</h1>
 
     <div class="setup-form">
         <label for="apiKey">Twitch API Key:</label>
@@ -49,7 +45,6 @@
             <li>Paste the access token in the field above</li>
         </ol>
     </div>
-</main>
 
 <style>
     .setup-form {

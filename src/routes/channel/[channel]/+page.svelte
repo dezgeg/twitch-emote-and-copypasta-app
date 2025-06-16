@@ -6,7 +6,6 @@
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
-    import NavBar from "$lib/components/NavBar.svelte";
     import { base } from '$app/paths';
 
     let channel: string;
@@ -79,10 +78,7 @@
     <title>Twitch Emote and Copypasta App - {channel} Favorites</title>
 </svelte:head>
 
-<main>
-    <NavBar {channel} />
-
-    <h1>{channel} - Favorite Emotes</h1>
+<h1>{channel} - Favorite Emotes</h1>
 
     {#if loading}
         <Spinner />
@@ -107,7 +103,6 @@
             {/each}
         </div>
     {/if}
-</main>
 
 <style>
     .emotes-grid {

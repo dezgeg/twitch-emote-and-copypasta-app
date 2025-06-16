@@ -4,7 +4,6 @@
     import { getFollowedChannels, type FollowedChannel } from "$lib/twitch-api";
     import { twitchApiKey } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
-    import NavBar from "$lib/components/NavBar.svelte";
     import { base } from '$app/paths';
 
     let channels: FollowedChannel[] = [];
@@ -36,10 +35,7 @@
     <title>Twitch Emote and Copypasta App - Channels</title>
 </svelte:head>
 
-<main>
-    <NavBar />
-
-    <h1>Your Followed Channels</h1>
+<h1>Your Followed Channels</h1>
 
     {#if loading}
         <Spinner />
@@ -59,7 +55,6 @@
             {/each}
         </div>
     {/if}
-</main>
 
 <style>
     .channels {

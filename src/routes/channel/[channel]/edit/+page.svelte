@@ -6,7 +6,6 @@
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
-    import NavBar from "$lib/components/NavBar.svelte";
     import { base } from '$app/paths';
 
     let favoriteEmotes: Emote[] = $state([]);
@@ -171,10 +170,7 @@
     <title>Twitch Emote and Copypasta App - Edit {channel} Favorites</title>
 </svelte:head>
 
-<main>
-    <NavBar {channel} />
-
-    <h1>Edit {channel} Favorites</h1>
+<h1>Edit {channel} Favorites</h1>
 
     {#if loading}
         <Spinner />
@@ -226,7 +222,6 @@
             <p>Drop here to delete</p>
         </div>
     {/if}
-</main>
 
 <style>
     .instructions {

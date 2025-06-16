@@ -6,7 +6,6 @@
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
-    import NavBar from "$lib/components/NavBar.svelte";
     import { base } from '$app/paths';
 
     let allEmotes: Emote[] = $state([]);
@@ -59,10 +58,7 @@
     <title>Twitch Emote and Copypasta App - Manage Emotes for {channel}</title>
 </svelte:head>
 
-<main>
-    <NavBar {channel} />
-
-    <h1>Manage Emotes for {channel}</h1>
+<h1>Manage Emotes for {channel}</h1>
 
     {#if loading}
         <Spinner />
@@ -96,7 +92,6 @@
             {/each}
         </div>
     {/if}
-</main>
 
 <style>
     .search-container {
