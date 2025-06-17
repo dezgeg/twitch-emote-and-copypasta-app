@@ -7,8 +7,6 @@
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import { base } from '$app/paths';
-    import { flip } from 'svelte/animate';
-    import { fade, scale } from 'svelte/transition';
 
     let favoriteEmotes: Emote[] = $state([]);
     let loading = $state(true);
@@ -100,7 +98,32 @@
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
         }
-        dragOverIndex = index ?? null;
+        
+        const newDragOverIndex = index ?? null;
+        
+        // Live update: reorder items while dragging
+        if (draggedIndex !== null && newDragOverIndex !== null && draggedIndex !== newDragOverIndex) {
+            // Create copies of the arrays
+            const newFavoriteEmotes = [...favoriteEmotes];
+            const newFavoriteNames = [...$favoriteEmotesStore];
+            
+            // Remove the dragged item
+            const draggedEmote = newFavoriteEmotes.splice(draggedIndex, 1)[0];
+            const draggedName = newFavoriteNames.splice(draggedIndex, 1)[0];
+            
+            // Insert at new position
+            newFavoriteEmotes.splice(newDragOverIndex, 0, draggedEmote);
+            newFavoriteNames.splice(newDragOverIndex, 0, draggedName);
+            
+            // Update state for live preview
+            favoriteEmotes = newFavoriteEmotes;
+            $favoriteEmotesStore = newFavoriteNames;
+            
+            // Update the dragged index to reflect the new position
+            draggedIndex = newDragOverIndex;
+        }
+        
+        dragOverIndex = newDragOverIndex;
     }
 
     function handleDragLeave() {
@@ -110,29 +133,7 @@
     function handleDrop(event: DragEvent, emote: Emote, dropIndex?: number) {
         event.preventDefault();
         
-        if (draggedIndex === null || dropIndex === undefined || draggedIndex === dropIndex) {
-            draggedIndex = null;
-            dragOverIndex = null;
-            return;
-        }
-
-        // Reorder the arrays
-        const newFavoriteEmotes = [...favoriteEmotes];
-        const newFavoriteNames = [...$favoriteEmotesStore];
-        
-        // Remove the dragged item
-        const draggedEmote = newFavoriteEmotes.splice(draggedIndex, 1)[0];
-        const draggedName = newFavoriteNames.splice(draggedIndex, 1)[0];
-        
-        // Insert at new position
-        newFavoriteEmotes.splice(dropIndex, 0, draggedEmote);
-        newFavoriteNames.splice(dropIndex, 0, draggedName);
-        
-        // Update state
-        favoriteEmotes = newFavoriteEmotes;
-        $favoriteEmotesStore = newFavoriteNames;
-        
-        // Reset drag state
+        // Reset drag state (reordering already happened in handleDragOver)
         draggedIndex = null;
         dragOverIndex = null;
     }
@@ -175,7 +176,25 @@
                 
                 if (emoteCard) {
                     const targetIndex = parseInt(emoteCard.getAttribute('data-emote-index') || '');
-                    if (!isNaN(targetIndex)) {
+                    if (!isNaN(targetIndex) && targetIndex !== draggedIndex) {
+                        // Live update for touch: reorder items while dragging
+                        const newFavoriteEmotes = [...favoriteEmotes];
+                        const newFavoriteNames = [...$favoriteEmotesStore];
+                        
+                        // Remove the dragged item
+                        const draggedEmote = newFavoriteEmotes.splice(draggedIndex, 1)[0];
+                        const draggedName = newFavoriteNames.splice(draggedIndex, 1)[0];
+                        
+                        // Insert at new position
+                        newFavoriteEmotes.splice(targetIndex, 0, draggedEmote);
+                        newFavoriteNames.splice(targetIndex, 0, draggedName);
+                        
+                        // Update state for live preview
+                        favoriteEmotes = newFavoriteEmotes;
+                        $favoriteEmotesStore = newFavoriteNames;
+                        
+                        // Update the dragged index to reflect the new position
+                        draggedIndex = targetIndex;
                         dragOverIndex = targetIndex;
                     }
                 }
@@ -194,20 +213,8 @@
             if (dragOverTrash) {
                 // Delete the item
                 removeFromFavoritesByIndex(draggedIndex);
-            } else if (dragOverIndex !== null && draggedIndex !== dragOverIndex) {
-                // Reorder the items
-                const newFavoriteEmotes = [...favoriteEmotes];
-                const newFavoriteNames = [...$favoriteEmotesStore];
-                
-                const draggedEmote = newFavoriteEmotes.splice(draggedIndex, 1)[0];
-                const draggedName = newFavoriteNames.splice(draggedIndex, 1)[0];
-                
-                newFavoriteEmotes.splice(dragOverIndex, 0, draggedEmote);
-                newFavoriteNames.splice(dragOverIndex, 0, draggedName);
-                
-                favoriteEmotes = newFavoriteEmotes;
-                $favoriteEmotesStore = newFavoriteNames;
             }
+            // Note: Reordering already happened in handleTouchMove
         }
         
         // Reset touch state
@@ -268,9 +275,6 @@
                     ontouchmove={handleTouchMove}
                     ontouchend={handleTouchEnd}
                     oncontextmenu={handleContextMenu}
-                    in:scale={{ duration: 300, delay: index * 50 }}
-                    out:scale={{ duration: 200 }}
-                    animate:flip={{ duration: 300 }}
                 >
                     <EmoteCard 
                         {emote} 
@@ -303,7 +307,6 @@
             role="button"
             tabindex="0"
             aria-label="Drop zone to delete emotes"
-            in:fade={{ duration: 200, delay: 100 }}
         >
             <div class="trash-can">
                 🗑️
