@@ -70,28 +70,28 @@ async function fetchTwitchEmotes(url: URL, apiKey: string): Promise<Emote[]> {
     try {
         while (true) {
             const response = await fetch(currentUrl, { headers });
-            if (response.ok) {
-                const data = await response.json();
-                
-                // Process emotes from current page
-                const emotes = data.data.map((emote: any) => ({
-                    name: emote.name,
-                    url: buildTwitchEmoteUrl(data.template, emote),
-                    type: "twitch" as const,
-                    uniqueKey: `twitch-${emote.id}`,
-                }));
-                allEmotes.push(...emotes);
-
-                // Check for next page
-                const cursor = data.pagination?.cursor;
-                if (cursor) {
-                    currentUrl.searchParams.set('after', cursor);
-                } else {
-                    break;
-                }
-            } else {
+            if (!response.ok) {
                 break;
             }
+
+            const data = await response.json();
+            
+            // Process emotes from current page
+            const emotes = data.data.map((emote: any) => ({
+                name: emote.name,
+                url: buildTwitchEmoteUrl(data.template, emote),
+                type: "twitch" as const,
+                uniqueKey: `twitch-${emote.id}`,
+            }));
+            allEmotes.push(...emotes);
+
+            // Check for next page
+            const cursor = data.pagination?.cursor;
+            if (!cursor) {
+                break;
+            }
+            
+            currentUrl.searchParams.set('after', cursor);
         }
     } catch (err) {
         console.error("Error fetching Twitch emotes:", err);
@@ -188,8 +188,18 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
         }
 
         // Process channel BTTV emotes
-        if (responses[1].ok) {
+        if (!responses[1].ok) {
+            if (responses[1].status === 404) {
+                // Channel doesn't have BetterTTV emotes set up - this is normal
+                console.log(`Channel (ID: ${broadcasterId}) does not have BetterTTV emotes configured`);
+            } else {
+                console.warn(
+                    `BetterTTV API returned ${responses[1].status} for channel (ID: ${broadcasterId})`,
+                );
+            }
+        } else {
             const channelData = await responses[1].json();
+            
             if (channelData.channelEmotes) {
                 const channelEmotes = channelData.channelEmotes.map((emote: any) => ({
                     name: emote.code,
@@ -199,7 +209,7 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
                 }));
                 bttvEmotes.push(...channelEmotes);
             }
-            // Also include shared emotes
+            
             if (channelData.sharedEmotes) {
                 const sharedEmotes = channelData.sharedEmotes.map((emote: any) => ({
                     name: emote.code,
@@ -209,13 +219,6 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
                 }));
                 bttvEmotes.push(...sharedEmotes);
             }
-        } else if (responses[1].status === 404) {
-            // Channel doesn't have BetterTTV emotes set up - this is normal
-            console.log(`Channel (ID: ${broadcasterId}) does not have BetterTTV emotes configured`);
-        } else {
-            console.warn(
-                `BetterTTV API returned ${responses[1].status} for channel (ID: ${broadcasterId})`,
-            );
         }
     } catch (err) {
         // Network error or other issues - don't show error to user
@@ -240,19 +243,23 @@ async function fetchFFZEmotes(url: URL, keyPrefix: string): Promise<Emote[]> {
     const data = await response.json();
     const emotes: Emote[] = [];
 
-    if (data.sets) {
-        Object.values(data.sets).forEach((set: any) => {
-            if (set.emoticons) {
-                const setEmotes = set.emoticons.map((emote: any) => ({
-                    name: emote.name,
-                    url: emote.urls["2"] || emote.urls["1"],
-                    type: "ffz" as const,
-                    uniqueKey: `ffz-${keyPrefix}-${emote.id}`,
-                }));
-                emotes.push(...setEmotes);
-            }
-        });
+    if (!data.sets) {
+        return emotes;
     }
+
+    Object.values(data.sets).forEach((set: any) => {
+        if (!set.emoticons) {
+            return;
+        }
+        
+        const setEmotes = set.emoticons.map((emote: any) => ({
+            name: emote.name,
+            url: emote.urls["2"] || emote.urls["1"],
+            type: "ffz" as const,
+            uniqueKey: `ffz-${keyPrefix}-${emote.id}`,
+        }));
+        emotes.push(...setEmotes);
+    });
 
     return emotes;
 }
