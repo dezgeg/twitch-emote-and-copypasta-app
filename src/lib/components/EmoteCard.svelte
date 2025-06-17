@@ -94,8 +94,8 @@
     {:else}
         <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
     {/if}
-    <span class="emote-name">{emote.name}</span>
-    {#if mode === 'add' || mode === 'edit'}
+    {#if mode === 'add'}
+        <span class="emote-name">{emote.name}</span>
         <span class="emote-type emote-type--{emote.type}">
             {emote.type.toUpperCase()}
         </span>
@@ -107,7 +107,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 1rem;
+        padding: 0.25rem;
         border: 1px solid var(--border-color);
         border-radius: 8px;
         background: var(--bg-secondary);
@@ -116,6 +116,10 @@
         transition: all 0.2s;
         position: relative;
         user-select: none;
+    }
+
+    .emote-card--add {
+        padding: 0.5rem;
     }
 
 
@@ -180,6 +184,11 @@
     .emote-placeholder {
         width: 40px;
         height: 40px;
+        margin: 0;
+    }
+
+    .emote-card--add .emote-image,
+    .emote-card--add .emote-placeholder {
         margin-bottom: 0.5rem;
     }
 
@@ -195,12 +204,6 @@
         color: var(--text-secondary);
     }
 
-    .emote-card--add .emote-image,
-    .emote-card--add .emote-placeholder,
-    .emote-card--edit .emote-image,
-    .emote-card--edit .emote-placeholder {
-        margin-bottom: 0.5rem;
-    }
 
     /* Emote name */
     .emote-name {
