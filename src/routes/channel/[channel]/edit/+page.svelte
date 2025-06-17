@@ -7,6 +7,8 @@
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import { base } from '$app/paths';
+    import { flip } from 'svelte/animate';
+    import { fade, scale } from 'svelte/transition';
 
     let favoriteEmotes: Emote[] = $state([]);
     let loading = $state(true);
@@ -266,6 +268,9 @@
                     ontouchmove={handleTouchMove}
                     ontouchend={handleTouchEnd}
                     oncontextmenu={handleContextMenu}
+                    in:scale={{ duration: 300, delay: index * 50 }}
+                    out:scale={{ duration: 200 }}
+                    animate:flip={{ duration: 300 }}
                 >
                     <EmoteCard 
                         {emote} 
@@ -298,6 +303,7 @@
             role="button"
             tabindex="0"
             aria-label="Drop zone to delete emotes"
+            in:fade={{ duration: 200, delay: 100 }}
         >
             <div class="trash-can">
                 🗑️
