@@ -161,6 +161,22 @@ async function load7TVEmotes(broadcasterId: string): Promise<Emote[]> {
 }
 
 /**
+ * Helper function to map BetterTTV emote data to Emote objects
+ */
+function mapBetterTTVEmotes(emotes: any[] | null | undefined, keyPrefix: string): Emote[] {
+    if (!emotes) {
+        return [];
+    }
+    
+    return emotes.map((emote: any) => ({
+        name: emote.code,
+        url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
+        type: "bttv" as const,
+        uniqueKey: `bttv-${keyPrefix}-${emote.id}`,
+    }));
+}
+
+/**
  * Load BetterTTV emotes for a channel
  */
 async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
@@ -178,13 +194,7 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
         // Process global BTTV emotes
         if (responses[0].ok) {
             const globalData = await responses[0].json();
-            const globalEmotes = globalData.map((emote: any) => ({
-                name: emote.code,
-                url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
-                type: "bttv" as const,
-                uniqueKey: `bttv-global-${emote.id}`,
-            }));
-            bttvEmotes.push(...globalEmotes);
+            bttvEmotes.push(...mapBetterTTVEmotes(globalData, "global"));
         }
 
         // Process channel BTTV emotes
@@ -199,26 +209,8 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
             }
         } else {
             const channelData = await responses[1].json();
-            
-            if (channelData.channelEmotes) {
-                const channelEmotes = channelData.channelEmotes.map((emote: any) => ({
-                    name: emote.code,
-                    url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
-                    type: "bttv" as const,
-                    uniqueKey: `bttv-channel-${emote.id}`,
-                }));
-                bttvEmotes.push(...channelEmotes);
-            }
-            
-            if (channelData.sharedEmotes) {
-                const sharedEmotes = channelData.sharedEmotes.map((emote: any) => ({
-                    name: emote.code,
-                    url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
-                    type: "bttv" as const,
-                    uniqueKey: `bttv-shared-${emote.id}`,
-                }));
-                bttvEmotes.push(...sharedEmotes);
-            }
+            bttvEmotes.push(...mapBetterTTVEmotes(channelData.channelEmotes, "channel"));
+            bttvEmotes.push(...mapBetterTTVEmotes(channelData.sharedEmotes, "shared"));
         }
     } catch (err) {
         // Network error or other issues - don't show error to user
