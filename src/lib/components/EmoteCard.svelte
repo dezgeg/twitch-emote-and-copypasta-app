@@ -47,6 +47,11 @@
     // Determine the wrapper element and attributes
     let isClickable = $derived(mode === 'view' || mode === 'add');
     let isDraggableMode = $derived(mode === 'edit' && draggable);
+    
+    // Add zero-width spaces before capital letters for better word wrapping
+    function addZeroWidthSpaces(text: string): string {
+        return text.replace(/([a-z])([A-Z])/g, '$1\u200B$2');
+    }
 
     function handleClick() {
         if (onClick) {
@@ -95,7 +100,7 @@
         <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
     {/if}
     {#if mode === 'add'}
-        <span class="emote-name">{emote.name}</span>
+        <span class="emote-name">{addZeroWidthSpaces(emote.name)}</span>
         <span class="emote-type emote-type--{emote.type}">
             {emote.type.toUpperCase()}
         </span>
@@ -207,7 +212,7 @@
 
     /* Emote name */
     .emote-name {
-        font-size: 0.875rem;
+        font-size: 0.75rem;
         font-weight: bold;
         word-break: break-word;
     }
@@ -220,9 +225,9 @@
 
     /* Emote type badges */
     .emote-type {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.4rem;
-        border-radius: 12px;
+        font-size: 0.625rem;
+        padding: 0.15rem 0.3rem;
+        border-radius: 8px;
         font-weight: bold;
         text-transform: uppercase;
     }
