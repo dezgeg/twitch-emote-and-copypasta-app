@@ -58,17 +58,17 @@ function buildTwitchEmoteUrl(template: string, emote: any): string {
 /**
  * Helper function to fetch and process Twitch emotes from a URL with pagination support
  */
-async function fetchTwitchEmotes(url: string, apiKey: string): Promise<Emote[]> {
+async function fetchTwitchEmotes(url: URL, apiKey: string): Promise<Emote[]> {
     const headers = {
         Authorization: `Bearer ${apiKey}`,
         "Client-Id": TWITCH_CLIENT_ID,
     };
 
     const allEmotes: Emote[] = [];
-    let currentUrl = url;
+    const currentUrl = url;
 
     try {
-        while (currentUrl) {
+        while (true) {
             const response = await fetch(currentUrl, { headers });
             if (response.ok) {
                 const data = await response.json();
@@ -85,11 +85,9 @@ async function fetchTwitchEmotes(url: string, apiKey: string): Promise<Emote[]> 
                 // Check for next page
                 const cursor = data.pagination?.cursor;
                 if (cursor) {
-                    const urlObj = new URL(currentUrl);
-                    urlObj.searchParams.set('after', cursor);
-                    currentUrl = urlObj.toString();
+                    currentUrl.searchParams.set('after', cursor);
                 } else {
-                    currentUrl = null;
+                    break;
                 }
             } else {
                 break;
@@ -111,8 +109,8 @@ async function loadTwitchEmotes(
     userId: string,
 ): Promise<Emote[]> {
     const [globalEmotes, userSpecificEmotes] = await Promise.all([
-        fetchTwitchEmotes("https://api.twitch.tv/helix/chat/emotes/global", apiKey),
-        fetchTwitchEmotes(`https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`, apiKey),
+        fetchTwitchEmotes(new URL("https://api.twitch.tv/helix/chat/emotes/global"), apiKey),
+        fetchTwitchEmotes(new URL(`https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`), apiKey),
     ]);
 
     const allEmotes = globalEmotes.concat(userSpecificEmotes);
