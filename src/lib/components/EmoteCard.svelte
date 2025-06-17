@@ -78,59 +78,33 @@
 
 </script>
 
-{#if isClickable}
-    <button
-        class="emote-card emote-card--{mode} emote-card--{size}"
-        class:emote-card--favorited={isFavorited}
-        onclick={handleClick}
-    >
-        {#if emote.url}
-            <img src={emote.url} alt={emote.name} class="emote-image" />
-        {:else}
-            <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
-        {/if}
-        <span class="emote-name">{emote.name}</span>
-        {#if mode === 'add'}
-            <span class="emote-type emote-type--{emote.type}">
-                {emote.type.toUpperCase()}
-            </span>
-        {/if}
-    </button>
-{:else if isDraggableMode}
-    <div
-        class="emote-card emote-card--{mode} emote-card--{size}"
-        class:emote-card--dragging={isDragging}
-        class:emote-card--drag-over={isDragOver}
-        draggable="true"
-        ondragstart={handleDragStart}
-        ondragover={handleDragOver}
-        ondragleave={onDragLeave}
-        ondrop={handleDrop}
-        ondragend={onDragEnd}
-        role="button"
-        tabindex="0"
-    >
-        {#if emote.url}
-            <img src={emote.url} alt={emote.name} class="emote-image" />
-        {:else}
-            <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
-        {/if}
-        <span class="emote-name">{emote.name}</span>
+<div
+    class="emote-card emote-card--{mode} emote-card--{size}"
+    class:emote-card--favorited={isFavorited}
+    class:emote-card--dragging={isDragging}
+    class:emote-card--drag-over={isDragOver}
+    draggable={isDraggableMode}
+    onclick={isClickable ? handleClick : undefined}
+    ondragstart={isDraggableMode ? handleDragStart : undefined}
+    ondragover={isDraggableMode ? handleDragOver : undefined}
+    ondragleave={isDraggableMode ? onDragLeave : undefined}
+    ondrop={isDraggableMode ? handleDrop : undefined}
+    ondragend={isDraggableMode ? onDragEnd : undefined}
+    role={isClickable || isDraggableMode ? 'button' : undefined}
+    tabindex={isClickable || isDraggableMode ? 0 : undefined}
+>
+    {#if emote.url}
+        <img src={emote.url} alt={emote.name} class="emote-image" />
+    {:else}
+        <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
+    {/if}
+    <span class="emote-name">{emote.name}</span>
+    {#if mode === 'add' || mode === 'edit'}
         <span class="emote-type emote-type--{emote.type}">
             {emote.type.toUpperCase()}
         </span>
-    </div>
-{:else}
-    <!-- Fallback for non-interactive display -->
-    <div class="emote-card emote-card--{mode} emote-card--{size}">
-        {#if emote.url}
-            <img src={emote.url} alt={emote.name} class="emote-image" />
-        {:else}
-            <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
-        {/if}
-        <span class="emote-name">{emote.name}</span>
-    </div>
-{/if}
+    {/if}
+</div>
 
 <style>
     .emote-card {
