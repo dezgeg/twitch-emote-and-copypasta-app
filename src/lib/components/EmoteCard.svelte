@@ -26,9 +26,6 @@
         
         // Optional index for drag operations
         index?: number;
-        
-        // Size variant
-        size?: 'small' | 'medium' | 'large';
     }
 
     let {
@@ -44,8 +41,7 @@
         onDragLeave,
         onDrop,
         onDragEnd,
-        index,
-        size = 'medium'
+        index
     }: Props = $props();
 
     // Determine the wrapper element and attributes
@@ -79,7 +75,7 @@
 </script>
 
 <div
-    class="emote-card emote-card--{mode} emote-card--{size}"
+    class="emote-card emote-card--{mode}"
     class:emote-card--favorited={isFavorited}
     class:emote-card--dragging={isDragging}
     class:emote-card--drag-over={isDragOver}
@@ -122,18 +118,6 @@
         user-select: none;
     }
 
-    /* Size variants */
-    .emote-card--small {
-        padding: 0.75rem;
-    }
-
-    .emote-card--medium {
-        padding: 1rem;
-    }
-
-    .emote-card--large {
-        padding: 1.25rem;
-    }
 
     /* Mode-specific styles */
     .emote-card--view {
@@ -194,21 +178,9 @@
     /* Image and placeholder */
     .emote-image,
     .emote-placeholder {
-        width: 56px;
-        height: 56px;
-        margin-bottom: 0.5rem;
-    }
-
-    .emote-card--small .emote-image,
-    .emote-card--small .emote-placeholder {
         width: 40px;
         height: 40px;
-    }
-
-    .emote-card--large .emote-image,
-    .emote-card--large .emote-placeholder {
-        width: 72px;
-        height: 72px;
+        margin-bottom: 0.5rem;
     }
 
     .emote-placeholder {
@@ -242,13 +214,6 @@
         margin-bottom: 0.25rem;
     }
 
-    .emote-card--small .emote-name {
-        font-size: 0.75rem;
-    }
-
-    .emote-card--large .emote-name {
-        font-size: 1rem;
-    }
 
     /* Emote type badges */
     .emote-type {
