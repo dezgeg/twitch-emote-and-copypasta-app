@@ -7,7 +7,7 @@
     export { base };
     
     // Extract channel from page params if it exists
-    $: channel = $page.params.channel || null;
+    let channel = $derived($page.params.channel || null);
 </script>
 
 <NavBar {channel} />
@@ -16,11 +16,3 @@
     <slot />
 </main>
 
-<style>
-    /* Remove global overrides since they're now handled in app.html */
-    main {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 1rem;
-    }
-</style>
