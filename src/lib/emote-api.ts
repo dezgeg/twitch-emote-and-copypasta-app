@@ -229,71 +229,51 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
 }
 
 /**
+ * Helper function to fetch and process FFZ emotes from a URL
+ */
+async function fetchFFZEmotes(url: URL, keyPrefix: string): Promise<Emote[]> {
+    const response = await fetch(url);
+    if (!response.ok) {
+        return [];
+    }
+
+    const data = await response.json();
+    const emotes: Emote[] = [];
+
+    if (data.sets) {
+        Object.values(data.sets).forEach((set: any) => {
+            if (set.emoticons) {
+                const setEmotes = set.emoticons.map((emote: any) => ({
+                    name: emote.name,
+                    url: emote.urls["2"] || emote.urls["1"],
+                    type: "ffz" as const,
+                    uniqueKey: `ffz-${keyPrefix}-${emote.id}`,
+                }));
+                emotes.push(...setEmotes);
+            }
+        });
+    }
+
+    return emotes;
+}
+
+/**
  * Load FrankerFaceZ emotes for a channel
  */
 async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
-    const ffzEmotes: Emote[] = [];
-
     try {
-        // Fetch both global and channel FFZ emotes in parallel
-        const responses = await Promise.all([
-            // Global FFZ emotes
-            fetch("https://api.frankerfacez.com/v1/set/global"),
-            // Channel FFZ emotes
-            fetch(`https://api.frankerfacez.com/v1/room/id/${broadcasterId}`),
+        const [globalEmotes, channelEmotes] = await Promise.all([
+            fetchFFZEmotes(new URL("https://api.frankerfacez.com/v1/set/global"), "global"),
+            fetchFFZEmotes(new URL(`https://api.frankerfacez.com/v1/room/id/${broadcasterId}`), "channel"),
         ]);
 
-        // Process global FFZ emotes
-        if (responses[0].ok) {
-            const globalData = await responses[0].json();
-            if (globalData.sets) {
-                Object.values(globalData.sets).forEach((set: any) => {
-                    if (set.emoticons) {
-                        const globalEmotes = set.emoticons.map((emote: any) => ({
-                            name: emote.name,
-                            url: emote.urls["2"] || emote.urls["1"],
-                            type: "ffz" as const,
-                            uniqueKey: `ffz-global-${emote.id}`,
-                        }));
-                        ffzEmotes.push(...globalEmotes);
-                    }
-                });
-            }
-        }
-
-        // Process channel FFZ emotes
-        if (responses[1].ok) {
-            const channelData = await responses[1].json();
-            if (channelData.sets) {
-                Object.values(channelData.sets).forEach((set: any) => {
-                    if (set.emoticons) {
-                        const channelEmotes = set.emoticons.map((emote: any) => ({
-                            name: emote.name,
-                            url: emote.urls["2"] || emote.urls["1"],
-                            type: "ffz" as const,
-                            uniqueKey: `ffz-channel-${emote.id}`,
-                        }));
-                        ffzEmotes.push(...channelEmotes);
-                    }
-                });
-            }
-        } else if (responses[1].status === 404) {
-            // Channel doesn't have FFZ emotes set up - this is normal
-            console.log(
-                `Channel (ID: ${broadcasterId}) does not have FrankerFaceZ emotes configured`,
-            );
-        } else {
-            console.warn(
-                `FrankerFaceZ API returned ${responses[1].status} for channel (ID: ${broadcasterId})`,
-            );
-        }
+        return globalEmotes.concat(channelEmotes);
     } catch (err) {
         // Network error or other issues - don't show error to user
         console.log(
             "FrankerFaceZ emotes not available:",
             err instanceof Error ? err.message : "Unknown error",
         );
+        return [];
     }
-
-    return ffzEmotes;
 }
