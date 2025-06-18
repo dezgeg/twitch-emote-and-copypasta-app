@@ -27,21 +27,18 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Em
         const broadcaster = await getUser(apiKey, channel);
         const currentUser = await getUser(apiKey);
 
-        // Fetch Twitch emotes (global + user)
-        const twitchEmotes = await loadTwitchEmotes(apiKey, broadcaster.id, currentUser.id);
-        allEmotes.push(...twitchEmotes);
+        // Fetch all emote types in parallel
+        const emoteResults = await Promise.all([
+            loadTwitchEmotes(apiKey, broadcaster.id, currentUser.id),
+            load7TVEmotes(broadcaster.id),
+            loadBetterTTVEmotes(broadcaster.id),
+            loadFFZEmotes(broadcaster.id),
+        ]);
 
-        // Fetch 7TV emotes
-        const seventvEmotes = await load7TVEmotes(broadcaster.id);
-        allEmotes.push(...seventvEmotes);
-
-        // Fetch BetterTTV emotes
-        const bttvEmotes = await loadBetterTTVEmotes(broadcaster.id);
-        allEmotes.push(...bttvEmotes);
-
-        // Fetch FrankerFaceZ emotes
-        const ffzEmotes = await loadFFZEmotes(broadcaster.id);
-        allEmotes.push(...ffzEmotes);
+        // Add all emotes to the result
+        for (const emotes of emoteResults) {
+            allEmotes.push(...emotes);
+        }
 
         // Cache the results
         setEmotesCache(channel, allEmotes);
