@@ -78,3 +78,37 @@ export async function getFollowedChannels(apiKey: string): Promise<FollowedChann
     const followsData = await followsResponse.json();
     return followsData.data || [];
 }
+
+/**
+ * Send a chat message to a Twitch channel
+ * @param apiKey - Twitch API access token (must have chat:edit scope)
+ * @param broadcasterLogin - Channel name to send message to
+ * @param message - Message content to send
+ * @throws Error if API request fails
+ */
+export async function sendChatMessage(apiKey: string, broadcasterLogin: string, message: string): Promise<void> {
+    // Get current user info
+    const user = await getUser(apiKey);
+    
+    // Get broadcaster info
+    const broadcaster = await getUser(apiKey, broadcasterLogin);
+    
+    const response = await fetch("https://api.twitch.tv/helix/chat/messages", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Client-Id": TWITCH_CLIENT_ID,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            broadcaster_id: broadcaster.id,
+            sender_id: user.id,
+            message: message,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Failed to send chat message: ${response.status} - ${errorData.message || response.statusText}`);
+    }
+}

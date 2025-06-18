@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
+    import { sendChatMessage } from "$lib/twitch-api";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import { base } from '$app/paths';
@@ -68,9 +69,44 @@
         }
     }
 
-    function sendEmoteToChat(emote: { name: string; url: string }) {
-        console.log(`Sending emote to chat: ${emote.name}`);
-        alert(`Would send "${emote.name}" to ${channel}'s chat`);
+    async function sendEmoteToChat(emote: { name: string; url: string }) {
+        try {
+            if (!$twitchApiKey) {
+                throw new Error('No API key configured');
+            }
+
+            await sendChatMessage($twitchApiKey, channel, emote.name);
+        } catch (err) {
+            console.error('Failed to send chat message:', err);
+            showNotification(`Failed to send "${emote.name}": ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+    }
+
+    function showNotification(message: string) {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            z-index: 1000;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+        document.body.appendChild(notification);
+        
+        // Auto-remove notification after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
     }
 </script>
 
