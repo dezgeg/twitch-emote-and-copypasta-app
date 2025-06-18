@@ -1,5 +1,7 @@
 import { getUser } from "./twitch-api";
 import { TWITCH_CLIENT_ID } from "./config";
+import { setEmotesCache, getEmotesStore } from "./stores";
+import { get } from "svelte/store";
 
 export interface Emote {
     name: string;
@@ -12,6 +14,12 @@ export interface Emote {
  * Load all available emotes for a channel (global, user, 7TV, BetterTTV, and FrankerFaceZ emotes)
  */
 export async function loadAllEmotes(apiKey: string, channel: string): Promise<Emote[]> {
+    // Check if we already have cached data
+    const cachedEmotes = get(getEmotesStore(channel));
+    if (cachedEmotes.length > 0) {
+        return cachedEmotes;
+    }
+
     const allEmotes: Emote[] = [];
 
     try {
@@ -34,6 +42,9 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Em
         // Fetch FrankerFaceZ emotes
         const ffzEmotes = await loadFFZEmotes(broadcaster.id);
         allEmotes.push(...ffzEmotes);
+
+        // Cache the results
+        setEmotesCache(channel, allEmotes);
     } catch (err) {
         console.error("Error loading emotes:", err);
         throw err;
