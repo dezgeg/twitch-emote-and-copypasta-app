@@ -1,26 +1,32 @@
 <script lang="ts">
-    import { base } from '$app/paths';
-    import { page } from '$app/stores';
+    import { base } from "$app/paths";
+    import { page } from "$app/stores";
 
     interface Props {
         channel?: string | null;
     }
 
     let { channel = null }: Props = $props();
-    
+
     // Get current route ID for highlighting active nav item
     let routeId = $derived($page.route.id);
 </script>
 
 <nav>
-    <a href="{base}/" class:active={routeId === '/'}>Channels</a>
-    
+    <a href="{base}/" class:active={routeId === "/"}>Channels</a>
+
     {#if channel}
-        <a href="{base}/channel/{channel}" class:active={routeId === '/channel/[channel]'}>{channel}</a>
-        <a href="{base}/channel/{channel}/add" class:active={routeId === '/channel/[channel]/add'}>Add</a>
-        <a href="{base}/channel/{channel}/edit" class:active={routeId === '/channel/[channel]/edit'}>Edit</a>
+        <a href="{base}/channel/{channel}" class:active={routeId === "/channel/[channel]"}
+            >{channel}</a
+        >
+        <a href="{base}/channel/{channel}/add" class:active={routeId === "/channel/[channel]/add"}
+            >Add</a
+        >
+        <a href="{base}/channel/{channel}/edit" class:active={routeId === "/channel/[channel]/edit"}
+            >Edit</a
+        >
     {:else}
-        <a href="{base}/setup" class:active={routeId === '/setup'}>Setup</a>
+        <a href="{base}/setup" class:active={routeId === "/setup"}>Setup</a>
     {/if}
 </nav>
 
@@ -73,14 +79,13 @@
         padding-left: 1rem;
     }
 
-
     @media (max-width: 600px) {
         nav {
             height: auto;
             min-height: 1cm;
             flex-wrap: wrap;
         }
-        
+
         nav a {
             flex: 1;
             min-width: auto;

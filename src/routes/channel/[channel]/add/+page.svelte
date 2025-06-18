@@ -6,7 +6,7 @@
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
-    import { base } from '$app/paths';
+    import { base } from "$app/paths";
 
     let allEmotes: Emote[] = $state([]);
     let searchTerm = $state("");
@@ -54,7 +54,7 @@
     }
 
     function handleSearchKeydown(event: KeyboardEvent) {
-        if (event.key === 'Enter') {
+        if (event.key === "Enter") {
             // Blur the input to close virtual keyboard on mobile
             (event.target as HTMLInputElement).blur();
         }
@@ -65,39 +65,39 @@
     <title>Twitch Emote and Copypasta App - Manage Emotes for {channel}</title>
 </svelte:head>
 
-    {#if loading}
-        <Spinner />
-    {:else if error}
-        <div class="error">
-            <p>Error: {error}</p>
+{#if loading}
+    <Spinner />
+{:else if error}
+    <div class="error">
+        <p>Error: {error}</p>
+    </div>
+{:else}
+    <div class="search-container">
+        <input
+            type="text"
+            placeholder="Search emotes..."
+            bind:value={searchTerm}
+            class="search-input"
+            onkeydown={handleSearchKeydown}
+        />
+        <div class="results-count">
+            {filteredEmotes.length} emotes found
         </div>
-    {:else}
-        <div class="search-container">
-            <input
-                type="text"
-                placeholder="Search emotes..."
-                bind:value={searchTerm}
-                class="search-input"
-                onkeydown={handleSearchKeydown}
-            />
-            <div class="results-count">
-                {filteredEmotes.length} emotes found
-            </div>
-        </div>
+    </div>
 
-        <div class="emotes-grid">
-            {#each filteredEmotes as emote (emote.uniqueKey)}
-                <EmoteCard 
-                    {emote} 
-                    mode="add" 
-                    isFavorited={isFavorited(emote.name)}
-                    onClick={toggleFavorite}
-                />
-            {:else}
-                <p>No emotes found matching "{searchTerm}"</p>
-            {/each}
-        </div>
-    {/if}
+    <div class="emotes-grid">
+        {#each filteredEmotes as emote (emote.uniqueKey)}
+            <EmoteCard
+                {emote}
+                mode="add"
+                isFavorited={isFavorited(emote.name)}
+                onClick={toggleFavorite}
+            />
+        {:else}
+            <p>No emotes found matching "{searchTerm}"</p>
+        {/each}
+    </div>
+{/if}
 
 <style>
     .search-container {

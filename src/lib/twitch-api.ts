@@ -86,13 +86,17 @@ export async function getFollowedChannels(apiKey: string): Promise<FollowedChann
  * @param message - Message content to send
  * @throws Error if API request fails
  */
-export async function sendChatMessage(apiKey: string, broadcasterLogin: string, message: string): Promise<void> {
+export async function sendChatMessage(
+    apiKey: string,
+    broadcasterLogin: string,
+    message: string,
+): Promise<void> {
     // Get current user info
     const user = await getUser(apiKey);
-    
+
     // Get broadcaster info
     const broadcaster = await getUser(apiKey, broadcasterLogin);
-    
+
     const response = await fetch("https://api.twitch.tv/helix/chat/messages", {
         method: "POST",
         headers: {
@@ -109,6 +113,8 @@ export async function sendChatMessage(apiKey: string, broadcasterLogin: string, 
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Failed to send chat message: ${response.status} - ${errorData.message || response.statusText}`);
+        throw new Error(
+            `Failed to send chat message: ${response.status} - ${errorData.message || response.statusText}`,
+        );
     }
 }

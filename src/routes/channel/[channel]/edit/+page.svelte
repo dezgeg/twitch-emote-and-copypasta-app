@@ -6,7 +6,7 @@
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
-    import { base } from '$app/paths';
+    import { base } from "$app/paths";
 
     let favoriteEmotes: Emote[] = $state([]);
     let loading = $state(true);
@@ -14,7 +14,7 @@
     let draggedIndex = $state<number | null>(null);
     let dragOverIndex = $state<number | null>(null);
     let dragOverTrash = $state(false);
-    let touchStartPos = $state<{x: number, y: number} | null>(null);
+    let touchStartPos = $state<{ x: number; y: number } | null>(null);
     let isTouchDragging = $state(false);
 
     let channel = $derived($page.params.channel);
@@ -73,8 +73,8 @@
     }
 
     function removeFromFavorites(emoteName: string) {
-        $favoriteEmotesStore = $favoriteEmotesStore.filter(name => name !== emoteName);
-        favoriteEmotes = favoriteEmotes.filter(emote => emote.name !== emoteName);
+        $favoriteEmotesStore = $favoriteEmotesStore.filter((name) => name !== emoteName);
+        favoriteEmotes = favoriteEmotes.filter((emote) => emote.name !== emoteName);
     }
 
     function removeFromFavoritesByIndex(index: number) {
@@ -98,31 +98,35 @@
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
         }
-        
+
         const newDragOverIndex = index ?? null;
-        
+
         // Live update: reorder items while dragging
-        if (draggedIndex !== null && newDragOverIndex !== null && draggedIndex !== newDragOverIndex) {
+        if (
+            draggedIndex !== null &&
+            newDragOverIndex !== null &&
+            draggedIndex !== newDragOverIndex
+        ) {
             // Create copies of the arrays
             const newFavoriteEmotes = [...favoriteEmotes];
             const newFavoriteNames = [...$favoriteEmotesStore];
-            
+
             // Remove the dragged item
             const draggedEmote = newFavoriteEmotes.splice(draggedIndex, 1)[0];
             const draggedName = newFavoriteNames.splice(draggedIndex, 1)[0];
-            
+
             // Insert at new position
             newFavoriteEmotes.splice(newDragOverIndex, 0, draggedEmote);
             newFavoriteNames.splice(newDragOverIndex, 0, draggedName);
-            
+
             // Update state for live preview
             favoriteEmotes = newFavoriteEmotes;
             $favoriteEmotesStore = newFavoriteNames;
-            
+
             // Update the dragged index to reflect the new position
             draggedIndex = newDragOverIndex;
         }
-        
+
         dragOverIndex = newDragOverIndex;
     }
 
@@ -132,7 +136,7 @@
 
     function handleDrop(event: DragEvent, emote: Emote, dropIndex?: number) {
         event.preventDefault();
-        
+
         // Reset drag state (reordering already happened in handleDragOver)
         draggedIndex = null;
         dragOverIndex = null;
@@ -164,43 +168,43 @@
             const touch = event.touches[0];
             const deltaX = Math.abs(touch.clientX - touchStartPos.x);
             const deltaY = Math.abs(touch.clientY - touchStartPos.y);
-            
+
             // Start dragging if moved more than 10px
             if (deltaX > 10 || deltaY > 10) {
                 isTouchDragging = true;
                 event.preventDefault(); // Prevent scrolling
-                
+
                 // Find the element under the touch point
                 const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-                const emoteCard = elementBelow?.closest('[data-emote-index]');
-                
+                const emoteCard = elementBelow?.closest("[data-emote-index]");
+
                 if (emoteCard) {
-                    const targetIndex = parseInt(emoteCard.getAttribute('data-emote-index') || '');
+                    const targetIndex = parseInt(emoteCard.getAttribute("data-emote-index") || "");
                     if (!isNaN(targetIndex) && targetIndex !== draggedIndex) {
                         // Live update for touch: reorder items while dragging
                         const newFavoriteEmotes = [...favoriteEmotes];
                         const newFavoriteNames = [...$favoriteEmotesStore];
-                        
+
                         // Remove the dragged item
                         const draggedEmote = newFavoriteEmotes.splice(draggedIndex, 1)[0];
                         const draggedName = newFavoriteNames.splice(draggedIndex, 1)[0];
-                        
+
                         // Insert at new position
                         newFavoriteEmotes.splice(targetIndex, 0, draggedEmote);
                         newFavoriteNames.splice(targetIndex, 0, draggedName);
-                        
+
                         // Update state for live preview
                         favoriteEmotes = newFavoriteEmotes;
                         $favoriteEmotesStore = newFavoriteNames;
-                        
+
                         // Update the dragged index to reflect the new position
                         draggedIndex = targetIndex;
                         dragOverIndex = targetIndex;
                     }
                 }
-                
+
                 // Check if over trash zone
-                const trashZone = elementBelow?.closest('.trash-zone');
+                const trashZone = elementBelow?.closest(".trash-zone");
                 dragOverTrash = !!trashZone;
             }
         }
@@ -209,14 +213,14 @@
     function handleTouchEnd(event: TouchEvent) {
         if (isTouchDragging && draggedIndex !== null) {
             event.preventDefault();
-            
+
             if (dragOverTrash) {
                 // Delete the item
                 removeFromFavoritesByIndex(draggedIndex);
             }
             // Note: Reordering already happened in handleTouchMove
         }
-        
+
         // Reset touch state
         touchStartPos = null;
         isTouchDragging = false;
@@ -240,11 +244,11 @@
 
     function handleTrashDrop(event: DragEvent) {
         event.preventDefault();
-        
+
         if (draggedIndex !== null) {
             removeFromFavoritesByIndex(draggedIndex);
         }
-        
+
         // Reset drag state
         draggedIndex = null;
         dragOverIndex = null;
@@ -256,71 +260,77 @@
     <title>Twitch Emote and Copypasta App - Edit {channel} Favorites</title>
 </svelte:head>
 
-    {#if loading}
-        <Spinner />
-    {:else if error}
-        <div class="error">
-            <p>Error: {error}</p>
-        </div>
-    {:else}
-        <div class="instructions">
-            <p>Drag and drop to reorder your favorite emotes. Drag to the trash can below to delete from favorites.</p>
-        </div>
+{#if loading}
+    <Spinner />
+{:else if error}
+    <div class="error">
+        <p>Error: {error}</p>
+    </div>
+{:else}
+    <div class="instructions">
+        <p>
+            Drag and drop to reorder your favorite emotes. Drag to the trash can below to delete
+            from favorites.
+        </p>
+    </div>
 
-        <div class="emotes-grid">
-            {#each favoriteEmotes as emote, index (emote.uniqueKey)}
-                <div 
-                    data-emote-index={index}
-                    ontouchstart={(e) => handleTouchStart(e, emote, index)}
-                    ontouchmove={handleTouchMove}
-                    ontouchend={handleTouchEnd}
-                    oncontextmenu={handleContextMenu}
-                >
-                    <EmoteCard 
-                        {emote} 
-                        {index}
-                        mode="edit" 
-                        draggable={true}
-                        isDragging={draggedIndex === index || (isTouchDragging && draggedIndex === index)}
-                        isDragOver={dragOverIndex === index}
-                        onDragStart={handleDragStart}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        onDragEnd={handleDragEnd}
-                    />
-                </div>
-            {:else}
-                <p>
-                    No favorite emotes yet. <a href="{base}/channel/{channel}/add" class="button">Add some!</a>
-                </p>
-            {/each}
-        </div>
-
-        <!-- Trash Can Drop Zone -->
-        <div 
-            class="trash-zone"
-            class:drag-over={dragOverTrash}
-            ondragover={handleTrashDragOver}
-            ondragleave={handleTrashDragLeave}
-            ondrop={handleTrashDrop}
-            role="button"
-            tabindex="0"
-            aria-label="Drop zone to delete emotes"
-        >
-            <div class="trash-can">
-                🗑️
+    <div class="emotes-grid">
+        {#each favoriteEmotes as emote, index (emote.uniqueKey)}
+            <div
+                data-emote-index={index}
+                ontouchstart={(e) => handleTouchStart(e, emote, index)}
+                ontouchmove={handleTouchMove}
+                ontouchend={handleTouchEnd}
+                oncontextmenu={handleContextMenu}
+                role="button"
+                tabindex="0"
+            >
+                <EmoteCard
+                    {emote}
+                    {index}
+                    mode="edit"
+                    draggable={true}
+                    isDragging={draggedIndex === index ||
+                        (isTouchDragging && draggedIndex === index)}
+                    isDragOver={dragOverIndex === index}
+                    onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onDragEnd={handleDragEnd}
+                />
             </div>
-            <p>Drop here to delete</p>
-        </div>
-    {/if}
+        {:else}
+            <p>
+                No favorite emotes yet. <a href="{base}/channel/{channel}/add" class="button"
+                    >Add some!</a
+                >
+            </p>
+        {/each}
+    </div>
+
+    <!-- Trash Can Drop Zone -->
+    <div
+        class="trash-zone"
+        class:drag-over={dragOverTrash}
+        ondragover={handleTrashDragOver}
+        ondragleave={handleTrashDragLeave}
+        ondrop={handleTrashDrop}
+        role="button"
+        tabindex="0"
+        aria-label="Drop zone to delete emotes"
+    >
+        <div class="trash-can">🗑️</div>
+        <p>Drop here to delete</p>
+    </div>
+{/if}
 
 <style>
     /* Disable pull-to-refresh to prevent interference with drag and drop */
     :global(body) {
         overscroll-behavior-y: contain;
     }
-    
+
     .emotes-grid {
         touch-action: none;
     }
@@ -345,8 +355,6 @@
         gap: 0.125rem;
         margin: 1rem 0;
     }
-
-
 
     .trash-zone {
         margin: 2rem auto;
@@ -386,7 +394,6 @@
         color: #ff6b6b;
         font-weight: bold;
     }
-
 
     @media (max-width: 600px) {
         .emotes-grid {

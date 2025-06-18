@@ -4,7 +4,7 @@
     import { getFollowedChannels, type FollowedChannel } from "$lib/twitch-api";
     import { twitchApiKey } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
-    import { base } from '$app/paths';
+    import { base } from "$app/paths";
 
     let channels: FollowedChannel[] = [];
     let loading = true;
@@ -35,24 +35,24 @@
     <title>Twitch Emote and Copypasta App - Channels</title>
 </svelte:head>
 
-    {#if loading}
-        <Spinner />
-    {:else if error}
-        <div class="error">
-            <p>Error: {error}</p>
-            <p>Please check your API key configuration.</p>
-        </div>
-    {:else}
-        <div class="channels">
-            {#each channels as channel (channel.broadcaster_id)}
-                <a class="channel-card" href="{base}/channel/{channel.broadcaster_login}">
-                    <div class="channel-name">{channel.broadcaster_name}</div>
-                </a>
-            {:else}
-                <p>No followed channels found.</p>
-            {/each}
-        </div>
-    {/if}
+{#if loading}
+    <Spinner />
+{:else if error}
+    <div class="error">
+        <p>Error: {error}</p>
+        <p>Please check your API key configuration.</p>
+    </div>
+{:else}
+    <div class="channels">
+        {#each channels as channel (channel.broadcaster_id)}
+            <a class="channel-card" href="{base}/channel/{channel.broadcaster_login}">
+                <div class="channel-name">{channel.broadcaster_name}</div>
+            </a>
+        {:else}
+            <p>No followed channels found.</p>
+        {/each}
+    </div>
+{/if}
 
 <style>
     .channels {

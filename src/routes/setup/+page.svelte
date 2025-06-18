@@ -6,43 +6,43 @@
     <title>Twitch Emote and Copypasta App - Setup</title>
 </svelte:head>
 
-    <div class="setup-form">
-        <label for="apiKey">Twitch API Key:</label>
-        <input
-            id="apiKey"
-            type="text"
-            bind:value={$twitchApiKey}
-            placeholder="Enter your Twitch API key"
-            autocomplete="off"
-            class="api-key-input"
-        />
-        <p class="help-text">Your API key is automatically saved as you type.</p>
+<div class="setup-form">
+    <label for="apiKey">Twitch API Key:</label>
+    <input
+        id="apiKey"
+        type="text"
+        bind:value={$twitchApiKey}
+        placeholder="Enter your Twitch API key"
+        autocomplete="off"
+        class="api-key-input"
+    />
+    <p class="help-text">Your API key is automatically saved as you type.</p>
+</div>
+
+<div class="help">
+    <h3>Setup Requirements:</h3>
+    <div class="setup-step">
+        <h4>Get Access Token</h4>
+        <p>The API key above should be a Twitch access token with appropriate scopes.</p>
     </div>
 
-    <div class="help">
-        <h3>Setup Requirements:</h3>
-        <div class="setup-step">
-            <h4>Get Access Token</h4>
-            <p>The API key above should be a Twitch access token with appropriate scopes.</p>
-        </div>
-
-        <h3>How to get these:</h3>
-        <ol>
-            <li>
-                Go to <a href="https://dev.twitch.tv/console" target="_blank"
-                    >Twitch Developer Console</a
-                >
-            </li>
-            <li>Register your application with redirect URI: <code>http://localhost:3000</code></li>
-            <li>
-                Generate an access token using OAuth flow or <a
-                    href="https://twitchtokengenerator.com/"
-                    target="_blank">Twitch Token Generator</a
-                >
-            </li>
-            <li>Paste the access token in the field above</li>
-        </ol>
-    </div>
+    <h3>How to get these:</h3>
+    <ol>
+        <li>
+            Go to <a href="https://dev.twitch.tv/console" target="_blank"
+                >Twitch Developer Console</a
+            >
+        </li>
+        <li>Register your application with redirect URI: <code>http://localhost:3000</code></li>
+        <li>
+            Generate an access token using OAuth flow or <a
+                href="https://twitchtokengenerator.com/"
+                target="_blank">Twitch Token Generator</a
+            >
+        </li>
+        <li>Paste the access token in the field above</li>
+    </ol>
+</div>
 
 <style>
     .setup-form {

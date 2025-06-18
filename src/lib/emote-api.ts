@@ -83,7 +83,7 @@ async function fetchTwitchEmotes(url: URL, apiKey: string): Promise<Emote[]> {
             }
 
             const data = await response.json();
-            
+
             // Process emotes from current page
             const emotes = data.data.map((emote: any) => ({
                 name: emote.name,
@@ -98,8 +98,8 @@ async function fetchTwitchEmotes(url: URL, apiKey: string): Promise<Emote[]> {
             if (!cursor) {
                 break;
             }
-            
-            currentUrl.searchParams.set('after', cursor);
+
+            currentUrl.searchParams.set("after", cursor);
         }
     } catch (err) {
         console.error("Error fetching Twitch emotes:", err);
@@ -118,14 +118,19 @@ async function loadTwitchEmotes(
 ): Promise<Emote[]> {
     const [globalEmotes, userSpecificEmotes] = await Promise.all([
         fetchTwitchEmotes(new URL("https://api.twitch.tv/helix/chat/emotes/global"), apiKey),
-        fetchTwitchEmotes(new URL(`https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`), apiKey),
+        fetchTwitchEmotes(
+            new URL(
+                `https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`,
+            ),
+            apiKey,
+        ),
     ]);
 
     const allEmotes = globalEmotes.concat(userSpecificEmotes);
-    
+
     // Deduplicate by uniqueKey
     const seen = new Set<string>();
-    return allEmotes.filter(emote => {
+    return allEmotes.filter((emote) => {
         if (seen.has(emote.uniqueKey)) {
             return false;
         }
@@ -175,7 +180,7 @@ function mapBetterTTVEmotes(emotes: any[] | null | undefined, keyPrefix: string)
     if (!emotes) {
         return [];
     }
-    
+
     return emotes.map((emote: any) => ({
         name: emote.code,
         url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
@@ -209,7 +214,9 @@ async function loadBetterTTVEmotes(broadcasterId: string): Promise<Emote[]> {
         if (!responses[1].ok) {
             if (responses[1].status === 404) {
                 // Channel doesn't have BetterTTV emotes set up - this is normal
-                console.log(`Channel (ID: ${broadcasterId}) does not have BetterTTV emotes configured`);
+                console.log(
+                    `Channel (ID: ${broadcasterId}) does not have BetterTTV emotes configured`,
+                );
             } else {
                 console.warn(
                     `BetterTTV API returned ${responses[1].status} for channel (ID: ${broadcasterId})`,
@@ -251,7 +258,7 @@ async function fetchFFZEmotes(url: URL, keyPrefix: string): Promise<Emote[]> {
         if (!set.emoticons) {
             return;
         }
-        
+
         const setEmotes = set.emoticons.map((emote: any) => ({
             name: emote.name,
             url: emote.urls["2"] || emote.urls["1"],
@@ -271,7 +278,10 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
     try {
         const [globalEmotes, channelEmotes] = await Promise.all([
             fetchFFZEmotes(new URL("https://api.frankerfacez.com/v1/set/global"), "global"),
-            fetchFFZEmotes(new URL(`https://api.frankerfacez.com/v1/room/id/${broadcasterId}`), "channel"),
+            fetchFFZEmotes(
+                new URL(`https://api.frankerfacez.com/v1/room/id/${broadcasterId}`),
+                "channel",
+            ),
         ]);
 
         return globalEmotes.concat(channelEmotes);

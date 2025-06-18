@@ -4,18 +4,18 @@
     interface Props {
         // Core emote data
         emote: Emote;
-        
+
         // Display mode
-        mode: 'view' | 'add' | 'edit';
-        
+        mode: "view" | "add" | "edit";
+
         // State flags
         isFavorited?: boolean;
         isDragging?: boolean;
         isDragOver?: boolean;
-        
+
         // Event handlers
         onClick?: (emote: Emote) => void;
-        
+
         // Drag and drop support
         draggable?: boolean;
         onDragStart?: (event: DragEvent, emote: Emote, index?: number) => void;
@@ -23,7 +23,7 @@
         onDragLeave?: () => void;
         onDrop?: (event: DragEvent, emote: Emote, index?: number) => void;
         onDragEnd?: () => void;
-        
+
         // Optional index for drag operations
         index?: number;
     }
@@ -41,16 +41,17 @@
         onDragLeave,
         onDrop,
         onDragEnd,
-        index
+        index,
     }: Props = $props();
 
     // Determine the wrapper element and attributes
-    let isClickable = $derived(mode === 'view' || mode === 'add');
-    let isDraggableMode = $derived(mode === 'edit' && draggable);
-    
+    let isClickable = $derived(mode === "view" || mode === "add");
+    let isDraggableMode = $derived(mode === "edit" && draggable);
+    let isInteractive = $derived(isClickable || isDraggableMode);
+
     // Add zero-width spaces before capital letters for better word wrapping
     function addZeroWidthSpaces(text: string): string {
-        return text.replace(/([a-z])([A-Z])/g, '$1\u200B$2');
+        return text.replace(/([a-z])([A-Z])/g, "$1\u200B$2");
     }
 
     function handleClick() {
@@ -76,9 +77,9 @@
             onDrop(event, emote, index);
         }
     }
-
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div
     class="emote-card emote-card--{mode}"
     class:emote-card--favorited={isFavorited}
@@ -91,15 +92,15 @@
     ondragleave={isDraggableMode ? onDragLeave : undefined}
     ondrop={isDraggableMode ? handleDrop : undefined}
     ondragend={isDraggableMode ? onDragEnd : undefined}
-    role={isClickable || isDraggableMode ? 'button' : undefined}
-    tabindex={isClickable || isDraggableMode ? 0 : undefined}
+    role={isInteractive ? "button" : undefined}
+    tabindex={isInteractive ? 0 : undefined}
 >
     {#if emote.url}
         <img src={emote.url} alt={emote.name} class="emote-image" />
     {:else}
         <div class="emote-placeholder">{emote.name[0]?.toUpperCase()}</div>
     {/if}
-    {#if mode === 'add'}
+    {#if mode === "add"}
         <span class="emote-name">{addZeroWidthSpaces(emote.name)}</span>
         <span class="emote-type emote-type--{emote.type}">
             {emote.type.toUpperCase()}
@@ -126,7 +127,6 @@
     .emote-card--add {
         padding: 0.5rem;
     }
-
 
     /* Mode-specific styles */
     .emote-card--view {
@@ -209,7 +209,6 @@
         color: var(--text-secondary);
     }
 
-
     /* Emote name */
     .emote-name {
         font-size: 0.75rem;
@@ -221,7 +220,6 @@
     .emote-card--edit .emote-name {
         margin-bottom: 0.25rem;
     }
-
 
     /* Emote type badges */
     .emote-type {

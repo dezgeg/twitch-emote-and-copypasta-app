@@ -9,15 +9,15 @@ const config = {
 
     kit: {
         adapter: adapter({
-            pages: 'build',
-            assets: 'build',
-            fallback: '404.html',
+            pages: "build",
+            assets: "build",
+            fallback: "404.html",
             precompress: false,
-            strict: false
+            strict: false,
         }),
         paths: {
-            base: process.env.NODE_ENV === 'production' ? '/twitch-emote-and-copypasta-app' : '',
-        }
+            base: process.env.NODE_ENV === "production" ? "/twitch-emote-and-copypasta-app" : "",
+        },
     },
 };
 

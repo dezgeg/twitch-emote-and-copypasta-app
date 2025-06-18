@@ -7,7 +7,7 @@
     import { sendChatMessage } from "$lib/twitch-api";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
-    import { base } from '$app/paths';
+    import { base } from "$app/paths";
 
     let channel: string;
     let favoriteEmotes: Emote[] = [];
@@ -72,18 +72,20 @@
     async function sendEmoteToChat(emote: { name: string; url: string }) {
         try {
             if (!$twitchApiKey) {
-                throw new Error('No API key configured');
+                throw new Error("No API key configured");
             }
 
             await sendChatMessage($twitchApiKey, channel, emote.name);
         } catch (err) {
-            console.error('Failed to send chat message:', err);
-            showNotification(`Failed to send "${emote.name}": ${err instanceof Error ? err.message : 'Unknown error'}`);
+            console.error("Failed to send chat message:", err);
+            showNotification(
+                `Failed to send "${emote.name}": ${err instanceof Error ? err.message : "Unknown error"}`,
+            );
         }
     }
 
     function showNotification(message: string) {
-        const notification = document.createElement('div');
+        const notification = document.createElement("div");
         notification.textContent = message;
         notification.style.cssText = `
             position: fixed;
@@ -100,7 +102,7 @@
             word-wrap: break-word;
         `;
         document.body.appendChild(notification);
-        
+
         // Auto-remove notification after 3 seconds
         setTimeout(() => {
             if (notification.parentNode) {
@@ -114,29 +116,25 @@
     <title>Twitch Emote and Copypasta App - {channel} Favorites</title>
 </svelte:head>
 
-    {#if loading}
-        <Spinner />
-    {:else if error}
-        <div class="error">
-            <p>Error: {error}</p>
-        </div>
-    {:else}
-        <div class="emotes-grid">
-            {#each favoriteEmotes as emote (emote.uniqueKey)}
-                <EmoteCard 
-                    {emote} 
-                    mode="view" 
-                    onClick={sendEmoteToChat}
-                />
-            {:else}
-                <p>
-                    No favorite emotes yet. <a href="{base}/channel/{channel}/add" class="button"
-                        >Add some!</a
-                    >
-                </p>
-            {/each}
-        </div>
-    {/if}
+{#if loading}
+    <Spinner />
+{:else if error}
+    <div class="error">
+        <p>Error: {error}</p>
+    </div>
+{:else}
+    <div class="emotes-grid">
+        {#each favoriteEmotes as emote (emote.uniqueKey)}
+            <EmoteCard {emote} mode="view" onClick={sendEmoteToChat} />
+        {:else}
+            <p>
+                No favorite emotes yet. <a href="{base}/channel/{channel}/add" class="button"
+                    >Add some!</a
+                >
+            </p>
+        {/each}
+    </div>
+{/if}
 
 <style>
     .emotes-grid {
@@ -150,10 +148,6 @@
         .emotes-grid {
             grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
             gap: 0.0625rem;
-        }
-
-        nav {
-            flex-direction: column;
         }
     }
 </style>
