@@ -12,16 +12,16 @@ export interface ChatWebSocketState {
     sessionId: string | null;
 }
 
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY = 1000; // milliseconds
+
 export class ChatWebSocket {
     private ws: WebSocket | null = null;
     private sessionId: string | null = null;
     private reconnectAttempts = 0;
-    private maxReconnectAttempts = 5;
-    private reconnectDelay = 1000;
     private keepaliveTimeout: number | null = null;
     private apiKey: string;
     private channel: string;
-    private subscriptionCreated = false;
     private subscriptionId: string | null = null;
     private onMessageCallback: ((message: ChatMessage) => void) | null = null;
     private intentionallyClosed = false;
@@ -82,9 +82,7 @@ export class ChatWebSocket {
                 console.log("Received session ID:", this.sessionId);
 
                 // Auto-create subscription when we get session ID
-                if (!this.subscriptionCreated) {
-                    this.createSubscription();
-                }
+                this.createSubscription();
                 break;
 
             case "session_keepalive":
@@ -137,9 +135,9 @@ export class ChatWebSocket {
     }
 
     private handleReconnect() {
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        if (this.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
             this.reconnectAttempts++;
-            const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+            const delay = RECONNECT_DELAY * Math.pow(2, this.reconnectAttempts - 1);
 
             console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
 
@@ -176,12 +174,14 @@ export class ChatWebSocket {
     }
 
     private async createSubscription() {
-        if (!this.sessionId || this.subscriptionCreated) {
-            return;
+        if (!this.sessionId) {
+            throw new Error("Cannot create subscription without session ID");
+        }
+        if (this.subscriptionId) {
+            throw new Error("Subscription already exists");
         }
 
         try {
-            this.subscriptionCreated = true; // Mark as in progress to prevent duplicates
 
             // Get current user and broadcaster IDs
             const [currentUser, broadcaster] = await Promise.all([
@@ -200,17 +200,10 @@ export class ChatWebSocket {
             console.log("Chat subscription created for", this.channel, "with ID:", this.subscriptionId);
         } catch (err) {
             console.error("Error creating chat subscription:", err);
-
-            // If it's a "subscription already exists" error, that's actually fine
-            if (err instanceof Error && err.message.includes("subscription already exists")) {
-                console.log("Subscription already exists, continuing...");
-            } else {
-                this.subscriptionCreated = false; // Reset flag on actual error
-                this.subscriptionId = null; // Reset subscription ID on error
-                this.updateState({
-                    error: err instanceof Error ? err.message : "Failed to subscribe to chat",
-                });
-            }
+            this.subscriptionId = null; // Reset subscription ID on error
+            this.updateState({
+                error: err instanceof Error ? err.message : "Failed to subscribe to chat",
+            });
         }
     }
 
@@ -236,7 +229,6 @@ export class ChatWebSocket {
             this.ws.close();
             this.ws = null;
         }
-        this.subscriptionCreated = false; // Reset subscription flag
         this.subscriptionId = null; // Reset subscription ID
     }
 }
