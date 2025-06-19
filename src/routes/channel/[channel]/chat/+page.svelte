@@ -4,15 +4,18 @@
     import { onMount, onDestroy } from "svelte";
     import { twitchApiKey } from "$lib/stores";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
+    import type { ChatMessage } from "$lib/twitch-api";
     import Spinner from "$lib/components/Spinner.svelte";
     import { base } from "$app/paths";
 
     let loading = $state(true);
     let error = $state("");
     let chatWS: ChatWebSocket | null = null;
+    // svelte-ignore non_reactive_update
+    let messagesContainer: HTMLDivElement;
+    let messages = $state<ChatMessage[]>([]);
     let chatState = $state<ChatWebSocketState>({
         connected: false,
-        messages: [],
         error: null,
         sessionId: null,
     });
@@ -44,6 +47,11 @@
         // Create WebSocket connection with API key and channel
         chatWS = new ChatWebSocket($twitchApiKey, channel);
 
+        // Set up message callback
+        chatWS.setOnMessage((message) => {
+            messages = [...messages.slice(-49), message]; // Keep last 50 messages
+        });
+
         // Subscribe to state changes
         chatWS.state.subscribe((state) => {
             chatState = state;
@@ -70,11 +78,8 @@
 
     // Auto-scroll to bottom when new messages arrive
     $effect(() => {
-        if (chatState.messages.length > 0) {
-            const container = document.getElementById("messages-container");
-            if (container) {
-                container.scrollTop = container.scrollHeight;
-            }
+        if (messages.length > 0 && messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     });
 
@@ -127,7 +132,7 @@
             </div>
         {/if}
 
-        {#if chatState.messages.length === 0}
+        {#if messages.length === 0}
             <p class="no-messages">
                 {#if chatState.connected}
                     Waiting for chat messages...
@@ -136,8 +141,8 @@
                 {/if}
             </p>
         {:else}
-            <div class="messages" id="messages-container">
-                {#each chatState.messages as message (message.id)}
+            <div class="messages" bind:this={messagesContainer}>
+                {#each messages as message (message.id)}
                     <div class="message">
                         <div class="message-header">
                             <span class="username" style="color: {message.color || '#9146ff'}"

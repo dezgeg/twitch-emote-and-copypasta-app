@@ -9,7 +9,6 @@ import {
 
 export interface ChatWebSocketState {
     connected: boolean;
-    messages: ChatMessage[];
     error: string | null;
     sessionId: string | null;
 }
@@ -24,10 +23,10 @@ export class ChatWebSocket {
     private apiKey: string;
     private channel: string;
     private subscriptionCreated = false;
+    private onMessageCallback: ((message: ChatMessage) => void) | null = null;
 
     public state = writable<ChatWebSocketState>({
         connected: false,
-        messages: [],
         error: null,
         sessionId: null,
     });
@@ -126,10 +125,10 @@ export class ChatWebSocket {
             color: event.color || undefined,
         };
 
-        this.state.update((state) => ({
-            ...state,
-            messages: [...state.messages.slice(-49), message], // Keep last 50 messages
-        }));
+        // Call the callback if it's set
+        if (this.onMessageCallback) {
+            this.onMessageCallback(message);
+        }
     }
 
     private handleReconnect() {
@@ -167,11 +166,8 @@ export class ChatWebSocket {
         return this.sessionId;
     }
 
-    public clearMessages() {
-        this.state.update((state) => ({
-            ...state,
-            messages: [],
-        }));
+    public setOnMessage(callback: (message: ChatMessage) => void) {
+        this.onMessageCallback = callback;
     }
 
     private async createSubscription() {
