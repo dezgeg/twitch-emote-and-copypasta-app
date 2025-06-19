@@ -25,6 +25,7 @@ export class ChatWebSocket {
     private subscriptionCreated = false;
     private subscriptionId: string | null = null;
     private onMessageCallback: ((message: ChatMessage) => void) | null = null;
+    private intentionallyClosed = false;
 
     public state = writable<ChatWebSocketState>({
         connected: false,
@@ -55,7 +56,11 @@ export class ChatWebSocket {
             this.ws.onclose = (event) => {
                 console.log("WebSocket closed:", event.code, event.reason);
                 this.updateState({ connected: false });
-                this.handleReconnect();
+                
+                // Only attempt to reconnect if not intentionally closed
+                if (!this.intentionallyClosed) {
+                    this.handleReconnect();
+                }
             };
 
             this.ws.onerror = (error) => {
@@ -232,6 +237,9 @@ export class ChatWebSocket {
     }
 
     public async close() {
+        // Mark as intentionally closed to prevent reconnection attempts
+        this.intentionallyClosed = true;
+        
         // Clean up the specific subscription this instance created
         if (this.subscriptionId) {
             try {
