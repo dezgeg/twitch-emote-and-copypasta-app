@@ -38,6 +38,7 @@ Technical requirements:
 ### Channel Navigation
 
 All channel pages (`/channel/<channel>`, `/channel/<channel>/add`, `/channel/<channel>/edit`, `/channel/<channel>/chat`) share the same navigation bar with links to:
+
 - [x] Channel list (`/`)
 - [x] Current channel favorites (`/channel/<channel>`)
 - [x] Add emotes (`/channel/<channel>/add`)
@@ -82,11 +83,13 @@ All channel pages (`/channel/<channel>`, `/channel/<channel>/add`, `/channel/<ch
 ## Additional Technical Features
 
 ### Performance Optimizations
+
 - [x] In-memory caching of emote data to avoid redundant API calls.
 - [x] Parallel loading of emote types (Twitch, 7TV, BTTV, FFZ) for faster performance.
 - [x] Responsive grid layouts optimized for mobile and desktop.
 
 ### User Experience
+
 - [x] Instagram-style tight grid layout for emotes.
 - [x] Mobile-first responsive design with touch support.
 - [x] Accessibility features with proper ARIA roles and keyboard navigation.
@@ -94,6 +97,7 @@ All channel pages (`/channel/<channel>`, `/channel/<channel>/add`, `/channel/<ch
 - [x] Auto-saving of preferences to localStorage.
 
 ### Code Quality
+
 - [x] TypeScript for type safety.
 - [x] Svelte 5 with modern syntax and best practices.
 - [x] Proper error handling and user feedback.

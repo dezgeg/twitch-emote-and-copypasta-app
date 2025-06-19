@@ -2,7 +2,6 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { onMount, onDestroy } from "svelte";
-    import { getUser, createChatSubscription, getEventSubSubscriptions, deleteEventSubSubscription, type ChatMessage } from "$lib/twitch-api";
     import { twitchApiKey } from "$lib/stores";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import Spinner from "$lib/components/Spinner.svelte";
@@ -11,12 +10,11 @@
     let loading = $state(true);
     let error = $state("");
     let chatWS: ChatWebSocket | null = null;
-    let subscriptionCreated = $state(false);
     let chatState = $state<ChatWebSocketState>({
         connected: false,
         messages: [],
         error: null,
-        sessionId: null
+        sessionId: null,
     });
 
     let channel = $derived($page.params.channel);
@@ -40,56 +38,23 @@
         if (chatWS) {
             chatWS.close();
         }
-        subscriptionCreated = false; // Reset subscription flag
     });
 
     async function initializeChat() {
-        // Create WebSocket connection
-        chatWS = new ChatWebSocket();
-        
+        // Create WebSocket connection with API key and channel
+        chatWS = new ChatWebSocket($twitchApiKey, channel);
+
         // Subscribe to state changes
-        chatWS.state.subscribe(state => {
+        chatWS.state.subscribe((state) => {
             chatState = state;
-            
-            // Only create subscription once when we have a session ID
-            if (state.sessionId && !state.error && !subscriptionCreated) {
-                createSubscription(state.sessionId);
+
+            // Update local error state from WebSocket state
+            if (state.error) {
+                error = state.error;
             }
         });
 
         loading = false;
-    }
-
-    async function createSubscription(sessionId: string) {
-        try {
-            subscriptionCreated = true; // Mark as in progress to prevent duplicates
-            
-            // Get current user and broadcaster IDs
-            const [currentUser, broadcaster] = await Promise.all([
-                getUser($twitchApiKey),
-                getUser($twitchApiKey, channel)
-            ]);
-
-            // Create EventSub subscription
-            await createChatSubscription(
-                $twitchApiKey,
-                sessionId,
-                broadcaster.id,
-                currentUser.id
-            );
-
-            console.log("Chat subscription created for", channel);
-        } catch (err) {
-            console.error("Error creating chat subscription:", err);
-            
-            // If it's a "subscription already exists" error, that's actually fine
-            if (err instanceof Error && err.message.includes("subscription already exists")) {
-                console.log("Subscription already exists, continuing...");
-            } else {
-                subscriptionCreated = false; // Reset flag on actual error
-                error = err instanceof Error ? err.message : "Failed to subscribe to chat";
-            }
-        }
     }
 
     function formatTimestamp(timestamp: string): string {
@@ -106,7 +71,7 @@
     // Auto-scroll to bottom when new messages arrive
     $effect(() => {
         if (chatState.messages.length > 0) {
-            const container = document.getElementById('messages-container');
+            const container = document.getElementById("messages-container");
             if (container) {
                 container.scrollTop = container.scrollHeight;
             }
@@ -115,20 +80,12 @@
 
     // Debug function to clean up stale subscriptions
     async function cleanupSubscriptions() {
-        try {
-            const subscriptions = await getEventSubSubscriptions($twitchApiKey);
-            console.log("Current subscriptions:", subscriptions);
-            
-            // Delete chat message subscriptions
-            const chatSubscriptions = subscriptions.filter(sub => sub.type === "channel.chat.message");
-            for (const sub of chatSubscriptions) {
-                await deleteEventSubSubscription($twitchApiKey, sub.id);
-                console.log("Deleted subscription:", sub.id);
+        if (chatWS) {
+            try {
+                await chatWS.cleanupSubscriptions();
+            } catch (err) {
+                console.error("Error cleaning up subscriptions:", err);
             }
-            
-            subscriptionCreated = false; // Reset flag
-        } catch (err) {
-            console.error("Error cleaning up subscriptions:", err);
         }
     }
 </script>
@@ -154,18 +111,22 @@
                     <span class="status-indicator"></span>
                     {formatConnectionStatus()}
                 </div>
-                <button class="cleanup-btn" onclick={cleanupSubscriptions} title="Clean up subscriptions">
+                <button
+                    class="cleanup-btn"
+                    onclick={cleanupSubscriptions}
+                    title="Clean up subscriptions"
+                >
                     🗑️
                 </button>
             </div>
         </div>
-        
+
         {#if chatState.error}
             <div class="error">
                 <p>Chat error: {chatState.error}</p>
             </div>
         {/if}
-        
+
         {#if chatState.messages.length === 0}
             <p class="no-messages">
                 {#if chatState.connected}
@@ -179,7 +140,9 @@
                 {#each chatState.messages as message (message.id)}
                     <div class="message">
                         <div class="message-header">
-                            <span class="username" style="color: {message.color || '#9146ff'}">{message.user_name}</span>
+                            <span class="username" style="color: {message.color || '#9146ff'}"
+                                >{message.user_name}</span
+                            >
                             <span class="timestamp">{formatTimestamp(message.timestamp)}</span>
                         </div>
                         <div class="message-content">
@@ -244,9 +207,15 @@
     }
 
     @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
+        0% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+        100% {
+            opacity: 1;
+        }
     }
 
     .no-messages {

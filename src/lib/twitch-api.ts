@@ -141,7 +141,7 @@ export async function createChatSubscription(
     apiKey: string,
     sessionId: string,
     broadcasterUserId: string,
-    userUserId: string
+    userUserId: string,
 ): Promise<void> {
     const response = await fetch("https://api.twitch.tv/helix/eventsub/subscriptions", {
         method: "POST",
@@ -204,7 +204,10 @@ export async function getEventSubSubscriptions(apiKey: string): Promise<any[]> {
  * @param subscriptionId - ID of subscription to delete
  * @throws Error if API request fails
  */
-export async function deleteEventSubSubscription(apiKey: string, subscriptionId: string): Promise<void> {
+export async function deleteEventSubSubscription(
+    apiKey: string,
+    subscriptionId: string,
+): Promise<void> {
     const response = await fetch(
         `https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscriptionId}`,
         {
@@ -213,7 +216,7 @@ export async function deleteEventSubSubscription(apiKey: string, subscriptionId:
                 Authorization: `Bearer ${apiKey}`,
                 "Client-Id": TWITCH_CLIENT_ID,
             },
-        }
+        },
     );
 
     if (!response.ok) {
