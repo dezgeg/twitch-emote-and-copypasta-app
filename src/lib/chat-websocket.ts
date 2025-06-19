@@ -2,7 +2,6 @@ import { writable } from "svelte/store";
 import {
     createChatSubscription,
     getUser,
-    getEventSubSubscriptions,
     deleteEventSubSubscription,
     type ChatMessage,
 } from "./twitch-api";
@@ -215,26 +214,6 @@ export class ChatWebSocket {
         }
     }
 
-    public async cleanupAllChatSubscriptions(): Promise<void> {
-        try {
-            const subscriptions = await getEventSubSubscriptions(this.apiKey);
-            console.log("Current subscriptions:", subscriptions);
-
-            // Delete chat message subscriptions
-            const chatSubscriptions = subscriptions.filter(
-                (sub) => sub.type === "channel.chat.message",
-            );
-            for (const sub of chatSubscriptions) {
-                await deleteEventSubSubscription(this.apiKey, sub.id);
-                console.log("Deleted subscription:", sub.id);
-            }
-
-            this.subscriptionCreated = false; // Reset flag
-        } catch (err) {
-            console.error("Error cleaning up subscriptions:", err);
-            throw err;
-        }
-    }
 
     public async close() {
         // Mark as intentionally closed to prevent reconnection attempts

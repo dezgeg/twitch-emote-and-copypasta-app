@@ -83,16 +83,6 @@
         }
     });
 
-    // Debug function to clean up ALL chat subscriptions (aggressive)
-    async function cleanupAllSubscriptions() {
-        if (chatWS) {
-            try {
-                await chatWS.cleanupAllChatSubscriptions();
-            } catch (err) {
-                console.error("Error cleaning up subscriptions:", err);
-            }
-        }
-    }
 </script>
 
 <svelte:head>
@@ -116,13 +106,6 @@
                     <span class="status-indicator"></span>
                     {formatConnectionStatus()}
                 </div>
-                <button
-                    class="cleanup-btn"
-                    onclick={cleanupAllSubscriptions}
-                    title="Clean up ALL chat subscriptions (aggressive)"
-                >
-                    🗑️
-                </button>
             </div>
         </div>
 
@@ -304,21 +287,6 @@
         background: var(--accent-hover);
     }
 
-    .cleanup-btn {
-        background: transparent;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        padding: 0.25rem 0.5rem;
-        cursor: pointer;
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        transition: all 0.2s ease;
-    }
-
-    .cleanup-btn:hover {
-        background: var(--bg-tertiary);
-        border-color: var(--accent-primary);
-    }
 
     @media (max-width: 600px) {
         .chat-container {

@@ -183,29 +183,6 @@ export async function createChatSubscription(
     return subscriptionId;
 }
 
-/**
- * Get all EventSub subscriptions
- * @param apiKey - Twitch API access token
- * @throws Error if API request fails
- */
-export async function getEventSubSubscriptions(apiKey: string): Promise<any[]> {
-    const response = await fetch("https://api.twitch.tv/helix/eventsub/subscriptions", {
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Client-Id": TWITCH_CLIENT_ID,
-        },
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-            `Failed to get subscriptions: ${response.status} - ${errorData.message || response.statusText}`,
-        );
-    }
-
-    const data = await response.json();
-    return data.data || [];
-}
 
 /**
  * Delete an EventSub subscription
