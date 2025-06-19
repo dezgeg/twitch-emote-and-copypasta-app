@@ -23,6 +23,7 @@ export class ChatWebSocket {
     private apiKey: string;
     private channel: string;
     private subscriptionCreated = false;
+    private subscriptionId: string | null = null;
     private onMessageCallback: ((message: ChatMessage) => void) | null = null;
 
     public state = writable<ChatWebSocketState>({
@@ -185,14 +186,14 @@ export class ChatWebSocket {
             ]);
 
             // Create EventSub subscription
-            await createChatSubscription(
+            this.subscriptionId = await createChatSubscription(
                 this.apiKey,
                 this.sessionId,
                 broadcaster.id,
                 currentUser.id,
             );
 
-            console.log("Chat subscription created for", this.channel);
+            console.log("Chat subscription created for", this.channel, "with ID:", this.subscriptionId);
         } catch (err) {
             console.error("Error creating chat subscription:", err);
 
@@ -201,6 +202,7 @@ export class ChatWebSocket {
                 console.log("Subscription already exists, continuing...");
             } else {
                 this.subscriptionCreated = false; // Reset flag on actual error
+                this.subscriptionId = null; // Reset subscription ID on error
                 this.updateState({
                     error: err instanceof Error ? err.message : "Failed to subscribe to chat",
                 });
@@ -208,7 +210,7 @@ export class ChatWebSocket {
         }
     }
 
-    public async cleanupSubscriptions(): Promise<void> {
+    public async cleanupAllChatSubscriptions(): Promise<void> {
         try {
             const subscriptions = await getEventSubSubscriptions(this.apiKey);
             console.log("Current subscriptions:", subscriptions);
@@ -229,7 +231,17 @@ export class ChatWebSocket {
         }
     }
 
-    public close() {
+    public async close() {
+        // Clean up the specific subscription this instance created
+        if (this.subscriptionId) {
+            try {
+                await deleteEventSubSubscription(this.apiKey, this.subscriptionId);
+                console.log("Deleted subscription:", this.subscriptionId);
+            } catch (err) {
+                console.error("Error deleting subscription:", err);
+            }
+        }
+
         if (this.keepaliveTimeout) {
             clearTimeout(this.keepaliveTimeout);
         }
@@ -238,5 +250,6 @@ export class ChatWebSocket {
             this.ws = null;
         }
         this.subscriptionCreated = false; // Reset subscription flag
+        this.subscriptionId = null; // Reset subscription ID
     }
 }

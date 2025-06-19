@@ -135,6 +135,7 @@ export async function sendChatMessage(
  * @param sessionId - WebSocket session ID from welcome message
  * @param broadcasterUserId - Channel owner's user ID
  * @param userUserId - Authenticated user's ID (for chat access)
+ * @returns The subscription ID
  * @throws Error if API request fails
  */
 export async function createChatSubscription(
@@ -142,7 +143,7 @@ export async function createChatSubscription(
     sessionId: string,
     broadcasterUserId: string,
     userUserId: string,
-): Promise<void> {
+): Promise<string> {
     const response = await fetch("https://api.twitch.tv/helix/eventsub/subscriptions", {
         method: "POST",
         headers: {
@@ -171,7 +172,15 @@ export async function createChatSubscription(
         );
     }
 
-    console.log("Chat subscription created successfully");
+    const subscriptionData = await response.json();
+    const subscriptionId = subscriptionData.data[0]?.id;
+    
+    if (!subscriptionId) {
+        throw new Error("Failed to get subscription ID from response");
+    }
+
+    console.log("Chat subscription created successfully with ID:", subscriptionId);
+    return subscriptionId;
 }
 
 /**

@@ -37,9 +37,9 @@
         }
     });
 
-    onDestroy(() => {
+    onDestroy(async () => {
         if (chatWS) {
-            chatWS.close();
+            await chatWS.close();
         }
     });
 
@@ -83,11 +83,11 @@
         }
     });
 
-    // Debug function to clean up stale subscriptions
-    async function cleanupSubscriptions() {
+    // Debug function to clean up ALL chat subscriptions (aggressive)
+    async function cleanupAllSubscriptions() {
         if (chatWS) {
             try {
-                await chatWS.cleanupSubscriptions();
+                await chatWS.cleanupAllChatSubscriptions();
             } catch (err) {
                 console.error("Error cleaning up subscriptions:", err);
             }
@@ -118,8 +118,8 @@
                 </div>
                 <button
                     class="cleanup-btn"
-                    onclick={cleanupSubscriptions}
-                    title="Clean up subscriptions"
+                    onclick={cleanupAllSubscriptions}
+                    title="Clean up ALL chat subscriptions (aggressive)"
                 >
                     🗑️
                 </button>
