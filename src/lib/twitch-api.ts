@@ -19,6 +19,16 @@ export interface FollowedChannel {
     broadcaster_name: string;
 }
 
+export interface ChatMessage {
+    id: string;
+    user_id: string;
+    user_login: string;
+    user_name: string;
+    message: string;
+    timestamp: string;
+    color?: string;
+}
+
 /**
  * Get user information from Twitch API
  * @param apiKey - Twitch API access token
@@ -115,6 +125,101 @@ export async function sendChatMessage(
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
             `Failed to send chat message: ${response.status} - ${errorData.message || response.statusText}`,
+        );
+    }
+}
+
+/**
+ * Create an EventSub subscription for chat messages
+ * @param apiKey - Twitch API access token (requires user:read:chat scope)
+ * @param sessionId - WebSocket session ID from welcome message
+ * @param broadcasterUserId - Channel owner's user ID
+ * @param userUserId - Authenticated user's ID (for chat access)
+ * @throws Error if API request fails
+ */
+export async function createChatSubscription(
+    apiKey: string,
+    sessionId: string,
+    broadcasterUserId: string,
+    userUserId: string
+): Promise<void> {
+    const response = await fetch("https://api.twitch.tv/helix/eventsub/subscriptions", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Client-Id": TWITCH_CLIENT_ID,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            type: "channel.chat.message",
+            version: "1",
+            condition: {
+                broadcaster_user_id: broadcasterUserId,
+                user_id: userUserId,
+            },
+            transport: {
+                method: "websocket",
+                session_id: sessionId,
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+            `Failed to create chat subscription: ${response.status} - ${errorData.message || response.statusText}`,
+        );
+    }
+
+    console.log("Chat subscription created successfully");
+}
+
+/**
+ * Get all EventSub subscriptions
+ * @param apiKey - Twitch API access token
+ * @throws Error if API request fails
+ */
+export async function getEventSubSubscriptions(apiKey: string): Promise<any[]> {
+    const response = await fetch("https://api.twitch.tv/helix/eventsub/subscriptions", {
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Client-Id": TWITCH_CLIENT_ID,
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+            `Failed to get subscriptions: ${response.status} - ${errorData.message || response.statusText}`,
+        );
+    }
+
+    const data = await response.json();
+    return data.data || [];
+}
+
+/**
+ * Delete an EventSub subscription
+ * @param apiKey - Twitch API access token
+ * @param subscriptionId - ID of subscription to delete
+ * @throws Error if API request fails
+ */
+export async function deleteEventSubSubscription(apiKey: string, subscriptionId: string): Promise<void> {
+    const response = await fetch(
+        `https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscriptionId}`,
+        {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Client-Id": TWITCH_CLIENT_ID,
+            },
+        }
+    );
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+            `Failed to delete subscription: ${response.status} - ${errorData.message || response.statusText}`,
         );
     }
 }

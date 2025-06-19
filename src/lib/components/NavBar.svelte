@@ -25,6 +25,9 @@
         <a href="{base}/channel/{channel}/edit" class:active={routeId === "/channel/[channel]/edit"}
             >Edit</a
         >
+        <a href="{base}/channel/{channel}/chat" class:active={routeId === "/channel/[channel]/chat"}
+            >Chat</a
+        >
     {:else}
         <a href="{base}/setup" class:active={routeId === "/setup"}>Setup</a>
     {/if}
