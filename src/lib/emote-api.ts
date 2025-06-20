@@ -56,6 +56,20 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Ma
 }
 
 /**
+ * Get an emote from a map by name, or return a placeholder emote if not found
+ */
+export function getEmoteOrPlaceholder(emotesMap: Map<string, Emote>, name: string): Emote {
+    const emote = emotesMap.get(name);
+    return (
+        emote || {
+            name,
+            url: "", // Emote not found, show without image
+            type: "twitch" as const,
+        }
+    );
+}
+
+/**
  * Helper function to build Twitch emote URL from template
  */
 function buildTwitchEmoteUrl(template: string, emote: any): string {

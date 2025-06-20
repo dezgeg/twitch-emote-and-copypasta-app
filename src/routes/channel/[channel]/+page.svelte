@@ -2,7 +2,7 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
-    import { loadAllEmotes, type Emote } from "$lib/emote-api";
+    import { loadAllEmotes, getEmoteOrPlaceholder, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
     import { sendChatMessage, getUser } from "$lib/twitch-api";
     import Spinner from "$lib/components/Spinner.svelte";
@@ -52,24 +52,15 @@
             allEmotes = await loadAllEmotes($twitchApiKey, channel);
 
             // Match favorite names with current emote data
-            favoriteEmotes = $favoriteEmotesStore.map((name) => {
-                const emote = allEmotes.get(name);
-                return (
-                    emote || {
-                        name,
-                        url: "", // Emote not found, show without image
-                        type: "twitch" as const,
-                    }
-                );
-            });
+            favoriteEmotes = $favoriteEmotesStore.map((name) =>
+                getEmoteOrPlaceholder(allEmotes, name),
+            );
         } catch (err) {
             console.error("Error fetching emote URLs:", err);
             // If API fails, show emotes without images
-            favoriteEmotes = $favoriteEmotesStore.map((name) => ({
-                name,
-                url: "",
-                type: "twitch" as const,
-            }));
+            favoriteEmotes = $favoriteEmotesStore.map((name) =>
+                getEmoteOrPlaceholder(new Map(), name),
+            );
         }
     }
 
