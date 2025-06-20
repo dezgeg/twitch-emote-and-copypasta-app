@@ -5,6 +5,7 @@
     import { twitchApiKey } from "$lib/stores";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import type { ChatMessage } from "$lib/twitch-api";
+    import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import Spinner from "$lib/components/Spinner.svelte";
     import { base } from "$app/paths";
 
@@ -14,6 +15,7 @@
     // svelte-ignore non_reactive_update
     let messagesContainer: HTMLDivElement;
     let messages = $state<ChatMessage[]>([]);
+    let emotes = $state<Emote[]>([]);
     let chatState = $state<ChatWebSocketState>({
         connected: false,
         error: null,
@@ -29,7 +31,10 @@
         }
 
         try {
-            await initializeChat();
+            await Promise.all([
+                initializeChat(),
+                loadEmotes()
+            ]);
         } catch (err) {
             console.error("Error initializing chat:", err);
             error = err instanceof Error ? err.message : "Failed to initialize chat";
@@ -63,6 +68,33 @@
         });
 
         loading = false;
+    }
+
+    async function loadEmotes() {
+        try {
+            emotes = await loadAllEmotes($twitchApiKey, channel);
+        } catch (err) {
+            console.error("Error loading emotes:", err);
+            // Don't fail the whole initialization if emotes fail to load
+        }
+    }
+
+    function parseMessageWithEmotes(messageText: string): (string | Emote)[] {
+        // Normalize whitespace to single spaces
+        const normalizedText = messageText.replace(/\s+/g, ' ').trim();
+        
+        // Create a map for faster emote lookup
+        const emoteMap = new Map(emotes.map(emote => [emote.name, emote]));
+        
+        // Split by spaces, preserving the spaces as separate elements
+        const parts = normalizedText.split(/( )/);
+        
+        return parts.map(part => {
+            if (emoteMap.has(part)) {
+                return emoteMap.get(part)!;
+            }
+            return part;
+        });
     }
 
     function formatTimestamp(timestamp: string): string {
@@ -134,7 +166,13 @@
                             <span class="timestamp">{formatTimestamp(message.timestamp)}</span>
                         </div>
                         <div class="message-content">
-                            {message.message}
+                            {#each parseMessageWithEmotes(message.message) as part}
+                                {#if typeof part === 'string'}
+                                    {part}
+                                {:else}
+                                    <img src={part.url} alt={part.name} class="chat-emote" title={part.name}>
+                                {/if}
+                            {/each}
                         </div>
                     </div>
                 {/each}
@@ -257,6 +295,14 @@
         color: var(--text-primary);
         line-height: 1.4;
         word-wrap: break-word;
+    }
+
+    .chat-emote {
+        height: 1.5rem;
+        width: auto;
+        vertical-align: middle;
+        margin: 0 0.1rem;
+        border-radius: 2px;
     }
 
     .error {
