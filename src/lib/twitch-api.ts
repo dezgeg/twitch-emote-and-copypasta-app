@@ -92,21 +92,17 @@ export async function getFollowedChannels(apiKey: string): Promise<FollowedChann
 /**
  * Send a chat message to a Twitch channel
  * @param apiKey - Twitch API access token (must have chat:edit scope)
- * @param broadcasterLogin - Channel name to send message to
+ * @param broadcasterId - Channel owner's user ID
+ * @param senderId - Current user's ID
  * @param message - Message content to send
  * @throws Error if API request fails
  */
 export async function sendChatMessage(
     apiKey: string,
-    broadcasterLogin: string,
+    broadcasterId: string,
+    senderId: string,
     message: string,
 ): Promise<void> {
-    // Get current user info
-    const user = await getUser(apiKey);
-
-    // Get broadcaster info
-    const broadcaster = await getUser(apiKey, broadcasterLogin);
-
     const response = await fetch("https://api.twitch.tv/helix/chat/messages", {
         method: "POST",
         headers: {
@@ -115,17 +111,56 @@ export async function sendChatMessage(
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            broadcaster_id: broadcaster.id,
-            sender_id: user.id,
+            broadcaster_id: broadcasterId,
+            sender_id: senderId,
             message: message,
         }),
     });
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-            `Failed to send chat message: ${response.status} - ${errorData.message || response.statusText}`,
-        );
+
+        // Provide user-friendly error messages for common cases
+        let errorMessage = errorData.message || response.statusText;
+
+        if (response.status === 401) {
+            errorMessage = "Authentication failed. Please check your API key.";
+        } else if (response.status === 403) {
+            errorMessage = "Permission denied. Make sure your API key has chat:edit scope.";
+        } else if (response.status === 422) {
+            errorMessage =
+                "Message was rejected (may be too long, contain banned words, or violate chat rules).";
+        } else if (response.status === 429) {
+            errorMessage = "Rate limited. Please wait before sending another message.";
+        }
+
+        throw new Error(`Failed to send chat message: ${errorMessage}`);
+    }
+
+    // Even with HTTP 200, check the response data for actual success/failure
+    const responseData = await response.json().catch(() => ({}));
+
+    // Check if the message was actually sent
+    const messageData = responseData.data?.[0];
+    if (messageData && messageData.is_sent === false) {
+        const dropReason = messageData.drop_reason;
+        let errorMessage = "Message was not sent";
+
+        if (dropReason) {
+            // Provide user-friendly messages for common drop reasons
+            if (dropReason.code === "msg_duplicate") {
+                errorMessage =
+                    "Message not sent: identical to your previous message (sent within 30 seconds)";
+            } else if (dropReason.code === "msg_rejected") {
+                errorMessage = "Message rejected by chat filters";
+            } else if (dropReason.code === "msg_ratelimit") {
+                errorMessage = "Message not sent: you're sending messages too quickly";
+            } else {
+                errorMessage = dropReason.message || `Message not sent: ${dropReason.code}`;
+            }
+        }
+
+        throw new Error(errorMessage);
     }
 }
 

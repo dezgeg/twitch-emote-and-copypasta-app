@@ -4,7 +4,7 @@
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
-    import { sendChatMessage } from "$lib/twitch-api";
+    import { sendChatMessage, getUser } from "$lib/twitch-api";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
@@ -15,6 +15,8 @@
     let allEmotes: Emote[] = [];
     let loading = true;
     let error = "";
+    let broadcasterId: string = "";
+    let senderId: string = "";
 
     $: channel = $page.params.channel;
     $: favoriteEmotesStore = getFavoriteEmotesStore(channel);
@@ -22,6 +24,7 @@
 
     onMount(async () => {
         await loadFavoriteEmotes();
+        await loadUserIds();
     });
 
     async function loadFavoriteEmotes() {
@@ -72,14 +75,39 @@
         }
     }
 
+    async function loadUserIds() {
+        try {
+            if (!$twitchApiKey) {
+                goto(`${base}/setup`);
+                return;
+            }
+
+            // Get current user and broadcaster info once and cache them
+            const [currentUser, broadcaster] = await Promise.all([
+                getUser($twitchApiKey),
+                getUser($twitchApiKey, channel),
+            ]);
+
+            senderId = currentUser.id;
+            broadcasterId = broadcaster.id;
+        } catch (err) {
+            console.error("Error loading user IDs:", err);
+            error = err instanceof Error ? err.message : "Failed to load user information";
+        }
+    }
+
     async function sendToChat(item: { name: string; url: string } | string) {
         try {
             if (!$twitchApiKey) {
                 throw new Error("No API key configured");
             }
 
+            if (!broadcasterId || !senderId) {
+                throw new Error("User information not loaded yet");
+            }
+
             const text = typeof item === "string" ? item : item.name;
-            await sendChatMessage($twitchApiKey, channel, text);
+            await sendChatMessage($twitchApiKey, broadcasterId, senderId, text);
         } catch (err) {
             console.error("Failed to send to chat:", err);
             showNotification(
@@ -100,6 +128,7 @@
             padding: 1rem;
             border-radius: 8px;
             z-index: 1000;
+            font-size: 0.875rem;
             font-weight: bold;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             max-width: 300px;
