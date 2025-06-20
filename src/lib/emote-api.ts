@@ -140,37 +140,62 @@ async function loadTwitchEmotes(
 }
 
 /**
- * Load 7TV emotes for a channel
+ * Helper function to fetch and process 7TV emotes from a URL
  */
-async function load7TVEmotes(broadcasterId: string): Promise<Emote[]> {
+async function fetch7TVEmotes(url: string, keyPrefix: string): Promise<Emote[]> {
     try {
-        const response = await fetch(`https://7tv.io/v3/users/twitch/${broadcasterId}`);
-
-        if (response.ok) {
-            const data = await response.json();
-            if (data.emote_set?.emotes) {
-                return data.emote_set.emotes.map((emote: any) => ({
-                    name: emote.name,
-                    url: `https://cdn.7tv.app/emote/${emote.id}/2x.webp`,
-                    type: "7tv" as const,
-                    uniqueKey: `7tv-${emote.id}`,
-                }));
+        const response = await fetch(url);
+        if (!response.ok) {
+            if (response.status === 404) {
+                console.log(`7TV ${keyPrefix} emotes not found (404)`);
+            } else {
+                console.warn(`7TV API returned ${response.status} for ${keyPrefix} emotes`);
             }
-        } else if (response.status === 404) {
-            // Channel doesn't have 7TV emotes set up - this is normal
-            console.log(`Channel (ID: ${broadcasterId}) does not have 7TV emotes configured`);
-        } else {
-            console.warn(`7TV API returned ${response.status} for channel (ID: ${broadcasterId})`);
+            return [];
         }
+
+        const data = await response.json();
+        const emotes = data.emotes || data.emote_set?.emotes;
+        
+        if (!emotes) {
+            return [];
+        }
+
+        return emotes.map((emote: any) => ({
+            name: emote.name,
+            url: `https://cdn.7tv.app/emote/${emote.id}/2x.webp`,
+            type: "7tv" as const,
+            uniqueKey: `7tv-${keyPrefix}-${emote.id}`,
+        }));
     } catch (err) {
-        // Network error or other issues - don't show error to user
         console.log(
-            "7TV emotes not available:",
+            `7TV ${keyPrefix} emotes not available:`,
             err instanceof Error ? err.message : "Unknown error",
         );
+        return [];
     }
+}
 
-    return [];
+/**
+ * Load 7TV emotes (global and channel emotes)
+ */
+async function load7TVEmotes(broadcasterId: string): Promise<Emote[]> {
+    const [globalEmotes, channelEmotes] = await Promise.all([
+        fetch7TVEmotes("https://7tv.io/v3/emote-sets/global", "global"),
+        fetch7TVEmotes(`https://7tv.io/v3/users/twitch/${broadcasterId}`, "channel"),
+    ]);
+
+    const allEmotes = globalEmotes.concat(channelEmotes);
+
+    // Deduplicate by uniqueKey
+    const seen = new Set<string>();
+    return allEmotes.filter((emote) => {
+        if (seen.has(emote.uniqueKey)) {
+            return false;
+        }
+        seen.add(emote.uniqueKey);
+        return true;
+    });
 }
 
 /**
