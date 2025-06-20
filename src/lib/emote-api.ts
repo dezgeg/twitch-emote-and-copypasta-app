@@ -38,7 +38,15 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Ma
         for (const emotes of emoteResults) {
             for (const emote of emotes) {
                 if (emotesMap.has(emote.name)) {
-                    console.log(`Duplicate emote found: ${emote.name} (${emote.type})`);
+                    const existingEmote = emotesMap.get(emote.name)!;
+                    // Only log if the emotes are actually different (not identical duplicates)
+                    if (existingEmote.url !== emote.url || existingEmote.type !== emote.type) {
+                        console.log(
+                            `Duplicate emote found: ${emote.name}\n` +
+                                `  Existing: ${existingEmote.type} - ${existingEmote.url}\n` +
+                                `  New:      ${emote.type} - ${emote.url}`,
+                        );
+                    }
                 } else {
                     emotesMap.set(emote.name, emote);
                 }
