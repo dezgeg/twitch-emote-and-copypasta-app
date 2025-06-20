@@ -21,6 +21,7 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Em
     }
 
     const allEmotes: Emote[] = [];
+    let deduplicatedEmotes: Emote[] = [];
 
     try {
         // Get broadcaster and current user info
@@ -40,14 +41,27 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Em
             allEmotes.push(...emotes);
         }
 
+        // Deduplicate by uniqueKey
+        const seen = new Set<string>();
+        deduplicatedEmotes = allEmotes.filter((emote) => {
+            if (seen.has(emote.uniqueKey)) {
+                console.log(
+                    `Duplicate emote found: ${emote.name} (${emote.type}) - ${emote.uniqueKey}`,
+                );
+                return false;
+            }
+            seen.add(emote.uniqueKey);
+            return true;
+        });
+
         // Cache the results
-        setEmotesCache(channel, allEmotes);
+        setEmotesCache(channel, deduplicatedEmotes);
     } catch (err) {
         console.error("Error loading emotes:", err);
         throw err;
     }
 
-    return allEmotes;
+    return deduplicatedEmotes;
 }
 
 /**
@@ -126,17 +140,7 @@ async function loadTwitchEmotes(
         ),
     ]);
 
-    const allEmotes = globalEmotes.concat(userSpecificEmotes);
-
-    // Deduplicate by uniqueKey
-    const seen = new Set<string>();
-    return allEmotes.filter((emote) => {
-        if (seen.has(emote.uniqueKey)) {
-            return false;
-        }
-        seen.add(emote.uniqueKey);
-        return true;
-    });
+    return globalEmotes.concat(userSpecificEmotes);
 }
 
 /**
@@ -185,17 +189,7 @@ async function load7TVEmotes(broadcasterId: string): Promise<Emote[]> {
         fetch7TVEmotes(`https://7tv.io/v3/users/twitch/${broadcasterId}`, "channel"),
     ]);
 
-    const allEmotes = globalEmotes.concat(channelEmotes);
-
-    // Deduplicate by uniqueKey
-    const seen = new Set<string>();
-    return allEmotes.filter((emote) => {
-        if (seen.has(emote.uniqueKey)) {
-            return false;
-        }
-        seen.add(emote.uniqueKey);
-        return true;
-    });
+    return globalEmotes.concat(channelEmotes);
 }
 
 /**
