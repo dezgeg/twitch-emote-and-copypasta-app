@@ -22,6 +22,7 @@
         error: null,
         sessionId: null,
     });
+    let isAtBottom = $state(true);
 
     let channel = $derived($page.params.channel);
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
@@ -103,9 +104,20 @@
         return $favoriteCopypastasStore.includes(messageText);
     }
 
-    // Auto-scroll to bottom when new messages arrive
+    function checkIfAtBottom() {
+        if (!messagesContainer) return;
+        const { scrollTop, scrollHeight, clientHeight } = messagesContainer;
+        // Consider "at bottom" if within 50px of the bottom to account for slight variations
+        isAtBottom = scrollTop + clientHeight >= scrollHeight - 50;
+    }
+
+    function handleScroll() {
+        checkIfAtBottom();
+    }
+
+    // Auto-scroll to bottom when new messages arrive, but only if user is at the bottom
     $effect(() => {
-        if (messages.length > 0 && messagesContainer) {
+        if (messages.length > 0 && messagesContainer && isAtBottom) {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     });
@@ -150,7 +162,7 @@
                 {/if}
             </p>
         {:else}
-            <div class="messages" bind:this={messagesContainer}>
+            <div class="messages" bind:this={messagesContainer} onscroll={handleScroll}>
                 {#each messages as chatMessage (chatMessage.id)}
                     <ChatMessageCard
                         message={chatMessage.message}
