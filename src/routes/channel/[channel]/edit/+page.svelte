@@ -221,7 +221,6 @@
         aria-label="Drop zone to delete emotes"
     >
         <div class="trash-can">🗑️</div>
-        <p>Drop here to delete</p>
     </div>
 {/if}
 
@@ -259,17 +258,6 @@
 
     .trash-zone.drag-over .trash-can {
         transform: scale(1.2);
-    }
-
-    .trash-zone p {
-        margin: 0;
-        color: var(--text-secondary);
-        font-weight: 500;
-    }
-
-    .trash-zone.drag-over p {
-        color: #ff6b6b;
-        font-weight: bold;
     }
 
     @media (max-width: 600px) {
