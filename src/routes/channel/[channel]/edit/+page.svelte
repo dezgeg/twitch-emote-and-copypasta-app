@@ -55,7 +55,6 @@
                         name,
                         url: "", // Emote not found, show without image
                         type: "twitch" as const,
-                        uniqueKey: `missing-${name}`,
                     }
                 );
             });
@@ -66,7 +65,6 @@
                 name,
                 url: "",
                 type: "twitch" as const,
-                uniqueKey: `fallback-${name}`,
             }));
         }
     }
@@ -186,7 +184,7 @@
     </div>
 {:else}
     <div class="emotes-grid">
-        {#each favoriteEmotes as emote, index (emote.uniqueKey)}
+        {#each favoriteEmotes as emote, index (emote.name)}
             <EmoteCard
                 {emote}
                 {index}

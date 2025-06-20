@@ -7,7 +7,6 @@ export interface Emote {
     name: string;
     url: string;
     type: "twitch" | "7tv" | "bttv" | "ffz";
-    uniqueKey: string;
 }
 
 /**
@@ -39,9 +38,7 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Ma
         for (const emotes of emoteResults) {
             for (const emote of emotes) {
                 if (emotesMap.has(emote.name)) {
-                    console.log(
-                        `Duplicate emote found: ${emote.name} (${emote.type}) - ${emote.uniqueKey}`,
-                    );
+                    console.log(`Duplicate emote found: ${emote.name} (${emote.type})`);
                 } else {
                     emotesMap.set(emote.name, emote);
                 }
@@ -74,11 +71,7 @@ function buildTwitchEmoteUrl(template: string, emote: any): string {
 /**
  * Helper function to fetch and process Twitch emotes from a URL with pagination support
  */
-async function fetchTwitchEmotes(
-    url: URL,
-    apiKey: string,
-    keyPrefix: string = "twitch",
-): Promise<Emote[]> {
+async function fetchTwitchEmotes(url: URL, apiKey: string): Promise<Emote[]> {
     const headers = {
         Authorization: `Bearer ${apiKey}`,
         "Client-Id": TWITCH_CLIENT_ID,
@@ -101,7 +94,6 @@ async function fetchTwitchEmotes(
                 name: emote.name,
                 url: buildTwitchEmoteUrl(data.template, emote),
                 type: "twitch" as const,
-                uniqueKey: `${keyPrefix}-${emote.id}`,
             }));
             allEmotes.push(...emotes);
 
@@ -129,17 +121,12 @@ async function loadTwitchEmotes(
     userId: string,
 ): Promise<Emote[]> {
     const [globalEmotes, userSpecificEmotes] = await Promise.all([
-        fetchTwitchEmotes(
-            new URL("https://api.twitch.tv/helix/chat/emotes/global"),
-            apiKey,
-            "twitch-global",
-        ),
+        fetchTwitchEmotes(new URL("https://api.twitch.tv/helix/chat/emotes/global"), apiKey),
         fetchTwitchEmotes(
             new URL(
                 `https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`,
             ),
             apiKey,
-            "twitch-user",
         ),
     ]);
 
@@ -172,7 +159,6 @@ async function fetch7TVEmotes(url: string, keyPrefix: string): Promise<Emote[]> 
             name: emote.name,
             url: `https://cdn.7tv.app/emote/${emote.id}/2x.webp`,
             type: "7tv" as const,
-            uniqueKey: `7tv-${keyPrefix}-${emote.id}`,
         }));
     } catch (err) {
         console.log(
@@ -207,7 +193,6 @@ function mapBetterTTVEmotes(emotes: any[] | null | undefined, keyPrefix: string)
         name: emote.code,
         url: `https://cdn.betterttv.net/emote/${emote.id}/2x`,
         type: "bttv" as const,
-        uniqueKey: `bttv-${keyPrefix}-${emote.id}`,
     }));
 }
 
@@ -285,7 +270,6 @@ async function fetchFFZEmotes(url: URL, keyPrefix: string): Promise<Emote[]> {
             name: emote.name,
             url: emote.urls["2"] || emote.urls["1"],
             type: "ffz" as const,
-            uniqueKey: `ffz-${keyPrefix}-${emote.id}`,
         }));
         emotes.push(...setEmotes);
     });

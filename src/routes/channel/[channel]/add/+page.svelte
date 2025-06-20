@@ -88,7 +88,7 @@
     </div>
 
     <div class="emotes-grid">
-        {#each filteredEmotes as emote (emote.uniqueKey)}
+        {#each filteredEmotes as emote (emote.name)}
             <EmoteCard
                 {emote}
                 mode="add"
