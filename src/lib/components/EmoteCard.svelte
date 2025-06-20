@@ -10,44 +10,15 @@
 
         // State flags
         isFavorited?: boolean;
-        isDragging?: boolean;
-        isDragOver?: boolean;
 
         // Event handlers
         onClick?: (emote: Emote) => void;
-
-        // Drag and drop support
-        draggable?: boolean;
-        onDragStart?: (event: DragEvent, emote: Emote, index?: number) => void;
-        onDragOver?: (event: DragEvent, emote: Emote, index?: number) => void;
-        onDragLeave?: () => void;
-        onDrop?: (event: DragEvent, emote: Emote, index?: number) => void;
-        onDragEnd?: () => void;
-
-        // Optional index for drag operations
-        index?: number;
     }
 
-    let {
-        emote,
-        mode,
-        isFavorited = false,
-        isDragging = false,
-        isDragOver = false,
-        onClick,
-        draggable = false,
-        onDragStart,
-        onDragOver,
-        onDragLeave,
-        onDrop,
-        onDragEnd,
-        index,
-    }: Props = $props();
+    let { emote, mode, isFavorited = false, onClick }: Props = $props();
 
     // Determine the wrapper element and attributes
     let isClickable = $derived(mode === "view" || mode === "add");
-    let isDraggableMode = $derived(mode === "edit" && draggable);
-    let isInteractive = $derived(isClickable || isDraggableMode);
 
     // Add zero-width spaces before capital letters for better word wrapping
     function addZeroWidthSpaces(text: string): string {
@@ -59,41 +30,15 @@
             onClick(emote);
         }
     }
-
-    function handleDragStart(event: DragEvent) {
-        if (onDragStart) {
-            onDragStart(event, emote, index);
-        }
-    }
-
-    function handleDragOver(event: DragEvent) {
-        if (onDragOver) {
-            onDragOver(event, emote, index);
-        }
-    }
-
-    function handleDrop(event: DragEvent) {
-        if (onDrop) {
-            onDrop(event, emote, index);
-        }
-    }
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div
     class="emote-card emote-card--{mode}"
     class:emote-card--favorited={isFavorited}
-    class:emote-card--dragging={isDragging}
-    class:emote-card--drag-over={isDragOver}
-    draggable={isDraggableMode}
     onclick={isClickable ? handleClick : undefined}
-    ondragstart={isDraggableMode ? handleDragStart : undefined}
-    ondragover={isDraggableMode ? handleDragOver : undefined}
-    ondragleave={isDraggableMode ? onDragLeave : undefined}
-    ondrop={isDraggableMode ? handleDrop : undefined}
-    ondragend={isDraggableMode ? onDragEnd : undefined}
-    role={isInteractive ? "button" : undefined}
-    tabindex={isInteractive ? 0 : undefined}
+    role={isClickable ? "button" : undefined}
+    tabindex={isClickable ? 0 : undefined}
 >
     {#if emote.url}
         <img src={emote.url} alt={emote.name} class="emote-image" />
@@ -139,12 +84,7 @@
     }
 
     .emote-card--edit {
-        cursor: grab;
         border-width: 2px;
-    }
-
-    .emote-card--edit:active {
-        cursor: grabbing;
     }
 
     /* Interactive states */
@@ -168,20 +108,6 @@
     .emote-card--favorited:hover {
         background: rgba(145, 70, 255, 0.25);
         border-color: var(--accent-hover);
-    }
-
-    /* Drag states */
-    .emote-card--dragging {
-        opacity: 0.5;
-        transform: rotate(2deg);
-        border-color: var(--accent-primary);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-
-    .emote-card--drag-over {
-        border-color: var(--accent-primary);
-        background: rgba(145, 70, 255, 0.15);
-        transform: scale(1.02);
     }
 
     /* Image and placeholder */

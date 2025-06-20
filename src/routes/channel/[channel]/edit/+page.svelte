@@ -6,6 +6,7 @@
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
+    import Draggable from "$lib/components/Draggable.svelte";
     import { base } from "$app/paths";
     import "drag-drop-touch";
 
@@ -154,19 +155,21 @@
     <div class="emotes-grid">
         {#each $favoriteEmotesStore as emoteName, index (emoteName)}
             {@const emote = getEmoteOrPlaceholder(allEmotes, emoteName)}
-            <EmoteCard
-                {emote}
+            <Draggable
+                data={emoteName}
                 {index}
-                mode="edit"
-                draggable={true}
+                enabled={true}
                 isDragging={draggedIndex === index}
                 isDragOver={dragOverIndex === index}
-                onDragStart={(event, emote, idx) => handleDragStart(event, emoteName, idx)}
-                onDragOver={(event, emote, idx) => handleDragOver(event, emoteName, idx)}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
-                onDrop={(event, emote, idx) => handleDrop(event, emoteName, idx)}
+                onDrop={handleDrop}
                 onDragEnd={handleDragEnd}
-            />
+                class="draggable-emote"
+            >
+                <EmoteCard {emote} mode="edit" />
+            </Draggable>
         {:else}
             <p>
                 No favorite emotes yet. <a href="{base}/channel/{channel}/add" class="button"
@@ -225,6 +228,20 @@
 
     .trash-zone.drag-over .trash-can {
         transform: scale(1.2);
+    }
+
+    :global(.draggable-emote) {
+        border-radius: 8px;
+    }
+
+    :global(.draggable-emote.dragging) {
+        border: 2px solid var(--accent-primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    :global(.draggable-emote.drag-over) {
+        border: 2px solid var(--accent-primary);
+        background: rgba(145, 70, 255, 0.15);
     }
 
     @media (max-width: 600px) {
