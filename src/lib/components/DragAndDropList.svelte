@@ -1,6 +1,4 @@
 <script lang="ts">
-    import Draggable from "./Draggable.svelte";
-
     interface Props<T> {
         // The array of items to render
         list: T[];
@@ -143,21 +141,22 @@
 <div class={className}>
     <div class={gridClass}>
         {#each list as item, index (item)}
-            <Draggable
-                data={item}
-                {index}
-                enabled={true}
-                isDragging={draggedIndex === index}
-                isDragOver={dragOverIndex === index}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onDragEnd={handleDragEnd}
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+            <div
                 class="draggable-item"
+                class:dragging={draggedIndex === index}
+                class:drag-over={dragOverIndex === index}
+                draggable={true}
+                ondragstart={(event) => handleDragStart(event, item, index)}
+                ondragover={(event) => handleDragOver(event, item, index)}
+                ondragleave={handleDragLeave}
+                ondrop={(event) => handleDrop(event, item, index)}
+                ondragend={handleDragEnd}
+                role="button"
+                tabindex="0"
             >
                 {@render renderItem(item, index)}
-            </Draggable>
+            </div>
         {:else}
             {#if renderEmpty}
                 {@render renderEmpty()}
@@ -192,18 +191,26 @@
         margin-bottom: 2rem;
     }
 
-    :global(.draggable-item) {
+    .draggable-item {
         border-radius: 8px;
+        cursor: grab;
     }
 
-    :global(.draggable-item.dragging) {
+    .draggable-item:active {
+        cursor: grabbing;
+    }
+
+    .draggable-item.dragging {
         border: 2px solid var(--accent-primary);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        opacity: 0.5;
+        transform: rotate(2deg);
     }
 
-    :global(.draggable-item.drag-over) {
+    .draggable-item.drag-over {
         border: 2px solid var(--accent-primary);
         background: rgba(145, 70, 255, 0.15);
+        transform: scale(1.02);
     }
 
     .trash-zone {
