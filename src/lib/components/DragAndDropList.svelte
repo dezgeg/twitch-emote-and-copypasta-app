@@ -204,13 +204,11 @@
         border: 2px solid var(--accent-primary);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         opacity: 0.5;
-        transform: rotate(2deg);
     }
 
     .draggable-item.drag-over {
         border: 2px solid var(--accent-primary);
         background: rgba(145, 70, 255, 0.15);
-        transform: scale(1.02);
     }
 
     .trash-zone {
