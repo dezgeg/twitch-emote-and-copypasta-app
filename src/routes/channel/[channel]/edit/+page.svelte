@@ -185,13 +185,6 @@
         <p>Error: {error}</p>
     </div>
 {:else}
-    <div class="instructions">
-        <p>
-            Drag and drop to reorder your favorite emotes. Drag to the trash can below to delete
-            from favorites.
-        </p>
-    </div>
-
     <div class="emotes-grid">
         {#each favoriteEmotes as emote, index (emote.uniqueKey)}
             <EmoteCard
@@ -233,20 +226,6 @@
 {/if}
 
 <style>
-    .instructions {
-        margin: 1rem 0;
-        padding: 1rem;
-        background: var(--bg-secondary);
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-    }
-
-    .instructions p {
-        margin: 0;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-    }
-
     .emotes-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
@@ -297,10 +276,6 @@
         .emotes-grid {
             grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
             gap: 0.0625rem;
-        }
-
-        .instructions {
-            font-size: 0.8rem;
         }
     }
 </style>
