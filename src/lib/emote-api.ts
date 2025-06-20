@@ -319,4 +319,3 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
         return [];
     }
 }
-// Test change

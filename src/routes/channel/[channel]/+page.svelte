@@ -3,19 +3,22 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
-    import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
+    import { twitchApiKey, getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
     import { sendChatMessage } from "$lib/twitch-api";
     import Spinner from "$lib/components/Spinner.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
+    import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
     import { base } from "$app/paths";
 
     let channel: string;
     let favoriteEmotes: Emote[] = [];
+    let allEmotes: Emote[] = [];
     let loading = true;
     let error = "";
 
     $: channel = $page.params.channel;
     $: favoriteEmotesStore = getFavoriteEmotesStore(channel);
+    $: favoriteCopypastasStore = getFavoriteCopypastasStore(channel);
 
     onMount(async () => {
         await loadFavoriteEmotes();
@@ -43,7 +46,7 @@
             }
 
             // Fetch all available emotes
-            const allEmotes = await loadAllEmotes($twitchApiKey, channel);
+            allEmotes = await loadAllEmotes($twitchApiKey, channel);
 
             // Match favorite names with current emote data
             favoriteEmotes = $favoriteEmotesStore.map((name) => {
@@ -69,17 +72,18 @@
         }
     }
 
-    async function sendEmoteToChat(emote: { name: string; url: string }) {
+    async function sendToChat(item: { name: string; url: string } | string) {
         try {
             if (!$twitchApiKey) {
                 throw new Error("No API key configured");
             }
 
-            await sendChatMessage($twitchApiKey, channel, emote.name);
+            const text = typeof item === "string" ? item : item.name;
+            await sendChatMessage($twitchApiKey, channel, text);
         } catch (err) {
-            console.error("Failed to send chat message:", err);
+            console.error("Failed to send to chat:", err);
             showNotification(
-                `Failed to send "${emote.name}": ${err instanceof Error ? err.message : "Unknown error"}`,
+                `Failed to send message: ${err instanceof Error ? err.message : "Unknown error"}`,
             );
         }
     }
@@ -123,25 +127,69 @@
         <p>Error: {error}</p>
     </div>
 {:else}
-    <div class="emotes-grid">
-        {#each favoriteEmotes as emote (emote.uniqueKey)}
-            <EmoteCard {emote} mode="view" onClick={sendEmoteToChat} />
-        {:else}
-            <p>
-                No favorite emotes yet. <a href="{base}/channel/{channel}/add" class="button"
-                    >Add some!</a
-                >
-            </p>
-        {/each}
+    <div class="favorites-container">
+        <section class="emotes-section">
+            <h2>Favorite Emotes</h2>
+            <div class="emotes-grid">
+                {#each favoriteEmotes as emote (emote.uniqueKey)}
+                    <EmoteCard {emote} mode="view" onClick={sendToChat} />
+                {:else}
+                    <p>
+                        No favorite emotes yet. <a
+                            href="{base}/channel/{channel}/add"
+                            class="button">Add some!</a
+                        >
+                    </p>
+                {/each}
+            </div>
+        </section>
+
+        <section class="copypastas-section">
+            <h2>Favorite Copypastas</h2>
+            <div class="copypastas-list">
+                {#each $favoriteCopypastasStore as copypasta (copypasta)}
+                    <ChatMessageCard message={copypasta} emotes={allEmotes} onClick={sendToChat} />
+                {:else}
+                    <p>
+                        No favorite copypastas yet. <a
+                            href="{base}/channel/{channel}/chat"
+                            class="button">Add some from chat!</a
+                        >
+                    </p>
+                {/each}
+            </div>
+        </section>
     </div>
 {/if}
 
 <style>
+    .favorites-container {
+        margin: 1rem 0;
+    }
+
+    .emotes-section,
+    .copypastas-section {
+        margin-bottom: 2rem;
+    }
+
+    .emotes-section h2,
+    .copypastas-section h2 {
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
     .emotes-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
         gap: 0.125rem;
         margin: 1rem 0;
+    }
+
+    .copypastas-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
     @media (max-width: 600px) {

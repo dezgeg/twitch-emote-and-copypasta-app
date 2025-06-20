@@ -2,11 +2,12 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { onMount, onDestroy } from "svelte";
-    import { twitchApiKey } from "$lib/stores";
+    import { twitchApiKey, getFavoriteCopypastasStore } from "$lib/stores";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import type { ChatMessage } from "$lib/twitch-api";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import Spinner from "$lib/components/Spinner.svelte";
+    import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
     import { base } from "$app/paths";
 
     let loading = $state(true);
@@ -23,6 +24,7 @@
     });
 
     let channel = $derived($page.params.channel);
+    let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
 
     onMount(async () => {
         if (!$twitchApiKey) {
@@ -76,33 +78,29 @@
         }
     }
 
-    function parseMessageWithEmotes(messageText: string): (string | Emote)[] {
-        // Normalize whitespace to single spaces
-        const normalizedText = messageText.replace(/\s+/g, " ").trim();
-
-        // Create a map for faster emote lookup
-        const emoteMap = new Map(emotes.map((emote) => [emote.name, emote]));
-
-        // Split by spaces, preserving the spaces as separate elements
-        const parts = normalizedText.split(/( )/);
-
-        return parts.map((part) => {
-            if (emoteMap.has(part)) {
-                return emoteMap.get(part)!;
-            }
-            return part;
-        });
-    }
-
-    function formatTimestamp(timestamp: string): string {
-        return new Date(timestamp).toLocaleTimeString();
-    }
-
     function formatConnectionStatus(): string {
         if (chatState.connected) {
             return chatState.sessionId ? "Connected • Subscribed" : "Connected • Setting up...";
         }
         return "Disconnected";
+    }
+
+    function toggleCopypasta(message: ChatMessage) {
+        const existingIndex = $favoriteCopypastasStore.findIndex((cp) => cp === message.message);
+
+        if (existingIndex >= 0) {
+            // Remove from favorites
+            favoriteCopypastasStore.update((copypastas) =>
+                copypastas.filter((_, index) => index !== existingIndex),
+            );
+        } else {
+            // Add to favorites
+            favoriteCopypastasStore.update((copypastas) => [...copypastas, message.message]);
+        }
+    }
+
+    function isCopypastaFavorited(messageText: string): boolean {
+        return $favoriteCopypastasStore.includes(messageText);
     }
 
     // Auto-scroll to bottom when new messages arrive
@@ -153,29 +151,16 @@
             </p>
         {:else}
             <div class="messages" bind:this={messagesContainer}>
-                {#each messages as message (message.id)}
-                    <div class="message">
-                        <div class="message-header">
-                            <span class="username" style="color: {message.color || '#9146ff'}"
-                                >{message.user_name}</span
-                            >
-                            <span class="timestamp">{formatTimestamp(message.timestamp)}</span>
-                        </div>
-                        <div class="message-content">
-                            {#each parseMessageWithEmotes(message.message) as part}
-                                {#if typeof part === "string"}
-                                    {part}
-                                {:else}
-                                    <img
-                                        src={part.url}
-                                        alt={part.name}
-                                        class="chat-emote"
-                                        title={part.name}
-                                    />
-                                {/if}
-                            {/each}
-                        </div>
-                    </div>
+                {#each messages as chatMessage (chatMessage.id)}
+                    <ChatMessageCard
+                        message={chatMessage.message}
+                        timestamp={chatMessage.timestamp}
+                        user_name={chatMessage.user_name}
+                        color={chatMessage.color}
+                        {emotes}
+                        isFavorited={isCopypastaFavorited(chatMessage.message)}
+                        onClick={() => toggleCopypasta(chatMessage)}
+                    />
                 {/each}
             </div>
         {/if}
@@ -261,51 +246,6 @@
         padding-right: 0.5rem;
     }
 
-    .message {
-        padding: 0.75rem;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        flex-shrink: 0;
-    }
-
-    .message:hover {
-        background: var(--bg-tertiary);
-    }
-
-    .message-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .username {
-        font-weight: bold;
-        font-size: 0.9rem;
-    }
-
-    .timestamp {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-    }
-
-    .message-content {
-        color: var(--text-primary);
-        line-height: 1.4;
-        word-wrap: break-word;
-    }
-
-    .chat-emote {
-        height: 1.5rem;
-        width: auto;
-        vertical-align: middle;
-        margin: 0 0.1rem;
-        border-radius: 2px;
-    }
-
     .error {
         text-align: center;
         padding: 2rem;
@@ -344,16 +284,6 @@
             flex-direction: column;
             align-items: flex-start;
             gap: 0.5rem;
-        }
-
-        .message {
-            padding: 0.5rem;
-        }
-
-        .message-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.25rem;
         }
     }
 </style>

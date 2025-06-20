@@ -10,6 +10,11 @@ export function getFavoriteEmotesStore(channel: string) {
     return persisted(`favorites_${channel}`, [] as string[]);
 }
 
+// Function to get a persisted store for favorite copypastas per channel
+export function getFavoriteCopypastasStore(channel: string) {
+    return persisted(`copypastas_${channel}`, [] as string[]);
+}
+
 // Cache for emotes data per channel
 const emotesCache = new Map<string, Emote[]>();
 
