@@ -156,7 +156,7 @@ async function fetch7TVEmotes(url: string, keyPrefix: string): Promise<Emote[]> 
 
         const data = await response.json();
         const emotes = data.emotes || data.emote_set?.emotes;
-        
+
         if (!emotes) {
             return [];
         }
@@ -319,3 +319,4 @@ async function loadFFZEmotes(broadcasterId: string): Promise<Emote[]> {
         return [];
     }
 }
+// Test change

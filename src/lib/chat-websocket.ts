@@ -55,7 +55,7 @@ export class ChatWebSocket {
             this.ws.onclose = (event) => {
                 console.log("WebSocket closed:", event.code, event.reason);
                 this.updateState({ connected: false });
-                
+
                 // Only attempt to reconnect if not intentionally closed
                 if (!this.intentionallyClosed) {
                     this.handleReconnect();
@@ -182,7 +182,6 @@ export class ChatWebSocket {
         }
 
         try {
-
             // Get current user and broadcaster IDs
             const [currentUser, broadcaster] = await Promise.all([
                 getUser(this.apiKey),
@@ -197,7 +196,12 @@ export class ChatWebSocket {
                 currentUser.id,
             );
 
-            console.log("Chat subscription created for", this.channel, "with ID:", this.subscriptionId);
+            console.log(
+                "Chat subscription created for",
+                this.channel,
+                "with ID:",
+                this.subscriptionId,
+            );
         } catch (err) {
             console.error("Error creating chat subscription:", err);
             this.subscriptionId = null; // Reset subscription ID on error
@@ -207,11 +211,10 @@ export class ChatWebSocket {
         }
     }
 
-
     public async close() {
         // Mark as intentionally closed to prevent reconnection attempts
         this.intentionallyClosed = true;
-        
+
         // Clean up the specific subscription this instance created
         if (this.subscriptionId) {
             try {

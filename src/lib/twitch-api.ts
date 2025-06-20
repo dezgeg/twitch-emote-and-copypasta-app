@@ -174,7 +174,7 @@ export async function createChatSubscription(
 
     const subscriptionData = await response.json();
     const subscriptionId = subscriptionData.data[0]?.id;
-    
+
     if (!subscriptionId) {
         throw new Error("Failed to get subscription ID from response");
     }
@@ -182,7 +182,6 @@ export async function createChatSubscription(
     console.log("Chat subscription created successfully with ID:", subscriptionId);
     return subscriptionId;
 }
-
 
 /**
  * Delete an EventSub subscription

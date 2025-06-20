@@ -31,10 +31,7 @@
         }
 
         try {
-            await Promise.all([
-                initializeChat(),
-                loadEmotes()
-            ]);
+            await Promise.all([initializeChat(), loadEmotes()]);
         } catch (err) {
             console.error("Error initializing chat:", err);
             error = err instanceof Error ? err.message : "Failed to initialize chat";
@@ -81,15 +78,15 @@
 
     function parseMessageWithEmotes(messageText: string): (string | Emote)[] {
         // Normalize whitespace to single spaces
-        const normalizedText = messageText.replace(/\s+/g, ' ').trim();
-        
+        const normalizedText = messageText.replace(/\s+/g, " ").trim();
+
         // Create a map for faster emote lookup
-        const emoteMap = new Map(emotes.map(emote => [emote.name, emote]));
-        
+        const emoteMap = new Map(emotes.map((emote) => [emote.name, emote]));
+
         // Split by spaces, preserving the spaces as separate elements
         const parts = normalizedText.split(/( )/);
-        
-        return parts.map(part => {
+
+        return parts.map((part) => {
             if (emoteMap.has(part)) {
                 return emoteMap.get(part)!;
             }
@@ -114,7 +111,6 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     });
-
 </script>
 
 <svelte:head>
@@ -167,10 +163,15 @@
                         </div>
                         <div class="message-content">
                             {#each parseMessageWithEmotes(message.message) as part}
-                                {#if typeof part === 'string'}
+                                {#if typeof part === "string"}
                                     {part}
                                 {:else}
-                                    <img src={part.url} alt={part.name} class="chat-emote" title={part.name}>
+                                    <img
+                                        src={part.url}
+                                        alt={part.name}
+                                        class="chat-emote"
+                                        title={part.name}
+                                    />
                                 {/if}
                             {/each}
                         </div>
@@ -332,7 +333,6 @@
     .error button:hover {
         background: var(--accent-hover);
     }
-
 
     @media (max-width: 600px) {
         .chat-container {
