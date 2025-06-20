@@ -17,6 +17,7 @@
     let error = "";
     let broadcasterId: string = "";
     let senderId: string = "";
+    let lastSentMessage: string = "";
 
     $: channel = $page.params.channel;
     $: favoriteEmotesStore = getFavoriteEmotesStore(channel);
@@ -95,8 +96,16 @@
                 throw new Error("User information not loaded yet");
             }
 
-            const text = typeof item === "string" ? item : item.name;
+            let text = typeof item === "string" ? item : item.name;
+
+            // If the message is identical to the last sent message, append a space
+            // This prevents Twitch's duplicate message prevention
+            if (text === lastSentMessage) {
+                text += " \u{E0000}";
+            }
+
             await sendChatMessage($twitchApiKey, broadcasterId, senderId, text);
+            lastSentMessage = text;
         } catch (err) {
             console.error("Failed to send to chat:", err);
             showNotification(
