@@ -9,7 +9,7 @@
     import { base } from "$app/paths";
     import "drag-drop-touch";
 
-    let favoriteEmotes: Emote[] = $state([]);
+    let allEmotes: Map<string, Emote> = $state(new Map());
     let loading = $state(true);
     let error = $state("");
     let draggedIndex = $state<number | null>(null);
@@ -30,50 +30,31 @@
                 return;
             }
 
-            // If we have favorite emotes, fetch their current URLs
+            // Always load emotes if we have favorites to display them properly
             if ($favoriteEmotesStore.length > 0) {
-                await fetchEmoteUrls();
+                allEmotes = await loadAllEmotes($twitchApiKey, channel);
             }
         } catch (err) {
-            console.error("Error loading favorite emotes:", err);
-            error = err instanceof Error ? err.message : "Failed to load favorites";
+            console.error("Error loading emotes:", err);
+            error = err instanceof Error ? err.message : "Failed to load emotes";
         } finally {
             loading = false;
         }
     }
 
-    async function fetchEmoteUrls() {
-        try {
-            // Fetch all available emotes
-            const allEmotes = await loadAllEmotes($twitchApiKey, channel);
-
-            // Match favorite names with current emote data in the same order as stored
-            favoriteEmotes = $favoriteEmotesStore.map((name) =>
-                getEmoteOrPlaceholder(allEmotes, name),
-            );
-        } catch (err) {
-            console.error("Error fetching emote URLs:", err);
-            // If API fails, show emotes without images
-            favoriteEmotes = $favoriteEmotesStore.map((name) =>
-                getEmoteOrPlaceholder(new Map(), name),
-            );
-        }
-    }
-
     function removeFromFavorites(emoteName: string) {
         $favoriteEmotesStore = $favoriteEmotesStore.filter((name) => name !== emoteName);
-        favoriteEmotes = favoriteEmotes.filter((emote) => emote.name !== emoteName);
     }
 
     function removeFromFavoritesByIndex(index: number) {
-        const emoteName = favoriteEmotes[index]?.name;
+        const emoteName = $favoriteEmotesStore[index];
         if (emoteName) {
             removeFromFavorites(emoteName);
         }
     }
 
     // Drag and drop handlers
-    function handleDragStart(event: DragEvent, emote: Emote, index?: number) {
+    function handleDragStart(event: DragEvent, emoteName: string, index?: number) {
         if (event.dataTransfer) {
             event.dataTransfer.effectAllowed = "move";
             event.dataTransfer.setData("text/html", "");
@@ -81,7 +62,7 @@
         draggedIndex = index ?? null;
     }
 
-    function handleDragOver(event: DragEvent, emote: Emote, index?: number) {
+    function handleDragOver(event: DragEvent, emoteName: string, index?: number) {
         event.preventDefault();
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
@@ -95,20 +76,16 @@
             newDragOverIndex !== null &&
             draggedIndex !== newDragOverIndex
         ) {
-            // Create copies of the arrays
-            const newFavoriteEmotes = [...favoriteEmotes];
+            // Create copy of the names array
             const newFavoriteNames = [...$favoriteEmotesStore];
 
             // Remove the dragged item
-            const draggedEmote = newFavoriteEmotes.splice(draggedIndex, 1)[0];
             const draggedName = newFavoriteNames.splice(draggedIndex, 1)[0];
 
             // Insert at new position
-            newFavoriteEmotes.splice(newDragOverIndex, 0, draggedEmote);
             newFavoriteNames.splice(newDragOverIndex, 0, draggedName);
 
             // Update state for live preview
-            favoriteEmotes = newFavoriteEmotes;
             $favoriteEmotesStore = newFavoriteNames;
 
             // Update the dragged index to reflect the new position
@@ -122,7 +99,7 @@
         dragOverIndex = null;
     }
 
-    function handleDrop(event: DragEvent, emote: Emote, dropIndex?: number) {
+    function handleDrop(event: DragEvent, emoteName: string, dropIndex?: number) {
         event.preventDefault();
 
         // Reset drag state (reordering already happened in handleDragOver)
@@ -175,7 +152,8 @@
     </div>
 {:else}
     <div class="emotes-grid">
-        {#each favoriteEmotes as emote, index (emote.name)}
+        {#each $favoriteEmotesStore as emoteName, index (emoteName)}
+            {@const emote = getEmoteOrPlaceholder(allEmotes, emoteName)}
             <EmoteCard
                 {emote}
                 {index}
@@ -183,10 +161,10 @@
                 draggable={true}
                 isDragging={draggedIndex === index}
                 isDragOver={dragOverIndex === index}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
+                onDragStart={(event, emote, idx) => handleDragStart(event, emoteName, idx)}
+                onDragOver={(event, emote, idx) => handleDragOver(event, emoteName, idx)}
                 onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
+                onDrop={(event, emote, idx) => handleDrop(event, emoteName, idx)}
                 onDragEnd={handleDragEnd}
             />
         {:else}
