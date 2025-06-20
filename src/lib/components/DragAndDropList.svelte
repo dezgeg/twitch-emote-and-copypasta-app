@@ -37,7 +37,7 @@
     }: Props<any> = $props();
 
     let draggedIndex = $state<number | null>(null);
-    let dragOverIndex = $state<number | null>(null);
+    let dropIndicatorIndex = $state<number | null>(null); // Index where drop line should appear
     let dragOverTrash = $state(false);
 
     function handleDragStart(event: DragEvent, item: any, index?: number) {
@@ -56,49 +56,55 @@
 
         const newDragOverIndex = index ?? null;
 
-        // Live update: reorder items while dragging
+        // Update drop indicator - show where the item would be inserted
         if (
             draggedIndex !== null &&
             newDragOverIndex !== null &&
             draggedIndex !== newDragOverIndex
         ) {
-            // Create copy of the array
-            const newList = [...list];
-
-            // Remove the dragged item
-            const draggedItem = newList.splice(draggedIndex, 1)[0];
-
-            // Insert at new position
-            newList.splice(newDragOverIndex, 0, draggedItem);
-
-            // Update the list
-            list = newList;
-            if (onReorder) {
-                onReorder(newList);
-            }
-
-            // Update the dragged index to reflect the new position
-            draggedIndex = newDragOverIndex;
+            // When hovering over an item, we want to insert the dragged item in place of it
+            // So show the indicator before the hovered item
+            dropIndicatorIndex = newDragOverIndex;
+        } else {
+            dropIndicatorIndex = null;
         }
-
-        dragOverIndex = newDragOverIndex;
     }
 
     function handleDragLeave() {
-        dragOverIndex = null;
+        dropIndicatorIndex = null;
     }
 
     function handleDrop(event: DragEvent, item: any, dropIndex?: number) {
         event.preventDefault();
 
-        // Reset drag state (reordering already happened in handleDragOver)
+        // Perform the actual reordering on drop
+        if (
+            draggedIndex !== null &&
+            dropIndicatorIndex !== null &&
+            draggedIndex !== dropIndicatorIndex
+        ) {
+            const newList = [...list];
+            const draggedItem = newList.splice(draggedIndex, 1)[0];
+
+            // Adjust insertion index if we removed an item from before the insertion point
+            const insertIndex =
+                dropIndicatorIndex > draggedIndex ? dropIndicatorIndex - 1 : dropIndicatorIndex;
+            newList.splice(insertIndex, 0, draggedItem);
+
+            list = newList;
+            if (onReorder) {
+                onReorder(newList);
+            }
+        }
+
+        // Reset drag state
         draggedIndex = null;
-        dragOverIndex = null;
+        dropIndicatorIndex = null;
     }
 
     function handleDragEnd() {
         draggedIndex = null;
-        dragOverIndex = null;
+        dropIndicatorIndex = null;
         dragOverTrash = false;
     }
 
@@ -133,19 +139,20 @@
 
         // Reset drag state
         draggedIndex = null;
-        dragOverIndex = null;
+        dropIndicatorIndex = null;
         dragOverTrash = false;
     }
 </script>
 
 <div class={className}>
-    <div class={gridClass}>
+    <div class={gridClass} class:has-drop-indicator={dropIndicatorIndex !== null}>
         {#each list as item, index (item)}
             <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
             <div
                 class="draggable-item"
                 class:dragging={draggedIndex === index}
-                class:drag-over={dragOverIndex === index}
+                class:drop-target-before={dropIndicatorIndex === index}
+                class:drop-target-after={dropIndicatorIndex === index + 1}
                 draggable={true}
                 ondragstart={(event) => handleDragStart(event, item, index)}
                 ondragover={(event) => handleDragOver(event, item, index)}
@@ -194,6 +201,7 @@
     .draggable-item {
         border-radius: 8px;
         cursor: grab;
+        position: relative;
     }
 
     .draggable-item:active {
@@ -201,14 +209,69 @@
     }
 
     .draggable-item.dragging {
-        border: 2px solid var(--accent-primary);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        box-shadow:
+            inset 0 0 0 2px var(--accent-primary),
+            0 4px 12px rgba(0, 0, 0, 0.3);
         opacity: 0.5;
     }
 
-    .draggable-item.drag-over {
-        border: 2px solid var(--accent-primary);
-        background: rgba(145, 70, 255, 0.15);
+    /* Default column layout - horizontal lines above/below */
+    .draggable-item.drop-target-before::before,
+    .draggable-item.drop-target-after::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-primary);
+        border-radius: 2px;
+        box-shadow: 0 0 8px rgba(145, 70, 255, 0.6);
+        animation: pulse 1s ease-in-out infinite alternate;
+        z-index: 10;
+    }
+
+    .draggable-item.drop-target-before::before {
+        top: -2px;
+    }
+
+    .draggable-item.drop-target-after::after {
+        bottom: -2px;
+    }
+
+    /* Grid layout - vertical lines on left/right sides */
+    .drag-drop-grid .draggable-item.drop-target-before::before,
+    .drag-drop-grid .draggable-item.drop-target-after::after {
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        height: auto;
+        left: auto;
+        right: auto;
+    }
+
+    .drag-drop-grid .draggable-item.drop-target-before::before {
+        left: -2px;
+        top: 0;
+    }
+
+    .drag-drop-grid .draggable-item.drop-target-after::after {
+        right: -2px;
+        bottom: auto;
+        top: 0;
+    }
+
+    /* For grid layouts, make sure the container has relative positioning */
+    .drag-drop-grid {
+        position: relative;
+    }
+
+    @keyframes pulse {
+        from {
+            opacity: 0.7;
+        }
+        to {
+            opacity: 1;
+        }
     }
 
     .trash-zone {
