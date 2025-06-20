@@ -49,7 +49,7 @@
 
             // Match favorite names with current emote data in the same order as stored
             favoriteEmotes = $favoriteEmotesStore.map((name) => {
-                const emote = allEmotes.find((e) => e.name === name);
+                const emote = allEmotes.get(name);
                 return (
                     emote || {
                         name,

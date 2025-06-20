@@ -13,15 +13,14 @@ export interface Emote {
 /**
  * Load all available emotes for a channel (global, user, 7TV, BetterTTV, and FrankerFaceZ emotes)
  */
-export async function loadAllEmotes(apiKey: string, channel: string): Promise<Emote[]> {
+export async function loadAllEmotes(apiKey: string, channel: string): Promise<Map<string, Emote>> {
     // Check if we already have cached data
     const cachedEmotes = get(getEmotesStore(channel));
-    if (cachedEmotes.length > 0) {
+    if (cachedEmotes.size > 0) {
         return cachedEmotes;
     }
 
-    const allEmotes: Emote[] = [];
-    let deduplicatedEmotes: Emote[] = [];
+    const emotesMap = new Map<string, Emote>();
 
     try {
         // Get broadcaster and current user info
@@ -36,32 +35,27 @@ export async function loadAllEmotes(apiKey: string, channel: string): Promise<Em
             loadFFZEmotes(broadcaster.id),
         ]);
 
-        // Add all emotes to the result
+        // Add all emotes to the map, keyed by emote name
         for (const emotes of emoteResults) {
-            allEmotes.push(...emotes);
+            for (const emote of emotes) {
+                if (emotesMap.has(emote.name)) {
+                    console.log(
+                        `Duplicate emote found: ${emote.name} (${emote.type}) - ${emote.uniqueKey}`,
+                    );
+                } else {
+                    emotesMap.set(emote.name, emote);
+                }
+            }
         }
 
-        // Deduplicate by uniqueKey
-        const seen = new Set<string>();
-        deduplicatedEmotes = allEmotes.filter((emote) => {
-            if (seen.has(emote.uniqueKey)) {
-                console.log(
-                    `Duplicate emote found: ${emote.name} (${emote.type}) - ${emote.uniqueKey}`,
-                );
-                return false;
-            }
-            seen.add(emote.uniqueKey);
-            return true;
-        });
-
         // Cache the results
-        setEmotesCache(channel, deduplicatedEmotes);
+        setEmotesCache(channel, emotesMap);
     } catch (err) {
         console.error("Error loading emotes:", err);
         throw err;
     }
 
-    return deduplicatedEmotes;
+    return emotesMap;
 }
 
 /**
@@ -80,7 +74,11 @@ function buildTwitchEmoteUrl(template: string, emote: any): string {
 /**
  * Helper function to fetch and process Twitch emotes from a URL with pagination support
  */
-async function fetchTwitchEmotes(url: URL, apiKey: string): Promise<Emote[]> {
+async function fetchTwitchEmotes(
+    url: URL,
+    apiKey: string,
+    keyPrefix: string = "twitch",
+): Promise<Emote[]> {
     const headers = {
         Authorization: `Bearer ${apiKey}`,
         "Client-Id": TWITCH_CLIENT_ID,
@@ -103,7 +101,7 @@ async function fetchTwitchEmotes(url: URL, apiKey: string): Promise<Emote[]> {
                 name: emote.name,
                 url: buildTwitchEmoteUrl(data.template, emote),
                 type: "twitch" as const,
-                uniqueKey: `twitch-${emote.id}`,
+                uniqueKey: `${keyPrefix}-${emote.id}`,
             }));
             allEmotes.push(...emotes);
 
@@ -131,12 +129,17 @@ async function loadTwitchEmotes(
     userId: string,
 ): Promise<Emote[]> {
     const [globalEmotes, userSpecificEmotes] = await Promise.all([
-        fetchTwitchEmotes(new URL("https://api.twitch.tv/helix/chat/emotes/global"), apiKey),
+        fetchTwitchEmotes(
+            new URL("https://api.twitch.tv/helix/chat/emotes/global"),
+            apiKey,
+            "twitch-global",
+        ),
         fetchTwitchEmotes(
             new URL(
                 `https://api.twitch.tv/helix/chat/emotes/user?broadcaster_id=${broadcasterId}&user_id=${userId}`,
             ),
             apiKey,
+            "twitch-user",
         ),
     ]);
 

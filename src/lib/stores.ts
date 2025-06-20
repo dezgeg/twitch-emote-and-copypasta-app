@@ -16,7 +16,7 @@ export function getFavoriteCopypastasStore(channel: string) {
 }
 
 // Cache for emotes data per channel
-const emotesCache = new Map<string, Emote[]>();
+const emotesCache = new Map<string, Map<string, Emote>>();
 
 // Function to get or create emotes store for a channel
 export function getEmotesStore(channel: string) {
@@ -24,10 +24,10 @@ export function getEmotesStore(channel: string) {
     if (cached) {
         return writable(cached);
     }
-    return writable<Emote[]>([]);
+    return writable<Map<string, Emote>>(new Map());
 }
 
 // Function to set emotes cache
-export function setEmotesCache(channel: string, emotes: Emote[]) {
+export function setEmotesCache(channel: string, emotes: Map<string, Emote>) {
     emotesCache.set(channel, emotes);
 }

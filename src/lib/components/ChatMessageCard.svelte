@@ -9,7 +9,7 @@
         color?: string;
 
         // Display settings
-        emotes?: Emote[];
+        emotes?: Map<string, Emote>;
         isFavorited?: boolean;
 
         // Event handlers
@@ -21,28 +21,25 @@
         timestamp,
         user_name,
         color,
-        emotes = [],
+        emotes = new Map(),
         isFavorited = false,
         onClick,
     }: Props = $props();
 
     function parseMessageWithEmotes(messageText: string): (string | Emote)[] {
-        if (!emotes.length) {
+        if (!emotes.size) {
             return [messageText];
         }
 
         // Normalize whitespace to single spaces
         const normalizedText = messageText.replace(/\s+/g, " ").trim();
 
-        // Create a map for faster emote lookup
-        const emoteMap = new Map(emotes.map((emote) => [emote.name, emote]));
-
         // Split by spaces, preserving the spaces as separate elements
         const parts = normalizedText.split(/( )/);
 
         return parts.map((part) => {
-            if (emoteMap.has(part)) {
-                return emoteMap.get(part)!;
+            if (emotes.has(part)) {
+                return emotes.get(part)!;
             }
             return part;
         });

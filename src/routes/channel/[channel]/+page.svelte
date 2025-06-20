@@ -12,7 +12,7 @@
 
     let channel: string;
     let favoriteEmotes: Emote[] = [];
-    let allEmotes: Emote[] = [];
+    let allEmotes: Map<string, Emote> = new Map();
     let loading = true;
     let error = "";
     let broadcasterId: string = "";
@@ -53,7 +53,7 @@
 
             // Match favorite names with current emote data
             favoriteEmotes = $favoriteEmotesStore.map((name) => {
-                const emote = allEmotes.find((e) => e.name === name);
+                const emote = allEmotes.get(name);
                 return (
                     emote || {
                         name,

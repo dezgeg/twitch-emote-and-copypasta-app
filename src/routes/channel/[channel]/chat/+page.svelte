@@ -16,7 +16,7 @@
     // svelte-ignore non_reactive_update
     let messagesContainer: HTMLDivElement;
     let messages = $state<ChatMessage[]>([]);
-    let emotes = $state<Emote[]>([]);
+    let emotes = $state<Map<string, Emote>>(new Map());
     let chatState = $state<ChatWebSocketState>({
         connected: false,
         error: null,

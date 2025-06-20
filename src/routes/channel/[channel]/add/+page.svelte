@@ -8,7 +8,7 @@
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import { base } from "$app/paths";
 
-    let allEmotes: Emote[] = $state([]);
+    let allEmotes: Map<string, Emote> = $state(new Map());
     let searchTerm = $state("");
     let loading = $state(true);
     let error = $state("");
@@ -16,7 +16,9 @@
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
     let filteredEmotes = $derived(
-        allEmotes.filter((emote) => emote.name.toLowerCase().includes(searchTerm.toLowerCase())),
+        Array.from(allEmotes.values()).filter((emote) =>
+            emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
     );
 
     onMount(async () => {
