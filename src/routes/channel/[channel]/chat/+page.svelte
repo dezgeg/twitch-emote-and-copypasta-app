@@ -136,57 +136,62 @@
         <button onclick={() => location.reload()}>Retry Connection</button>
     </div>
 {:else}
-    <div class="chat-container">
-        <div class="chat-header">
-            <h2>Live Chat - {channel}</h2>
-            <div class="header-controls">
-                <div class="connection-status" class:connected={chatState.connected}>
-                    <span class="status-indicator"></span>
-                    {formatConnectionStatus()}
+    <div class="chat-layout">
+        <div class="chat-header-container">
+            <div class="chat-header">
+                <h2>Live Chat - {channel}</h2>
+                <div class="header-controls">
+                    <div class="connection-status" class:connected={chatState.connected}>
+                        <span class="status-indicator"></span>
+                        {formatConnectionStatus()}
+                    </div>
                 </div>
             </div>
+
+            {#if chatState.error}
+                <div class="error">
+                    <p>Chat error: {chatState.error}</p>
+                </div>
+            {/if}
         </div>
 
-        {#if chatState.error}
-            <div class="error">
-                <p>Chat error: {chatState.error}</p>
-            </div>
-        {/if}
-
         {#if messages.length === 0}
-            <p class="no-messages">
-                {#if chatState.connected}
-                    Waiting for chat messages...
-                {:else}
-                    Connecting to chat...
-                {/if}
-            </p>
+            <div class="no-messages-container">
+                <p class="no-messages">
+                    {#if chatState.connected}
+                        Waiting for chat messages...
+                    {:else}
+                        Connecting to chat...
+                    {/if}
+                </p>
+            </div>
         {:else}
             <div class="messages" bind:this={messagesContainer} onscroll={handleScroll}>
-                {#each messages as chatMessage (chatMessage.id)}
-                    <ChatMessageCard
-                        message={chatMessage.message}
-                        timestamp={chatMessage.timestamp}
-                        user_name={chatMessage.user_name}
-                        color={chatMessage.color}
-                        {emotes}
-                        isFavorited={isCopypastaFavorited(chatMessage.message)}
-                        onClick={() => toggleCopypasta(chatMessage)}
-                    />
-                {/each}
+                <div class="messages-content">
+                    {#each messages as chatMessage (chatMessage.id)}
+                        <ChatMessageCard
+                            message={chatMessage.message}
+                            timestamp={chatMessage.timestamp}
+                            user_name={chatMessage.user_name}
+                            color={chatMessage.color}
+                            {emotes}
+                            isFavorited={isCopypastaFavorited(chatMessage.message)}
+                            onClick={() => toggleCopypasta(chatMessage)}
+                        />
+                    {/each}
+                </div>
             </div>
         {/if}
     </div>
 {/if}
 
 <style>
-    .chat-container {
+    /* Chat layout uses full width - no wrapper padding needed */
+
+    .chat-header-container {
         max-width: 800px;
         margin: 0 auto;
         padding: 1rem;
-        height: calc(100vh - 200px);
-        display: flex;
-        flex-direction: column;
     }
 
     .chat-header {
@@ -196,6 +201,12 @@
         margin-bottom: 1rem;
         padding-bottom: 1rem;
         border-bottom: 1px solid var(--border-color);
+    }
+
+    .no-messages-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 1rem;
     }
 
     .header-controls {
@@ -250,12 +261,18 @@
     }
 
     .messages {
+        flex: 1;
+        overflow-y: auto;
+        height: calc(100vh - 200px);
+    }
+
+    .messages-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 1rem;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        flex: 1;
-        overflow-y: auto;
-        padding-right: 0.5rem;
     }
 
     .error {
@@ -287,9 +304,16 @@
     }
 
     @media (max-width: 600px) {
-        .chat-container {
+        .chat-header-container {
             padding: 0.5rem;
+        }
+
+        .messages {
             height: calc(100vh - 160px);
+        }
+
+        .messages-content {
+            padding: 0 0.5rem;
         }
 
         .chat-header {

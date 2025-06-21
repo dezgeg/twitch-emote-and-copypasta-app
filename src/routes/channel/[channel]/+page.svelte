@@ -154,9 +154,8 @@
         <p>Error: {error}</p>
     </div>
 {:else}
-    <div class="favorites-container">
+    <div class="page-padding favorites-container">
         <section class="emotes-section">
-            <h2>Favorite Emotes</h2>
             <div class="emotes-grid">
                 {#each favoriteEmotes as emote (emote.name)}
                     <EmoteCard {emote} mode="view" onClick={sendToChat} />
@@ -171,8 +170,11 @@
             </div>
         </section>
 
+        {#if favoriteEmotes.length > 0 && $favoriteCopypastasStore.length > 0}
+            <hr class="section-separator" />
+        {/if}
+
         <section class="copypastas-section">
-            <h2>Favorite Copypastas</h2>
             <div class="copypastas-list">
                 {#each $favoriteCopypastasStore as copypasta (copypasta)}
                     <ChatMessageCard message={copypasta} emotes={allEmotes} onClick={sendToChat} />
@@ -191,19 +193,14 @@
 
 <style>
     .favorites-container {
-        margin: 1rem 0;
-    }
-
-    .emotes-section,
-    .copypastas-section {
-        margin-bottom: 2rem;
-    }
-
-    .emotes-section h2,
-    .copypastas-section h2 {
+        margin-top: 1rem;
         margin-bottom: 1rem;
-        font-size: 1.25rem;
-        font-weight: 600;
+    }
+
+    .section-separator {
+        border: none;
+        border-top: 1px solid var(--border-color);
+        margin: 1rem 0;
     }
 
     .emotes-grid {
@@ -216,7 +213,7 @@
     .copypastas-list {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.125rem;
     }
 
     @media (max-width: 600px) {

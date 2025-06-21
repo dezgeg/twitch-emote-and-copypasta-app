@@ -43,7 +43,7 @@
         <p>Please check your API key configuration.</p>
     </div>
 {:else}
-    <div class="channels">
+    <div class="page-padding channels">
         {#each channels as channel (channel.broadcaster_id)}
             <a class="channel-card" href="{base}/channel/{channel.broadcaster_login}">
                 <div class="channel-name">{channel.broadcaster_name}</div>

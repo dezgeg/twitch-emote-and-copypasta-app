@@ -74,30 +74,32 @@
         <p>Error: {error}</p>
     </div>
 {:else}
-    <div class="search-container">
-        <input
-            type="text"
-            placeholder="Search emotes..."
-            bind:value={searchTerm}
-            class="search-input"
-            onkeydown={handleSearchKeydown}
-        />
-        <div class="results-count">
-            {filteredEmotes.length} emotes found
-        </div>
-    </div>
-
-    <div class="emotes-grid">
-        {#each filteredEmotes as emote (emote.name)}
-            <EmoteCard
-                {emote}
-                mode="add"
-                isFavorited={isFavorited(emote.name)}
-                onClick={toggleFavorite}
+    <div class="page-padding">
+        <div class="search-container">
+            <input
+                type="text"
+                placeholder="Search emotes..."
+                bind:value={searchTerm}
+                class="search-input"
+                onkeydown={handleSearchKeydown}
             />
-        {:else}
-            <p>No emotes found matching "{searchTerm}"</p>
-        {/each}
+            <div class="results-count">
+                {filteredEmotes.length} emotes found
+            </div>
+        </div>
+
+        <div class="emotes-grid">
+            {#each filteredEmotes as emote (emote.name)}
+                <EmoteCard
+                    {emote}
+                    mode="add"
+                    isFavorited={isFavorited(emote.name)}
+                    onClick={toggleFavorite}
+                />
+            {:else}
+                <p>No emotes found matching "{searchTerm}"</p>
+            {/each}
+        </div>
     </div>
 {/if}
 

@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { Emote } from "$lib/emote-api";
+    import "$lib/styles/card.css";
 
     interface Props {
         // Core emote data
@@ -34,8 +35,9 @@
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div
-    class="emote-card emote-card--{mode}"
-    class:emote-card--favorited={isFavorited}
+    class="card emote-card emote-card--{mode}"
+    class:card--clickable={isClickable}
+    class:card--favorited={isFavorited}
     onclick={isClickable ? handleClick : undefined}
     role={isClickable ? "button" : undefined}
     tabindex={isClickable ? 0 : undefined}
@@ -59,27 +61,12 @@
         flex-direction: column;
         align-items: center;
         padding: 0.25rem;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        background: var(--bg-secondary);
-        color: var(--text-primary);
         text-align: center;
-        transition: all 0.2s;
-        position: relative;
         user-select: none;
     }
 
     .emote-card--add {
         padding: 0.5rem;
-    }
-
-    /* Mode-specific styles */
-    .emote-card--view {
-        cursor: pointer;
-    }
-
-    .emote-card--add {
-        cursor: pointer;
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     }
 
@@ -87,27 +74,9 @@
         border-width: 2px;
     }
 
-    /* Interactive states */
-    .emote-card--view:hover,
-    .emote-card--add:hover {
-        background: var(--bg-tertiary);
-        border-color: var(--accent-primary);
-    }
-
     .emote-card--add:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Favorited state */
-    .emote-card--favorited {
-        background: rgba(145, 70, 255, 0.15);
-        border-color: var(--accent-primary);
-    }
-
-    .emote-card--favorited:hover {
-        background: rgba(145, 70, 255, 0.25);
-        border-color: var(--accent-hover);
     }
 
     /* Image and placeholder */

@@ -62,9 +62,8 @@
         <p>Error: {error}</p>
     </div>
 {:else}
-    <div class="edit-container">
+    <div class="page-padding edit-container">
         <section class="emotes-section">
-            <h2>Favorite Emotes</h2>
             <DragAndDropList
                 bind:list={$favoriteEmotesStore}
                 showTrash={true}
@@ -85,8 +84,11 @@
             </DragAndDropList>
         </section>
 
+        {#if $favoriteEmotesStore.length > 0 && $favoriteCopypastasStore.length > 0}
+            <hr class="section-separator" />
+        {/if}
+
         <section class="copypastas-section">
-            <h2>Favorite Copypastas</h2>
             <DragAndDropList
                 bind:list={$favoriteCopypastasStore}
                 showTrash={true}
@@ -111,25 +113,20 @@
 
 <style>
     .edit-container {
-        margin: 1rem 0;
-    }
-
-    .emotes-section,
-    .copypastas-section {
-        margin-bottom: 2rem;
-    }
-
-    .emotes-section h2,
-    .copypastas-section h2 {
+        margin-top: 1rem;
         margin-bottom: 1rem;
-        font-size: 1.25rem;
-        font-weight: 600;
+    }
+
+    .section-separator {
+        border: none;
+        border-top: 1px solid var(--border-color);
+        margin: 1rem 0;
     }
 
     :global(.copypasta-list) {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.125rem;
         margin-bottom: 2rem;
     }
 </style>

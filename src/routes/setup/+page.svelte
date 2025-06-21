@@ -6,7 +6,7 @@
     <title>Twitch Emote and Copypasta App - Setup</title>
 </svelte:head>
 
-<div class="setup-form">
+<div class="page-padding setup-form">
     <label for="apiKey">Twitch API Key:</label>
     <input
         id="apiKey"

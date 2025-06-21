@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { Emote } from "$lib/emote-api";
+    import "$lib/styles/card.css";
 
     interface Props {
         // Core message data
@@ -59,9 +60,9 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-    class="chat-message"
-    class:chat-message--favorited={isFavorited}
-    class:chat-message--clickable={!!onClick}
+    class="card chat-message"
+    class:card--favorited={isFavorited}
+    class:card--clickable={!!onClick}
     onclick={onClick ? handleClick : undefined}
 >
     <div class="message-header">
@@ -90,29 +91,7 @@
 <style>
     .chat-message {
         padding: 0.75rem;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        transition: background-color 0.2s ease;
         flex-shrink: 0;
-    }
-
-    .chat-message--clickable {
-        cursor: pointer;
-    }
-
-    .chat-message--clickable:hover {
-        background: var(--bg-tertiary);
-    }
-
-    .chat-message--favorited {
-        background: rgba(145, 70, 255, 0.15);
-        border-color: var(--accent-primary);
-    }
-
-    .chat-message--favorited:hover {
-        background: rgba(145, 70, 255, 0.25);
-        border-color: var(--accent-hover);
     }
 
     .message-header {
