@@ -105,10 +105,8 @@
 
 <style>
     .search-container {
-        margin: 2rem 0;
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
     }
 
     .search-input {
@@ -120,18 +118,19 @@
         max-width: 400px;
         background-color: var(--bg-secondary);
         color: var(--text-primary);
+        box-sizing: border-box;
     }
 
     .results-count {
         font-size: 0.875rem;
         color: var(--text-secondary);
+        margin: 0.5rem 0;
     }
 
     .emotes-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
         gap: 0.25rem;
-        margin: 1rem 0;
     }
 
     @media (max-width: 600px) {

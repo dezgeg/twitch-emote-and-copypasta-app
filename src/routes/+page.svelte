@@ -59,7 +59,6 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 1rem;
-        margin: 2rem 0;
     }
 
     .channel-card {

@@ -193,8 +193,6 @@
 
 <style>
     .favorites-container {
-        margin-top: 1rem;
-        margin-bottom: 1rem;
     }
 
     .section-separator {
@@ -207,7 +205,6 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
         gap: 0.125rem;
-        margin: 1rem 0;
     }
 
     .copypastas-list {
