@@ -192,9 +192,6 @@
 {/if}
 
 <style>
-    .favorites-container {
-    }
-
     .section-separator {
         border: none;
         border-top: 1px solid var(--border-color);
