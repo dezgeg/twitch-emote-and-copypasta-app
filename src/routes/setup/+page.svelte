@@ -1,5 +1,48 @@
 <script lang="ts">
     import { twitchApiKey } from "$lib/stores";
+    import { onMount } from "svelte";
+
+    let deferredPrompt: any = null;
+    let showInstallButton = $state(false);
+    let isInstalled = $state(false);
+
+    onMount(() => {
+        // Check if already installed
+        if (
+            window.matchMedia("(display-mode: standalone)").matches ||
+            (window.navigator as any).standalone
+        ) {
+            isInstalled = true;
+        }
+
+        // Listen for the beforeinstallprompt event
+        window.addEventListener("beforeinstallprompt", (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallButton = true;
+        });
+
+        // Listen for the appinstalled event
+        window.addEventListener("appinstalled", () => {
+            isInstalled = true;
+            showInstallButton = false;
+            deferredPrompt = null;
+        });
+    });
+
+    async function installApp() {
+        if (!deferredPrompt) return;
+
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+
+        if (outcome === "accepted") {
+            console.log("User accepted the install prompt");
+        }
+
+        deferredPrompt = null;
+        showInstallButton = false;
+    }
 </script>
 
 <svelte:head>
@@ -18,6 +61,47 @@
     />
     <p class="help-text">Your API key is automatically saved as you type.</p>
 </div>
+
+<!-- PWA Installation Section -->
+{#if !isInstalled}
+    <div class="page-padding pwa-section">
+        <h3>📱 Install as App</h3>
+        <p>Get the best experience by installing this app on your device!</p>
+
+        {#if showInstallButton}
+            <button class="install-button" onclick={installApp}>
+                <span class="install-icon">📲</span>
+                Install App
+            </button>
+        {:else}
+            <div class="install-instructions">
+                <p><strong>To install on mobile:</strong></p>
+                <ul>
+                    <li>
+                        <strong>iOS Safari:</strong> Tap the share button and select "Add to Home Screen"
+                    </li>
+                    <li>
+                        <strong>Android Chrome:</strong> Tap the menu (⋮) and select "Add to Home screen"
+                    </li>
+                </ul>
+                <p><strong>To install on desktop:</strong></p>
+                <ul>
+                    <li>
+                        <strong>Chrome/Edge:</strong> Look for the install icon in the address bar
+                    </li>
+                    <li>
+                        <strong>Firefox:</strong> Use "Install this site as an app" from the page menu
+                    </li>
+                </ul>
+            </div>
+        {/if}
+    </div>
+{:else}
+    <div class="page-padding pwa-section">
+        <h3>✅ App Installed</h3>
+        <p>Great! You're using the installed version of the app.</p>
+    </div>
+{/if}
 
 <div class="help">
     <h3>Setup Requirements:</h3>
@@ -109,5 +193,73 @@
         padding: 0.2rem 0.4rem;
         border-radius: 3px;
         font-family: monospace;
+    }
+
+    .pwa-section {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        text-align: center;
+    }
+
+    .pwa-section h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+        font-size: 1.25rem;
+    }
+
+    .install-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+        box-shadow: 0 4px 12px rgba(145, 70, 255, 0.3);
+    }
+
+    .install-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(145, 70, 255, 0.4);
+        background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent-primary) 100%);
+    }
+
+    .install-icon {
+        font-size: 1.2rem;
+    }
+
+    .install-instructions {
+        text-align: left;
+        max-width: 600px;
+        margin: 0 auto;
+        background: var(--bg-primary);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .install-instructions ul {
+        margin: 0.5rem 0 1rem 1.5rem;
+        padding: 0;
+    }
+
+    .install-instructions li {
+        margin: 0.5rem 0;
+        color: var(--text-secondary);
+    }
+
+    .install-instructions strong {
+        color: var(--text-primary);
     }
 </style>
