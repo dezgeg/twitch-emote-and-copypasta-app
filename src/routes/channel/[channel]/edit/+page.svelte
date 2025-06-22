@@ -20,21 +20,14 @@
 
     onMount(async () => {
         fetchStatus.run(async () => {
-            await loadFavoriteEmotes();
+            if (!$twitchApiKey) {
+                goto(`${base}/setup`);
+                return;
+            }
+
+            allEmotes = await loadAllEmotes($twitchApiKey, channel);
         });
     });
-
-    async function loadFavoriteEmotes() {
-        if (!$twitchApiKey) {
-            goto(`${base}/setup`);
-            return;
-        }
-
-        // Always load emotes if we have favorites to display them properly
-        if ($favoriteEmotesStore.length > 0) {
-            allEmotes = await loadAllEmotes($twitchApiKey, channel);
-        }
-    }
 </script>
 
 <svelte:head>

@@ -22,18 +22,14 @@
 
     onMount(async () => {
         fetchStatus.run(async () => {
-            await loadEmotes();
+            if (!$twitchApiKey) {
+                goto(`${base}/setup`);
+                return;
+            }
+
+            allEmotes = await loadAllEmotes($twitchApiKey, channel);
         });
     });
-
-    async function loadEmotes() {
-        if (!$twitchApiKey) {
-            goto(`${base}/setup`);
-            return;
-        }
-
-        allEmotes = await loadAllEmotes($twitchApiKey, channel);
-    }
 
     function toggleFavorite(emote: { name: string; url: string; type: string }) {
         const isFavorited = $favoriteEmotesStore.includes(emote.name);
@@ -43,10 +39,6 @@
         } else {
             $favoriteEmotesStore = [...$favoriteEmotesStore, emote.name];
         }
-    }
-
-    function isFavorited(emoteName: string): boolean {
-        return $favoriteEmotesStore.includes(emoteName);
     }
 
     function handleSearchKeydown(event: KeyboardEvent) {
@@ -81,7 +73,7 @@
                 <EmoteCard
                     {emote}
                     mode="add"
-                    isFavorited={isFavorited(emote.name)}
+                    isFavorited={$favoriteEmotesStore.includes(emote.name)}
                     onClick={toggleFavorite}
                 />
             {:else}
