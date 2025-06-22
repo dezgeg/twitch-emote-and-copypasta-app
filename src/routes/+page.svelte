@@ -22,25 +22,21 @@
         }
 
         fetchStatus.run(async () => {
-            await loadStreamsAndChannels();
+            // Load both live streams and all followed channels
+            const [liveStreams, allChannels] = await Promise.all([
+                getFollowedStreams($twitchApiKey),
+                getFollowedChannels($twitchApiKey),
+            ]);
+
+            streams = liveStreams;
+
+            // Filter out channels that are currently live
+            const liveChannelIds = new Set(liveStreams.map((stream) => stream.user_id));
+            offlineChannels = allChannels.filter(
+                (channel) => !liveChannelIds.has(channel.broadcaster_id),
+            );
         });
     });
-
-    async function loadStreamsAndChannels() {
-        // Load both live streams and all followed channels
-        const [liveStreams, allChannels] = await Promise.all([
-            getFollowedStreams($twitchApiKey),
-            getFollowedChannels($twitchApiKey),
-        ]);
-
-        streams = liveStreams;
-
-        // Filter out channels that are currently live
-        const liveChannelIds = new Set(liveStreams.map((stream) => stream.user_id));
-        offlineChannels = allChannels.filter(
-            (channel) => !liveChannelIds.has(channel.broadcaster_id),
-        );
-    }
 
     function formatViewerCount(count: number): string {
         if (count >= 1000000) {
@@ -71,54 +67,48 @@
 
 <FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load streams and channels">
     <div class="page-padding">
-        <!-- Live Streams Section -->
+        <!-- Live Streams -->
         {#if streams.length > 0}
-            <section class="streams-section">
-                <h2>🔴 Live Now</h2>
-                <div class="streams-grid">
-                    {#each streams as stream (stream.id)}
-                        <a class="stream-card live" href="{base}/channel/{stream.user_login}">
-                            <div class="stream-info">
-                                <div class="stream-header">
-                                    <div class="channel-name">{stream.user_name}</div>
-                                    <div class="stream-stats">
-                                        <span class="viewer-count"
-                                            >👥 {formatViewerCount(stream.viewer_count)}</span
-                                        >
-                                        <span class="duration"
-                                            >⏱️ {getTimeSinceStart(stream.started_at)}</span
-                                        >
-                                    </div>
-                                </div>
-                                <div class="stream-title">{stream.title}</div>
-                                <div class="stream-meta">
-                                    {#if stream.game_name}
-                                        <div class="game-name">{stream.game_name}</div>
-                                    {/if}
+            <div class="streams-grid">
+                {#each streams as stream (stream.id)}
+                    <a class="stream-card live" href="{base}/channel/{stream.user_login}">
+                        <div class="stream-info">
+                            <div class="stream-header">
+                                <div class="channel-name">{stream.user_name}</div>
+                                <div class="stream-stats">
+                                    <span class="viewer-count"
+                                        >👥 {formatViewerCount(stream.viewer_count)}</span
+                                    >
+                                    <span class="duration"
+                                        >⏱️ {getTimeSinceStart(stream.started_at)}</span
+                                    >
                                 </div>
                             </div>
-                        </a>
-                    {/each}
-                </div>
-            </section>
+                            <div class="stream-title">{stream.title}</div>
+                            <div class="stream-meta">
+                                {#if stream.game_name}
+                                    <div class="game-name">{stream.game_name}</div>
+                                {/if}
+                            </div>
+                        </div>
+                    </a>
+                {/each}
+            </div>
         {/if}
 
-        <!-- Offline Channels Section -->
+        <!-- Offline Channels -->
         {#if offlineChannels.length > 0}
-            <section class="offline-section">
-                <h2>📺 Offline Channels</h2>
-                <div class="channels-grid">
-                    {#each offlineChannels as channel (channel.broadcaster_id)}
-                        <a
-                            class="channel-card offline"
-                            href="{base}/channel/{channel.broadcaster_login}"
-                        >
-                            <div class="channel-name">{channel.broadcaster_name}</div>
-                            <div class="offline-status">Offline</div>
-                        </a>
-                    {/each}
-                </div>
-            </section>
+            <div class="channels-grid">
+                {#each offlineChannels as channel (channel.broadcaster_id)}
+                    <a
+                        class="channel-card offline"
+                        href="{base}/channel/{channel.broadcaster_login}"
+                    >
+                        <div class="channel-name">{channel.broadcaster_name}</div>
+                        <div class="offline-status">Offline</div>
+                    </a>
+                {/each}
+            </div>
         {/if}
 
         <!-- No Content Message -->
@@ -129,28 +119,18 @@
 </FetchStatus>
 
 <style>
-    .streams-section,
-    .offline-section {
-        margin-bottom: 3rem;
-    }
-
-    .streams-section h2,
-    .offline-section h2 {
-        margin: 0 0 1.5rem 0;
-        color: var(--text-primary);
-        font-size: 1.5rem;
-    }
-
     .streams-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1rem;
+        margin-bottom: 3rem;
     }
 
     .channels-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 1rem;
+        margin-bottom: 3rem;
     }
 
     .stream-card {
