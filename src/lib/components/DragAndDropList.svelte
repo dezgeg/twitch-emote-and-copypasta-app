@@ -9,13 +9,8 @@
         // Grid layout settings
         gridClass?: string;
 
-        // Optional callbacks
-        onReorder?: (newList: T[]) => void;
-        onRemove?: (item: T, index: number) => void;
-
         // Trash zone support
         showTrash?: boolean;
-        onTrashDrop?: (item: T, index: number) => void;
 
         // Snippet for rendering each item
         renderItem: any;
@@ -28,10 +23,7 @@
         list = $bindable(),
         class: className = "",
         gridClass = "drag-drop-grid",
-        onReorder,
-        onRemove,
         showTrash = false,
-        onTrashDrop,
         renderItem,
         renderEmpty,
     }: Props<any> = $props();
@@ -40,31 +32,25 @@
     let dropIndicatorIndex = $state<number | null>(null); // Index where drop line should appear
     let dragOverTrash = $state(false);
 
-    function handleDragStart(event: DragEvent, item: any, index?: number) {
+    function handleDragStart(event: DragEvent, index: number) {
         if (event.dataTransfer) {
             event.dataTransfer.effectAllowed = "move";
             event.dataTransfer.setData("text/html", "");
         }
-        draggedIndex = index ?? null;
+        draggedIndex = index;
     }
 
-    function handleDragOver(event: DragEvent, item: any, index?: number) {
+    function handleDragOver(event: DragEvent, index: number) {
         event.preventDefault();
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
         }
 
-        const newDragOverIndex = index ?? null;
-
         // Update drop indicator - show where the item would be inserted
-        if (
-            draggedIndex !== null &&
-            newDragOverIndex !== null &&
-            draggedIndex !== newDragOverIndex
-        ) {
+        if (draggedIndex !== null && draggedIndex !== index) {
             // When hovering over an item, we want to insert the dragged item in place of it
             // So show the indicator before the hovered item
-            dropIndicatorIndex = newDragOverIndex;
+            dropIndicatorIndex = index;
         } else {
             dropIndicatorIndex = null;
         }
@@ -74,7 +60,7 @@
         dropIndicatorIndex = null;
     }
 
-    function handleDrop(event: DragEvent, item: any, dropIndex?: number) {
+    function handleDrop(event: DragEvent, dropIndex: number) {
         event.preventDefault();
 
         // Perform the actual reordering on drop
@@ -92,9 +78,6 @@
             newList.splice(insertIndex, 0, draggedItem);
 
             list = newList;
-            if (onReorder) {
-                onReorder(newList);
-            }
         }
 
         // Reset drag state
@@ -125,16 +108,8 @@
         event.preventDefault();
 
         if (draggedIndex !== null) {
-            const item = list[draggedIndex];
-
-            if (onTrashDrop) {
-                onTrashDrop(item, draggedIndex);
-            } else if (onRemove) {
-                onRemove(item, draggedIndex);
-            } else {
-                // Default behavior: remove from list
-                list = list.filter((_, index) => index !== draggedIndex);
-            }
+            // Remove item from list
+            list = list.filter((_, index) => index !== draggedIndex);
         }
 
         // Reset drag state
@@ -154,10 +129,10 @@
                 class:drop-target-before={dropIndicatorIndex === index}
                 class:drop-target-after={dropIndicatorIndex === index + 1}
                 draggable={true}
-                ondragstart={(event) => handleDragStart(event, item, index)}
-                ondragover={(event) => handleDragOver(event, item, index)}
+                ondragstart={(event) => handleDragStart(event, index)}
+                ondragover={(event) => handleDragOver(event, index)}
                 ondragleave={handleDragLeave}
-                ondrop={(event) => handleDrop(event, item, index)}
+                ondrop={(event) => handleDrop(event, index)}
                 ondragend={handleDragEnd}
                 role="button"
                 tabindex="0"

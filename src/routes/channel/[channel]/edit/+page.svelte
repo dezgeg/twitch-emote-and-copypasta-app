@@ -35,14 +35,6 @@
             allEmotes = await loadAllEmotes($twitchApiKey, channel);
         }
     }
-
-    function removeEmoteFromFavorites(emoteName: string, index: number) {
-        $favoriteEmotesStore = $favoriteEmotesStore.filter((name) => name !== emoteName);
-    }
-
-    function removeCopypastaFromFavorites(copypasta: string, index: number) {
-        $favoriteCopypastasStore = $favoriteCopypastasStore.filter((text) => text !== copypasta);
-    }
 </script>
 
 <svelte:head>
@@ -52,11 +44,7 @@
 <FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load favorite emotes">
     <div class="page-padding edit-container">
         <section class="emotes-section">
-            <DragAndDropList
-                bind:list={$favoriteEmotesStore}
-                showTrash={true}
-                onTrashDrop={removeEmoteFromFavorites}
-            >
+            <DragAndDropList bind:list={$favoriteEmotesStore} showTrash={true}>
                 {#snippet renderItem(emoteName: string)}
                     {@const emote = getEmoteOrPlaceholder(allEmotes, emoteName)}
                     <EmoteCard {emote} mode="edit" />
@@ -73,7 +61,6 @@
             <DragAndDropList
                 bind:list={$favoriteCopypastasStore}
                 showTrash={true}
-                onTrashDrop={removeCopypastaFromFavorites}
                 gridClass="copypasta-list"
             >
                 {#snippet renderItem(copypasta: string)}
