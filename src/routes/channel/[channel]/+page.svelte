@@ -160,31 +160,19 @@
                 {#each favoriteEmotes as emote (emote.name)}
                     <EmoteCard {emote} mode="view" onClick={sendToChat} />
                 {:else}
-                    <p>
-                        No favorite emotes yet. <a
-                            href="{base}/channel/{channel}/add"
-                            class="button">Add some!</a
-                        >
-                    </p>
+                    <p>No favorite emotes yet.</p>
                 {/each}
             </div>
         </section>
 
-        {#if favoriteEmotes.length > 0 && $favoriteCopypastasStore.length > 0}
-            <hr class="section-separator" />
-        {/if}
+        <hr class="section-separator" />
 
         <section class="copypastas-section">
             <div class="copypastas-list">
                 {#each $favoriteCopypastasStore as copypasta (copypasta)}
                     <ChatMessageCard message={copypasta} emotes={allEmotes} onClick={sendToChat} />
                 {:else}
-                    <p>
-                        No favorite copypastas yet. <a
-                            href="{base}/channel/{channel}/chat"
-                            class="button">Add some from chat!</a
-                        >
-                    </p>
+                    <p>No favorite copypastas yet.</p>
                 {/each}
             </div>
         </section>

@@ -74,19 +74,12 @@
                     <EmoteCard {emote} mode="edit" />
                 {/snippet}
                 {#snippet renderEmpty()}
-                    <p>
-                        No favorite emotes yet. <a
-                            href="{base}/channel/{channel}/add"
-                            class="button">Add some!</a
-                        >
-                    </p>
+                    <p>No favorite emotes yet.</p>
                 {/snippet}
             </DragAndDropList>
         </section>
 
-        {#if $favoriteEmotesStore.length > 0 && $favoriteCopypastasStore.length > 0}
-            <hr class="section-separator" />
-        {/if}
+        <hr class="section-separator" />
 
         <section class="copypastas-section">
             <DragAndDropList
@@ -99,12 +92,7 @@
                     <ChatMessageCard message={copypasta} emotes={allEmotes} />
                 {/snippet}
                 {#snippet renderEmpty()}
-                    <p>
-                        No favorite copypastas yet. <a
-                            href="{base}/channel/{channel}/chat"
-                            class="button">Add some from chat!</a
-                        >
-                    </p>
+                    <p>No favorite copypastas yet.</p>
                 {/snippet}
             </DragAndDropList>
         </section>
