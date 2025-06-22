@@ -4,41 +4,35 @@
     import { onMount } from "svelte";
     import { loadAllEmotes, getEmoteOrPlaceholder, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
-    import Spinner from "$lib/components/Spinner.svelte";
+    import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
     import DragAndDropList from "$lib/components/DragAndDropList.svelte";
     import { base } from "$app/paths";
     import "drag-drop-touch";
 
+    let fetchStatus: any;
     let allEmotes: Map<string, Emote> = $state(new Map());
-    let loading = $state(true);
-    let error = $state("");
 
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
 
     onMount(async () => {
-        await loadFavoriteEmotes();
+        fetchStatus.run(async () => {
+            await loadFavoriteEmotes();
+        });
     });
 
     async function loadFavoriteEmotes() {
-        try {
-            if (!$twitchApiKey) {
-                goto(`${base}/setup`);
-                return;
-            }
+        if (!$twitchApiKey) {
+            goto(`${base}/setup`);
+            return;
+        }
 
-            // Always load emotes if we have favorites to display them properly
-            if ($favoriteEmotesStore.length > 0) {
-                allEmotes = await loadAllEmotes($twitchApiKey, channel);
-            }
-        } catch (err) {
-            console.error("Error loading emotes:", err);
-            error = err instanceof Error ? err.message : "Failed to load emotes";
-        } finally {
-            loading = false;
+        // Always load emotes if we have favorites to display them properly
+        if ($favoriteEmotesStore.length > 0) {
+            allEmotes = await loadAllEmotes($twitchApiKey, channel);
         }
     }
 
@@ -55,13 +49,7 @@
     <title>Twitch Emote and Copypasta App - Edit {channel} Favorites</title>
 </svelte:head>
 
-{#if loading}
-    <Spinner />
-{:else if error}
-    <div class="error">
-        <p>Error: {error}</p>
-    </div>
-{:else}
+<FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load favorite emotes">
     <div class="page-padding edit-container">
         <section class="emotes-section">
             <DragAndDropList
@@ -97,7 +85,7 @@
             </DragAndDropList>
         </section>
     </div>
-{/if}
+</FetchStatus>
 
 <style>
     .section-separator {

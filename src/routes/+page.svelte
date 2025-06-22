@@ -8,13 +8,12 @@
         type FollowedChannel,
     } from "$lib/twitch-api";
     import { twitchApiKey } from "$lib/stores";
-    import Spinner from "$lib/components/Spinner.svelte";
+    import FetchStatus from "$lib/components/FetchStatus.svelte";
     import { base } from "$app/paths";
 
+    let fetchStatus: any;
     let streams: Stream[] = [];
     let offlineChannels: FollowedChannel[] = [];
-    let loading = true;
-    let error = "";
 
     onMount(async () => {
         if (!$twitchApiKey) {
@@ -22,30 +21,25 @@
             return;
         }
 
-        await loadStreamsAndChannels();
+        fetchStatus.run(async () => {
+            await loadStreamsAndChannels();
+        });
     });
 
     async function loadStreamsAndChannels() {
-        try {
-            // Load both live streams and all followed channels
-            const [liveStreams, allChannels] = await Promise.all([
-                getFollowedStreams($twitchApiKey),
-                getFollowedChannels($twitchApiKey),
-            ]);
+        // Load both live streams and all followed channels
+        const [liveStreams, allChannels] = await Promise.all([
+            getFollowedStreams($twitchApiKey),
+            getFollowedChannels($twitchApiKey),
+        ]);
 
-            streams = liveStreams;
+        streams = liveStreams;
 
-            // Filter out channels that are currently live
-            const liveChannelIds = new Set(liveStreams.map((stream) => stream.user_id));
-            offlineChannels = allChannels.filter(
-                (channel) => !liveChannelIds.has(channel.broadcaster_id),
-            );
-        } catch (err) {
-            console.error("Error fetching streams and channels:", err);
-            error = err instanceof Error ? err.message : "Failed to fetch streams and channels";
-        } finally {
-            loading = false;
-        }
+        // Filter out channels that are currently live
+        const liveChannelIds = new Set(liveStreams.map((stream) => stream.user_id));
+        offlineChannels = allChannels.filter(
+            (channel) => !liveChannelIds.has(channel.broadcaster_id),
+        );
     }
 
     function formatViewerCount(count: number): string {
@@ -75,14 +69,7 @@
     <title>Twitch Emote and Copypasta App - Channels</title>
 </svelte:head>
 
-{#if loading}
-    <Spinner />
-{:else if error}
-    <div class="error">
-        <p>Error: {error}</p>
-        <p>Please check your API key configuration.</p>
-    </div>
-{:else}
+<FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load streams and channels">
     <div class="page-padding">
         <!-- Live Streams Section -->
         {#if streams.length > 0}
@@ -139,7 +126,7 @@
             <p class="no-content">No followed channels found.</p>
         {/if}
     </div>
-{/if}
+</FetchStatus>
 
 <style>
     .streams-section,

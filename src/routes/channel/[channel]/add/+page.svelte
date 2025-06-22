@@ -4,14 +4,13 @@
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore } from "$lib/stores";
-    import Spinner from "$lib/components/Spinner.svelte";
+    import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import { base } from "$app/paths";
 
+    let fetchStatus: any;
     let allEmotes: Map<string, Emote> = $state(new Map());
     let searchTerm = $state("");
-    let loading = $state(true);
-    let error = $state("");
 
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
@@ -22,23 +21,18 @@
     );
 
     onMount(async () => {
-        await loadEmotes();
+        fetchStatus.run(async () => {
+            await loadEmotes();
+        });
     });
 
     async function loadEmotes() {
-        try {
-            if (!$twitchApiKey) {
-                goto(`${base}/setup`);
-                return;
-            }
-
-            allEmotes = await loadAllEmotes($twitchApiKey, channel);
-        } catch (err) {
-            console.error("Error loading emotes:", err);
-            error = err instanceof Error ? err.message : "Failed to load emotes";
-        } finally {
-            loading = false;
+        if (!$twitchApiKey) {
+            goto(`${base}/setup`);
+            return;
         }
+
+        allEmotes = await loadAllEmotes($twitchApiKey, channel);
     }
 
     function toggleFavorite(emote: { name: string; url: string; type: string }) {
@@ -67,13 +61,7 @@
     <title>Twitch Emote and Copypasta App - Manage Emotes for {channel}</title>
 </svelte:head>
 
-{#if loading}
-    <Spinner />
-{:else if error}
-    <div class="error">
-        <p>Error: {error}</p>
-    </div>
-{:else}
+<FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load emotes">
     <div class="page-padding">
         <div class="search-container">
             <input
@@ -101,7 +89,7 @@
             {/each}
         </div>
     </div>
-{/if}
+</FetchStatus>
 
 <style>
     .search-container {

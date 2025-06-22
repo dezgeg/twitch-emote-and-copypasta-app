@@ -5,14 +5,13 @@
     import { loadAllEmotes, getEmoteOrPlaceholder, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
     import { sendChatMessage, getUser } from "$lib/twitch-api";
-    import Spinner from "$lib/components/Spinner.svelte";
+    import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
     import { base } from "$app/paths";
 
+    let fetchStatus: any;
     let allEmotes = $state(new Map<string, Emote>());
-    let loading = $state(true);
-    let error = $state("");
     let broadcasterId = $state("");
     let senderId = $state("");
     let lastSentMessage = $state("");
@@ -22,15 +21,10 @@
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
 
     onMount(async () => {
-        try {
+        fetchStatus.run(async () => {
             // Load emotes and user IDs in parallel
             await Promise.all([loadEmotes(), loadUserIds()]);
-        } catch (err) {
-            console.error("Error loading data:", err);
-            error = err instanceof Error ? err.message : "Failed to load data";
-        } finally {
-            loading = false;
-        }
+        });
     });
 
     async function loadEmotes() {
@@ -44,24 +38,19 @@
     }
 
     async function loadUserIds() {
-        try {
-            if (!$twitchApiKey) {
-                goto(`${base}/setup`);
-                return;
-            }
-
-            // Get current user and broadcaster info once and cache them
-            const [currentUser, broadcaster] = await Promise.all([
-                getUser($twitchApiKey),
-                getUser($twitchApiKey, channel),
-            ]);
-
-            senderId = currentUser.id;
-            broadcasterId = broadcaster.id;
-        } catch (err) {
-            console.error("Error loading user IDs:", err);
-            error = err instanceof Error ? err.message : "Failed to load user information";
+        if (!$twitchApiKey) {
+            goto(`${base}/setup`);
+            return;
         }
+
+        // Get current user and broadcaster info once and cache them
+        const [currentUser, broadcaster] = await Promise.all([
+            getUser($twitchApiKey),
+            getUser($twitchApiKey, channel),
+        ]);
+
+        senderId = currentUser.id;
+        broadcasterId = broadcaster.id;
     }
 
     async function sendToChat(item: { name: string; url: string } | string) {
@@ -125,13 +114,7 @@
     <title>Twitch Emote and Copypasta App - {channel} Favorites</title>
 </svelte:head>
 
-{#if loading}
-    <Spinner />
-{:else if error}
-    <div class="error">
-        <p>Error: {error}</p>
-    </div>
-{:else}
+<FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load channel data">
     <div class="page-padding favorites-container">
         <section class="emotes-section">
             <div class="emotes-grid">
@@ -156,7 +139,7 @@
             </div>
         </section>
     </div>
-{/if}
+</FetchStatus>
 
 <style>
     .section-separator {
