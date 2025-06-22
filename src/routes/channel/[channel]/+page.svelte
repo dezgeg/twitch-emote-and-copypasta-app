@@ -10,58 +10,36 @@
     import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
     import { base } from "$app/paths";
 
-    let channel: string;
-    let favoriteEmotes: Emote[] = [];
-    let allEmotes: Map<string, Emote> = new Map();
-    let loading = true;
-    let error = "";
-    let broadcasterId: string = "";
-    let senderId: string = "";
-    let lastSentMessage: string = "";
+    let allEmotes = $state(new Map<string, Emote>());
+    let loading = $state(true);
+    let error = $state("");
+    let broadcasterId = $state("");
+    let senderId = $state("");
+    let lastSentMessage = $state("");
 
-    $: channel = $page.params.channel;
-    $: favoriteEmotesStore = getFavoriteEmotesStore(channel);
-    $: favoriteCopypastasStore = getFavoriteCopypastasStore(channel);
+    let channel = $derived($page.params.channel);
+    let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
+    let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
 
     onMount(async () => {
-        await loadFavoriteEmotes();
-        await loadUserIds();
-    });
-
-    async function loadFavoriteEmotes() {
         try {
-            // If we have favorite emotes, fetch their current URLs
-            if ($favoriteEmotesStore.length > 0) {
-                await fetchEmoteUrls();
-            }
+            // Load emotes and user IDs in parallel
+            await Promise.all([loadEmotes(), loadUserIds()]);
         } catch (err) {
-            console.error("Error loading favorite emotes:", err);
-            error = err instanceof Error ? err.message : "Failed to load favorites";
+            console.error("Error loading data:", err);
+            error = err instanceof Error ? err.message : "Failed to load data";
         } finally {
             loading = false;
         }
-    }
+    });
 
-    async function fetchEmoteUrls() {
+    async function loadEmotes() {
         try {
-            if (!$twitchApiKey) {
-                goto(`${base}/setup`);
-                return;
-            }
-
             // Fetch all available emotes
             allEmotes = await loadAllEmotes($twitchApiKey, channel);
-
-            // Match favorite names with current emote data
-            favoriteEmotes = $favoriteEmotesStore.map((name) =>
-                getEmoteOrPlaceholder(allEmotes, name),
-            );
         } catch (err) {
             console.error("Error fetching emote URLs:", err);
-            // If API fails, show emotes without images
-            favoriteEmotes = $favoriteEmotesStore.map((name) =>
-                getEmoteOrPlaceholder(new Map(), name),
-            );
+            // If API fails, allEmotes remains empty and getEmoteOrPlaceholder will handle it
         }
     }
 
@@ -157,7 +135,8 @@
     <div class="page-padding favorites-container">
         <section class="emotes-section">
             <div class="emotes-grid">
-                {#each favoriteEmotes as emote (emote.name)}
+                {#each $favoriteEmotesStore as emoteName (emoteName)}
+                    {@const emote = getEmoteOrPlaceholder(allEmotes, emoteName)}
                     <EmoteCard {emote} mode="view" onClick={sendToChat} />
                 {:else}
                     <p>No favorite emotes yet.</p>
