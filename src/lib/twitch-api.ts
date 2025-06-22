@@ -19,6 +19,24 @@ export interface FollowedChannel {
     broadcaster_name: string;
 }
 
+export interface Stream {
+    id: string;
+    user_id: string;
+    user_login: string;
+    user_name: string;
+    game_id: string;
+    game_name: string;
+    type: string;
+    title: string;
+    viewer_count: number;
+    started_at: string;
+    language: string;
+    thumbnail_url: string;
+    tag_ids: string[];
+    tags: string[];
+    is_mature: boolean;
+}
+
 export interface ChatMessage {
     id: string;
     user_id: string;
@@ -87,6 +105,34 @@ export async function getFollowedChannels(apiKey: string): Promise<FollowedChann
 
     const followsData = await followsResponse.json();
     return followsData.data || [];
+}
+
+/**
+ * Get live streams from followed channels for the authenticated user
+ * @param apiKey - Twitch API access token
+ * @throws Error if API request fails
+ */
+export async function getFollowedStreams(apiKey: string): Promise<Stream[]> {
+    // First get user info to get user ID
+    const user = await getUser(apiKey);
+
+    // Get live streams from followed channels
+    const streamsResponse = await fetch(
+        `https://api.twitch.tv/helix/streams/followed?user_id=${user.id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Client-Id": TWITCH_CLIENT_ID,
+            },
+        },
+    );
+
+    if (!streamsResponse.ok) {
+        throw new Error(`Failed to get followed streams: ${streamsResponse.status}`);
+    }
+
+    const streamsData = await streamsResponse.json();
+    return streamsData.data || [];
 }
 
 /**
