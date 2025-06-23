@@ -66,10 +66,10 @@
                 {/snippet}
             </DragAndDropList>
         </section>
-
-        <TrashDropZone bind:this={trashDropZone} />
     </div>
 </FetchStatus>
+
+<TrashDropZone bind:this={trashDropZone} />
 
 <style>
     .section-separator {
