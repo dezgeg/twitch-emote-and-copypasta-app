@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { Writable } from "svelte/store";
+    import type TrashDropZone from "./TrashDropZone.svelte";
 
     interface Props<T> {
         // The store containing the array of items to render
@@ -11,8 +12,8 @@
         // Grid layout settings
         gridClass?: string;
 
-        // Trash zone support
-        showTrash?: boolean;
+        // Optional trash drop zone reference
+        trashDropZone?: TrashDropZone;
 
         // Snippet for rendering each item
         renderItem: any;
@@ -25,14 +26,13 @@
         store,
         class: className = "",
         gridClass = "drag-drop-grid",
-        showTrash = false,
+        trashDropZone,
         renderItem,
         renderEmpty,
     }: Props<any> = $props();
 
     let draggedIndex = $state<number | null>(null);
     let dropIndicatorIndex = $state<number | null>(null); // Index where drop line should appear
-    let dragOverTrash = $state(false);
 
     function handleDragStart(event: DragEvent, index: number) {
         if (event.dataTransfer) {
@@ -40,6 +40,11 @@
             event.dataTransfer.setData("text/html", "");
         }
         draggedIndex = index;
+
+        // Register this list as the active one for trash drops
+        if (trashDropZone) {
+            trashDropZone.registerDragAndDropList(handleTrashDrop);
+        }
     }
 
     function handleDragOver(event: DragEvent, index: number) {
@@ -89,40 +94,28 @@
         dropIndicatorIndex = null;
     }
 
-    function handleDragEnd() {
+    function handleDragEnd(event: DragEvent) {
+        // Unregister from trash zone
+        if (trashDropZone) {
+            trashDropZone.unregisterDragAndDropList();
+        }
+
         draggedIndex = null;
         dropIndicatorIndex = null;
-        dragOverTrash = false;
     }
 
-    // Trash zone handlers
-    function handleTrashDragOver(event: DragEvent) {
-        event.preventDefault();
-        if (event.dataTransfer) {
-            event.dataTransfer.dropEffect = "move";
-        }
-        dragOverTrash = true;
-    }
-
-    function handleTrashDragLeave() {
-        dragOverTrash = false;
-    }
-
-    function handleTrashDrop(event: DragEvent) {
-        event.preventDefault();
-
+    function handleTrashDrop() {
         if (draggedIndex !== null) {
             // Remove item from list
             store.update((currentList) => {
                 currentList.splice(draggedIndex!, 1);
                 return currentList;
             });
-        }
 
-        // Reset drag state
-        draggedIndex = null;
-        dropIndicatorIndex = null;
-        dragOverTrash = false;
+            // Reset drag state
+            draggedIndex = null;
+            dropIndicatorIndex = null;
+        }
     }
 </script>
 
@@ -140,7 +133,7 @@
                 ondragover={(event) => handleDragOver(event, index)}
                 ondragleave={handleDragLeave}
                 ondrop={(event) => handleDrop(event, index)}
-                ondragend={handleDragEnd}
+                ondragend={(event) => handleDragEnd(event)}
                 role="button"
                 tabindex="0"
             >
@@ -154,22 +147,6 @@
             {/if}
         {/each}
     </div>
-
-    {#if showTrash}
-        <!-- Trash Can Drop Zone -->
-        <div
-            class="trash-zone"
-            class:drag-over={dragOverTrash}
-            ondragover={handleTrashDragOver}
-            ondragleave={handleTrashDragLeave}
-            ondrop={handleTrashDrop}
-            role="button"
-            tabindex="0"
-        >
-            <div class="trash-can">🗑️</div>
-            <p>Drop here to remove</p>
-        </div>
-    {/if}
 </div>
 
 <style>
@@ -254,38 +231,6 @@
         to {
             opacity: 1;
         }
-    }
-
-    .trash-zone {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        margin-top: 2rem;
-        border: 2px dashed var(--border-color);
-        border-radius: 12px;
-        background: var(--bg-secondary);
-        text-align: center;
-        transition: all 0.2s ease;
-        min-height: 120px;
-    }
-
-    .trash-zone.drag-over {
-        border-color: #dc3545;
-        background: rgba(220, 53, 69, 0.1);
-        transform: scale(1.02);
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
-    }
-
-    .trash-can {
-        font-size: 3rem;
-        margin-bottom: 0.5rem;
-        transition: transform 0.2s ease;
-    }
-
-    .trash-zone.drag-over .trash-can {
-        transform: scale(1.2);
     }
 
     @media (max-width: 600px) {

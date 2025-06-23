@@ -8,11 +8,13 @@
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
     import DragAndDropList from "$lib/components/DragAndDropList.svelte";
+    import TrashDropZone from "$lib/components/TrashDropZone.svelte";
     import { base } from "$app/paths";
     import "drag-drop-touch";
 
     let fetchStatus: any;
     let allEmotes: Map<string, Emote> = $state(new Map());
+    let trashDropZone: TrashDropZone = $state()!;
 
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
@@ -37,7 +39,7 @@
 <FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load favorite emotes">
     <div class="page-padding edit-container">
         <section class="emotes-section">
-            <DragAndDropList store={favoriteEmotesStore} showTrash={true}>
+            <DragAndDropList store={favoriteEmotesStore} {trashDropZone}>
                 {#snippet renderItem(emoteName: string)}
                     {@const emote = getEmoteOrPlaceholder(allEmotes, emoteName)}
                     <EmoteCard {emote} mode="edit" />
@@ -53,7 +55,7 @@
         <section class="copypastas-section">
             <DragAndDropList
                 store={favoriteCopypastasStore}
-                showTrash={true}
+                {trashDropZone}
                 gridClass="copypasta-list"
             >
                 {#snippet renderItem(copypasta: string)}
@@ -64,6 +66,8 @@
                 {/snippet}
             </DragAndDropList>
         </section>
+
+        <TrashDropZone bind:this={trashDropZone} />
     </div>
 </FetchStatus>
 
