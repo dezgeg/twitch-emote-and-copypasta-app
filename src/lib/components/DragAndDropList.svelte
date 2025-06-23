@@ -1,7 +1,9 @@
 <script lang="ts">
+    import type { Writable } from "svelte/store";
+
     interface Props<T> {
-        // The array of items to render
-        list: T[];
+        // The store containing the array of items to render
+        store: Writable<T[]>;
 
         // Container class
         class?: string;
@@ -20,7 +22,7 @@
     }
 
     let {
-        list = $bindable(),
+        store,
         class: className = "",
         gridClass = "drag-drop-grid",
         showTrash = false,
@@ -69,15 +71,17 @@
             dropIndicatorIndex !== null &&
             draggedIndex !== dropIndicatorIndex
         ) {
-            const newList = [...list];
-            const draggedItem = newList.splice(draggedIndex, 1)[0];
+            store.update((currentList) => {
+                const draggedItem = currentList.splice(draggedIndex!, 1)[0];
 
-            // Adjust insertion index if we removed an item from before the insertion point
-            const insertIndex =
-                dropIndicatorIndex > draggedIndex ? dropIndicatorIndex - 1 : dropIndicatorIndex;
-            newList.splice(insertIndex, 0, draggedItem);
-
-            list = newList;
+                // Adjust insertion index if we removed an item from before the insertion point
+                const insertIndex =
+                    dropIndicatorIndex! > draggedIndex!
+                        ? dropIndicatorIndex! - 1
+                        : dropIndicatorIndex!;
+                currentList.splice(insertIndex, 0, draggedItem);
+                return currentList;
+            });
         }
 
         // Reset drag state
@@ -109,7 +113,10 @@
 
         if (draggedIndex !== null) {
             // Remove item from list
-            list = list.filter((_, index) => index !== draggedIndex);
+            store.update((currentList) => {
+                currentList.splice(draggedIndex!, 1);
+                return currentList;
+            });
         }
 
         // Reset drag state
@@ -121,7 +128,7 @@
 
 <div class={className}>
     <div class={gridClass} class:has-drop-indicator={dropIndicatorIndex !== null}>
-        {#each list as item, index (item)}
+        {#each $store as item, index (item)}
             <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
             <div
                 class="draggable-item"

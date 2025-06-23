@@ -37,7 +37,7 @@
 <FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load favorite emotes">
     <div class="page-padding edit-container">
         <section class="emotes-section">
-            <DragAndDropList bind:list={$favoriteEmotesStore} showTrash={true}>
+            <DragAndDropList store={favoriteEmotesStore} showTrash={true}>
                 {#snippet renderItem(emoteName: string)}
                     {@const emote = getEmoteOrPlaceholder(allEmotes, emoteName)}
                     <EmoteCard {emote} mode="edit" />
@@ -52,7 +52,7 @@
 
         <section class="copypastas-section">
             <DragAndDropList
-                bind:list={$favoriteCopypastasStore}
+                store={favoriteCopypastasStore}
                 showTrash={true}
                 gridClass="copypasta-list"
             >
