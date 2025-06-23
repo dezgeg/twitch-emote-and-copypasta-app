@@ -1,0 +1,15 @@
+diff --git a/node_modules/drag-drop-touch/DragDropTouch.js b/node_modules/drag-drop-touch/DragDropTouch.js
+index 5016998..7b7f8ee 100644
+--- a/node_modules/drag-drop-touch/DragDropTouch.js
++++ b/node_modules/drag-drop-touch/DragDropTouch.js
+@@ -370,8 +370,8 @@ var DragDropTouch;
+             var _this = this;
+             requestAnimationFrame(function () {
+                 if (_this._img) {
+-                    var pt = _this._getPoint(e, true), s = _this._img.style;
+-                    s.position = 'absolute';
++                    var pt = _this._getPoint(e, false), s = _this._img.style;
++                    s.position = 'fixed';
+                     s.pointerEvents = 'none';
+                     s.zIndex = '999999';
+                     s.left = Math.round(pt.x - _this._imgOffset.x) + 'px';
