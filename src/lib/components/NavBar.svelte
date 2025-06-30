@@ -1,6 +1,7 @@
 <script lang="ts">
     import { base } from "$app/paths";
     import { page } from "$app/stores";
+    import { browser } from "$app/environment";
 
     interface Props {
         channel?: string | null;
@@ -10,26 +11,29 @@
 
     // Get current route ID for highlighting active nav item
     let routeId = $derived($page.route.id);
+
+    // Detect if running in iframe
+    let isInIframe = $derived(browser && window.self !== window.top);
 </script>
 
-<nav>
-    <a href="{base}/" class:active={routeId === "/"}>Channels</a>
+<nav class:iframe={isInIframe}>
+    <a href="{base}/" class:active={routeId === "/"}>📺</a>
 
     {#if channel}
         <a href="{base}/channel/{channel}" class:active={routeId === "/channel/[channel]"}
             >{channel}</a
         >
         <a href="{base}/channel/{channel}/add" class:active={routeId === "/channel/[channel]/add"}
-            >Add</a
+            >➕</a
         >
         <a href="{base}/channel/{channel}/edit" class:active={routeId === "/channel/[channel]/edit"}
-            >Edit</a
+            >✏️</a
         >
         <a href="{base}/channel/{channel}/chat" class:active={routeId === "/channel/[channel]/chat"}
-            >Chat</a
+            >💬</a
         >
     {:else}
-        <a href="{base}/setup" class:active={routeId === "/setup"}>Setup</a>
+        <a href="{base}/setup" class:active={routeId === "/setup"}>⚙️</a>
     {/if}
 </nav>
 
@@ -47,6 +51,11 @@
         overflow-x: auto;
         width: 100%;
         gap: 0;
+    }
+
+    nav.iframe {
+        height: 48px;
+        padding-left: 48px;
     }
 
     nav a {
