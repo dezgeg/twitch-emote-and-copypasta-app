@@ -15,11 +15,42 @@
 
     // Configuration - Update this URL to match your GitHub Pages deployment
     //const EMOTE_APP_URL = 'https://dezgeg.github.io/twitch-emote-and-copypasta-app';
-    const EMOTE_APP_URL = "http://localhost:5173/";
+    const EMOTE_APP_URL = "http://localhost:5173";
 
     let overlay = null;
     let isVisible = false;
     let iframe = null;
+    let currentChannel = null;
+
+    // Extract channel name from Twitch URL
+    function getCurrentChannel() {
+        const path = window.location.pathname;
+        const match = path.match(/^\/([^\/]+)(?:\/|$)/);
+
+        // Skip known non-channel paths
+        if (
+            !match ||
+            [
+                "directory",
+                "settings",
+                "following",
+                "browse",
+                "p",
+                "u",
+                "dashboard",
+                "friends",
+                "inventory",
+                "prime",
+                "subscriptions",
+                "wallet",
+                "drops",
+            ].includes(match[1])
+        ) {
+            return null;
+        }
+
+        return match[1];
+    }
 
     // Create the overlay
     function createOverlay() {
@@ -44,7 +75,8 @@
 
         // Create iframe for the emote app
         iframe = document.createElement("iframe");
-        iframe.src = EMOTE_APP_URL;
+        const channelPath = currentChannel ? `/channel/${currentChannel}` : "";
+        iframe.src = EMOTE_APP_URL + channelPath;
         iframe.style.cssText = `
             width: 100%;
             height: 100%;
@@ -112,6 +144,9 @@
 
     // Create toggle button
     function createToggleButton() {
+        currentChannel = getCurrentChannel();
+        const isEnabled = currentChannel !== null;
+
         const button = document.createElement("button");
         button.innerHTML = `<svg width="24" height="24" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -134,18 +169,21 @@
             <rect x="72" y="100" width="16" height="2" rx="1" fill="#9146FF" opacity="0.6"/>
             <rect x="48" y="105" width="24" height="2" rx="1" fill="#9146FF" opacity="0.6"/>
         </svg>`;
-        button.title = "Toggle Emote App";
+
+        button.title = isEnabled
+            ? `Toggle Emote App (${currentChannel})`
+            : "Emote App (only available on channel pages)";
         button.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
             width: 48px;
             height: 48px;
-            background: #9146ff;
+            background: ${isEnabled ? "#9146ff" : "#666666"};
             color: white;
             border: none;
             border-radius: 0;
-            cursor: pointer;
+            cursor: ${isEnabled ? "pointer" : "not-allowed"};
             z-index: 9998;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             transition: background-color 0.3s ease;
@@ -153,32 +191,27 @@
             align-items: center;
             justify-content: center;
             padding: 6px;
+            opacity: ${isEnabled ? "1" : "0.5"};
         `;
 
         // Add CSS hover rule
         const style = document.createElement("style");
         style.textContent = `
             #emote-toggle-button:hover {
-                background: #7c3aed !important;
+                background: ${isEnabled ? "#7c3aed" : "#666666"} !important;
             }
         `;
         document.head.appendChild(style);
         button.id = "emote-toggle-button";
 
-        button.addEventListener("click", toggleOverlay);
+        if (isEnabled) {
+            button.addEventListener("click", toggleOverlay);
+        }
         document.body.appendChild(button);
     }
 
     // Wait for page to load and create toggle button
     function init() {
-        // Only run on Twitch channel pages or main Twitch pages
-        if (
-            window.location.pathname.includes("/directory") ||
-            window.location.pathname.includes("/settings")
-        ) {
-            return;
-        }
-
         // Create toggle button after a short delay to ensure page is ready
         setTimeout(() => {
             createToggleButton();

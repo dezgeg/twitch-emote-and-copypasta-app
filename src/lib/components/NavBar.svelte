@@ -17,7 +17,9 @@
 </script>
 
 <nav class:iframe={isInIframe}>
-    <a href="{base}/" class:active={routeId === "/"}>📺</a>
+    {#if !isInIframe}
+        <a href="{base}/" class:active={routeId === "/"}>📺</a>
+    {/if}
 
     {#if channel}
         <a href="{base}/channel/{channel}" class:active={routeId === "/channel/[channel]"}
