@@ -14,10 +14,19 @@
 
     // Detect if running in iframe
     let isInIframe = $derived(browser && window.self !== window.top);
+
+    function closeIframe() {
+        // Post message to parent window to close the iframe
+        if (browser && window.parent) {
+            window.parent.postMessage("closeEmoteOverlay", "*");
+        }
+    }
 </script>
 
 <nav class:iframe={isInIframe}>
-    {#if !isInIframe}
+    {#if isInIframe}
+        <button class="close-button" onclick={closeIframe} title="Close overlay">×</button>
+    {:else}
         <a href="{base}/" class:active={routeId === "/"}>📺</a>
     {/if}
 
@@ -60,7 +69,7 @@
 
     nav.iframe {
         height: 48px;
-        padding-left: 52px;
+        padding-left: 0;
         overflow: hidden;
         box-sizing: border-box;
     }
@@ -79,11 +88,31 @@
     }
 
     nav.iframe a {
-        padding: 0 0.3rem;
-        font-size: 0.7rem;
+        padding: 0 0.5rem;
+        font-size: 0.75rem;
         min-width: auto;
         flex-shrink: 1;
         box-sizing: border-box;
+    }
+
+    .close-button {
+        width: 48px;
+        height: 48px;
+        background: #9146ff;
+        color: white;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid #5f5f5f;
+        transition: background-color 0.1s ease;
+        flex-shrink: 0;
+    }
+
+    .close-button:hover {
+        background: #772ce8;
     }
 
     nav a:hover {

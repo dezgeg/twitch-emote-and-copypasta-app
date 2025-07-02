@@ -84,31 +84,7 @@
             background: white;
         `;
 
-        // Create close button
-        const closeButton = document.createElement("button");
-        closeButton.innerHTML = "×";
-        closeButton.style.cssText = `
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 48px;
-            height: 48px;
-            background: #9146ff;
-            color: white;
-            border: none;
-            border-radius: 0;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        `;
-
-        closeButton.addEventListener("click", hideOverlay);
-
         overlay.appendChild(iframe);
-        overlay.appendChild(closeButton);
         document.body.appendChild(overlay);
     }
 
@@ -249,6 +225,13 @@
         if ((e.ctrlKey || e.metaKey) && e.key === "e") {
             e.preventDefault();
             toggleOverlay();
+        }
+    });
+
+    // Listen for close messages from iframe
+    window.addEventListener("message", (event) => {
+        if (event.data === "closeEmoteOverlay") {
+            hideOverlay();
         }
     });
 
