@@ -92,6 +92,9 @@
     .chat-message {
         padding: 0.75rem;
         flex-shrink: 0;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .message-header {
@@ -121,6 +124,8 @@
         color: var(--text-primary);
         line-height: 1.4;
         word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
     }
 
     .chat-emote {

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
+    import { browser } from "$app/environment";
     import { twitchApiKey, getFavoriteCopypastasStore } from "$lib/stores";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import type { ChatMessage } from "$lib/twitch-api";
@@ -28,6 +29,9 @@
     let isAtBottom = $state(true);
 
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
+
+    // Detect if running in iframe
+    let isInIframe = $derived(browser && window.self !== window.top);
 
     onMount(() => {
         initializeChat();
@@ -111,7 +115,7 @@
     });
 </script>
 
-<div class="chat-container">
+<div class="chat-container" class:iframe={isInIframe}>
     <div class="chat-header">
         <h3>💬 Live Chat</h3>
     </div>
@@ -170,6 +174,8 @@
         display: flex;
         flex-direction: column;
         height: 300px;
+        overflow: hidden;
+        width: 100%;
     }
 
     .chat-header {
@@ -236,19 +242,30 @@
     .chat-messages {
         flex: 1;
         overflow-y: auto;
+        overflow-x: hidden;
         padding: 0.5rem;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* Desktop layout - sidebar */
     @media (min-width: 1024px) {
-        .chat-container {
+        .chat-container:not(.iframe) {
             width: 400px;
             height: auto;
             border-top: none;
             border-left: 1px solid var(--border-color);
+        }
+
+        /* In iframe, keep mobile layout even on desktop */
+        .chat-container.iframe {
+            width: 100%;
+            height: 250px;
+            border-top: 1px solid var(--border-color);
+            border-left: none;
         }
     }
 

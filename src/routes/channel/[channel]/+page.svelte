@@ -2,6 +2,7 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
+    import { browser } from "$app/environment";
     import { loadAllEmotes, getEmoteOrPlaceholder, type Emote } from "$lib/emote-api";
     import { twitchApiKey, getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
     import { sendChatMessage, getUser } from "$lib/twitch-api";
@@ -20,6 +21,9 @@
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
+
+    // Detect if running in iframe
+    let isInIframe = $derived(browser && window.self !== window.top);
 
     onMount(async () => {
         fetchStatus.run(async () => {
@@ -116,7 +120,7 @@
 </svelte:head>
 
 <FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load channel data">
-    <div class="main-container">
+    <div class="main-container" class:iframe={isInIframe}>
         <div class="favorites-content">
             <div class="page-padding">
                 <section class="emotes-section">
@@ -159,6 +163,13 @@
         height: calc(100vh - var(--nav-height, 1cm));
     }
 
+    .main-container.iframe {
+        height: calc(100vh - 48px);
+        flex-direction: column;
+        overflow: hidden;
+        width: 100%;
+    }
+
     .favorites-content {
         flex: 1;
         overflow-y: auto;
@@ -184,13 +195,18 @@
 
     /* Desktop layout - sidebar */
     @media (min-width: 1024px) {
-        .main-container {
+        .main-container:not(.iframe) {
             flex-direction: row;
         }
 
-        .favorites-content {
+        .main-container:not(.iframe) .favorites-content {
             flex: 1;
             border-right: 1px solid var(--border-color);
+        }
+
+        /* In iframe, keep vertical layout even on desktop for better fit */
+        .main-container.iframe {
+            flex-direction: column;
         }
     }
 

@@ -22,17 +22,23 @@
     {/if}
 
     {#if channel}
-        <a href="{base}/channel/{channel}" class:active={routeId === "/channel/[channel]"}
-            >{channel}</a
+        <a
+            href="{base}/channel/{channel}"
+            class:active={routeId === "/channel/[channel]"}
+            title={isInIframe ? `Channel: ${channel}` : undefined}>{isInIframe ? "🎮" : channel}</a
         >
-        <a href="{base}/channel/{channel}/add" class:active={routeId === "/channel/[channel]/add"}
-            >➕</a
+        <a
+            href="{base}/channel/{channel}/add"
+            class:active={routeId === "/channel/[channel]/add"}
+            title="Add emotes">➕</a
         >
-        <a href="{base}/channel/{channel}/edit" class:active={routeId === "/channel/[channel]/edit"}
-            >✏️</a
+        <a
+            href="{base}/channel/{channel}/edit"
+            class:active={routeId === "/channel/[channel]/edit"}
+            title="Edit favorites">✏️</a
         >
     {:else}
-        <a href="{base}/setup" class:active={routeId === "/setup"}>⚙️</a>
+        <a href="{base}/setup" class:active={routeId === "/setup"} title="Setup">⚙️</a>
     {/if}
 </nav>
 
@@ -54,7 +60,9 @@
 
     nav.iframe {
         height: 48px;
-        padding-left: 48px;
+        padding-left: 52px;
+        overflow: hidden;
+        box-sizing: border-box;
     }
 
     nav a {
@@ -68,6 +76,14 @@
         align-items: center;
         white-space: nowrap;
         transition: background-color 0.1s ease;
+    }
+
+    nav.iframe a {
+        padding: 0 0.3rem;
+        font-size: 0.7rem;
+        min-width: auto;
+        flex-shrink: 1;
+        box-sizing: border-box;
     }
 
     nav a:hover {
