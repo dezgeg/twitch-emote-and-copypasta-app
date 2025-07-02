@@ -37,19 +37,23 @@ Technical requirements:
 
 ### Channel Navigation
 
-All channel pages (`/channel/<channel>`, `/channel/<channel>/add`, `/channel/<channel>/edit`, `/channel/<channel>/chat`) share the same navigation bar with links to:
+All channel pages (`/channel/<channel>`, `/channel/<channel>/add`, `/channel/<channel>/edit`) share the same navigation bar with links to:
 
 - [x] Channel list (`/`)
 - [x] Current channel favorites (`/channel/<channel>`)
 - [x] Add emotes (`/channel/<channel>/add`)
 - [x] Edit favorites (`/channel/<channel>/edit`)
-- [ ] Chat history (`/channel/<channel>/chat`)
 
 ### Favourite emotes & copypastas (`/channel/<channel>`)
 
 - [x] Shows the user's favourited emotes in a grid.
 - [x] Clicking an emote sends it to the chat via Twitch API.
 - [x] Shows error notifications if chat message sending fails.
+- [x] Integrated live chat panel showing recent chat messages.
+- [x] Clicking a chat message adds/removes it from favourite copypastas.
+- [x] Displays emotes in chat messages graphically instead of as text.
+- [x] Real-time chat updates via WebSocket connection.
+- [x] Auto-scrolling chat that respects user scroll position.
 - [ ] Shows the user's favourited copypastas.
 - [ ] Clicking a copypasta sends it to the chat via Twitch API.
 
@@ -71,14 +75,6 @@ All channel pages (`/channel/<channel>`, `/channel/<channel>/add`, `/channel/<ch
 - [x] List is searchable by name.
 - [x] Shows emote count and search results.
 - [x] Visual indicators for already favorited emotes.
-
-### Chat history (`/channel/<channel>/chat`)
-
-- [ ] Shows recent chat messages from the channel.
-- [ ] Clicking a message adds/removes it from favourite copypastas.
-- [ ] Displays emotes in messages graphically instead of as text.
-- [ ] Real-time chat updates (optional enhancement).
-- [ ] Visual indicators for messages already saved as favourite copypastas.
 
 ## Additional Technical Features
 
