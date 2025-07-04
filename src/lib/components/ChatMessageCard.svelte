@@ -46,10 +46,6 @@
         });
     }
 
-    function formatTimestamp(timestamp: string): string {
-        return new Date(timestamp).toLocaleTimeString();
-    }
-
     function handleClick() {
         if (onClick) {
             onClick(message);
@@ -65,18 +61,11 @@
     class:card--clickable={!!onClick}
     onclick={onClick ? handleClick : undefined}
 >
-    <div class="message-header">
-        {#if user_name}
-            <span class="username" style="color: {color || '#9146ff'}">
-                {user_name}
-            </span>
-        {/if}
-        <div class="message-actions">
-            {#if timestamp}
-                <span class="timestamp">{formatTimestamp(timestamp)}</span>
-            {/if}
+    {#if user_name}
+        <div class="username" style="color: {color || '#9146ff'}">
+            {user_name}
         </div>
-    </div>
+    {/if}
     <div class="message-content">
         {#each parseMessageWithEmotes(message) as part}
             {#if typeof part === "string"}
@@ -90,39 +79,23 @@
 
 <style>
     .chat-message {
-        padding: 0.75rem;
+        padding: 0.5rem;
         flex-shrink: 0;
         width: 100%;
         box-sizing: border-box;
         overflow: hidden;
     }
 
-    .message-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .message-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
     .username {
         font-weight: bold;
-        font-size: 0.9rem;
-    }
-
-    .timestamp {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
     }
 
     .message-content {
         color: var(--text-primary);
-        line-height: 1.4;
+        line-height: 1.3;
+        font-size: 0.85rem;
         word-wrap: break-word;
         overflow-wrap: break-word;
         max-width: 100%;
@@ -139,12 +112,6 @@
     @media (max-width: 600px) {
         .chat-message {
             padding: 0.5rem;
-        }
-
-        .message-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.25rem;
         }
     }
 </style>

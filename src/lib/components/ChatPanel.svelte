@@ -116,10 +116,6 @@
 </script>
 
 <div class="chat-container" class:iframe={isInIframe}>
-    <div class="chat-header">
-        <h3>💬 Live Chat</h3>
-    </div>
-
     {#if chatLoading}
         <div class="chat-loading">
             <Spinner />
@@ -176,20 +172,6 @@
         height: 300px;
         overflow: hidden;
         width: 100%;
-    }
-
-    .chat-header {
-        padding: 0.5rem 1rem;
-        background: var(--bg-primary);
-        border-bottom: 1px solid var(--border-color);
-        flex-shrink: 0;
-    }
-
-    .chat-header h3 {
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-primary);
     }
 
     .chat-loading {
