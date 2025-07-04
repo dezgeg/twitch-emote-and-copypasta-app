@@ -4,7 +4,11 @@
     import { onMount } from "svelte";
     import { browser } from "$app/environment";
     import { loadAllEmotes, getEmoteOrPlaceholder, type Emote } from "$lib/emote-api";
-    import { twitchApiKey, getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
+    import {
+        currentAccessToken,
+        getFavoriteEmotesStore,
+        getFavoriteCopypastasStore,
+    } from "$lib/stores";
     import { sendChatMessage, getUser } from "$lib/twitch-api";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
@@ -35,7 +39,7 @@
     async function loadEmotes() {
         try {
             // Fetch all available emotes
-            allEmotes = await loadAllEmotes($twitchApiKey, channel);
+            allEmotes = await loadAllEmotes($currentAccessToken, channel);
         } catch (err) {
             console.error("Error fetching emote URLs:", err);
             // If API fails, allEmotes remains empty and getEmoteOrPlaceholder will handle it
@@ -43,15 +47,15 @@
     }
 
     async function loadUserIds() {
-        if (!$twitchApiKey) {
+        if (!$currentAccessToken) {
             goto(`${base}/setup`);
             return;
         }
 
         // Get current user and broadcaster info once and cache them
         const [currentUser, broadcaster] = await Promise.all([
-            getUser($twitchApiKey),
-            getUser($twitchApiKey, channel),
+            getUser($currentAccessToken),
+            getUser($currentAccessToken, channel),
         ]);
 
         senderId = currentUser.id;
@@ -60,8 +64,8 @@
 
     async function sendToChat(item: { name: string; url: string } | string) {
         try {
-            if (!$twitchApiKey) {
-                throw new Error("No API key configured");
+            if (!$currentAccessToken) {
+                throw new Error("No access token configured");
             }
 
             if (!broadcasterId || !senderId) {
@@ -76,7 +80,7 @@
                 text += " \u{E0000}";
             }
 
-            await sendChatMessage($twitchApiKey, broadcasterId, senderId, text);
+            await sendChatMessage($currentAccessToken, broadcasterId, senderId, text);
             lastSentMessage = text;
         } catch (err) {
             console.error("Failed to send to chat:", err);

@@ -7,7 +7,7 @@
         type Stream,
         type FollowedChannel,
     } from "$lib/twitch-api";
-    import { twitchApiKey } from "$lib/stores";
+    import { currentAccessToken } from "$lib/stores";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import { base } from "$app/paths";
 
@@ -16,7 +16,7 @@
     let offlineChannels: FollowedChannel[] = [];
 
     onMount(async () => {
-        if (!$twitchApiKey) {
+        if (!$currentAccessToken) {
             goto(`${base}/setup`);
             return;
         }
@@ -24,8 +24,8 @@
         fetchStatus.run(async () => {
             // Load both live streams and all followed channels
             const [liveStreams, allChannels] = await Promise.all([
-                getFollowedStreams($twitchApiKey),
-                getFollowedChannels($twitchApiKey),
+                getFollowedStreams($currentAccessToken),
+                getFollowedChannels($currentAccessToken),
             ]);
 
             streams = liveStreams;

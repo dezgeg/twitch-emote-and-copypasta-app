@@ -31,9 +31,11 @@ Technical requirements:
 
 ### Set-up (`/setup`)
 
-- [x] Allows the user to set their Twitch API key.
-- [x] Provides detailed setup instructions with links to Twitch Developer Console.
-- [ ] Should support Twitch OAuth authentication (future enhancement).
+- [x] Provides secure Twitch OAuth authentication using OIDC implicit grant flow.
+- [x] Shows user profile information and authentication status.
+- [x] Provides fallback manual token input for advanced users.
+- [x] Detailed setup instructions with links to Twitch Developer Console.
+- [x] Automatic token validation and error handling.
 
 ### Channel Navigation
 
@@ -77,6 +79,14 @@ All channel pages (`/channel/<channel>`, `/channel/<channel>/add`, `/channel/<ch
 - [x] Visual indicators for already favorited emotes.
 
 ## Additional Technical Features
+
+### Authentication & Security
+
+- [x] OAuth 2.0 OIDC implicit grant flow for secure authentication.
+- [x] Automatic token validation and expiration handling.
+- [x] CSRF protection with state parameter verification.
+- [x] Secure token storage in browser localStorage.
+- [x] Backward compatibility with manual API tokens.
 
 ### Performance Optimizations
 

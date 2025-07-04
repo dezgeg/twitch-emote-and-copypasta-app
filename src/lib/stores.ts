@@ -1,9 +1,26 @@
 import { persisted } from "svelte-persisted-store";
-import { writable } from "svelte/store";
+import { writable, derived } from "svelte/store";
 import type { Emote } from "./emote-api";
+import type { OAuthToken } from "./oauth";
 
-// Persisted store for Twitch API key
+// Persisted store for OAuth token
+export const oauthToken = persisted<OAuthToken | null>("oauthToken", null);
+
+// Persisted store for Twitch API key (legacy - kept for backward compatibility)
 export const twitchApiKey = persisted("twitchApiKey", "");
+
+// Derived store that returns the current access token (from OAuth or legacy API key)
+export const currentAccessToken = derived(
+    [oauthToken, twitchApiKey],
+    ([$oauthToken, $twitchApiKey]) => {
+        // Prefer OAuth token if available and not expired
+        if ($oauthToken && Date.now() < $oauthToken.expires_at) {
+            return $oauthToken.access_token;
+        }
+        // Fall back to legacy API key
+        return $twitchApiKey;
+    },
+);
 
 // Function to get a persisted store for favorites per channel
 export function getFavoriteEmotesStore(channel: string) {

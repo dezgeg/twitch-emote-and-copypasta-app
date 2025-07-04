@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import { browser } from "$app/environment";
-    import { twitchApiKey, getFavoriteCopypastasStore } from "$lib/stores";
+    import { currentAccessToken, getFavoriteCopypastasStore } from "$lib/stores";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import type { ChatMessage } from "$lib/twitch-api";
     import type { Emote } from "$lib/emote-api";
@@ -45,15 +45,15 @@
 
     // Chat functions
     async function initializeChat() {
-        if (!$twitchApiKey) {
-            chatError = "No API key configured";
+        if (!$currentAccessToken) {
+            chatError = "No access token configured";
             chatLoading = false;
             return;
         }
 
         try {
-            // Create WebSocket connection with API key and channel
-            chatWS = new ChatWebSocket($twitchApiKey, channel);
+            // Create WebSocket connection with access token and channel
+            chatWS = new ChatWebSocket($currentAccessToken, channel);
 
             // Set up message callback
             chatWS.setOnMessage((message) => {

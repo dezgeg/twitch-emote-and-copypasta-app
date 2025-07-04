@@ -3,7 +3,11 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { loadAllEmotes, getEmoteOrPlaceholder, type Emote } from "$lib/emote-api";
-    import { twitchApiKey, getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
+    import {
+        currentAccessToken,
+        getFavoriteEmotesStore,
+        getFavoriteCopypastasStore,
+    } from "$lib/stores";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
@@ -22,12 +26,12 @@
 
     onMount(async () => {
         fetchStatus.run(async () => {
-            if (!$twitchApiKey) {
+            if (!$currentAccessToken) {
                 goto(`${base}/setup`);
                 return;
             }
 
-            allEmotes = await loadAllEmotes($twitchApiKey, channel);
+            allEmotes = await loadAllEmotes($currentAccessToken, channel);
         });
     });
 </script>
