@@ -320,14 +320,11 @@
                     <div
                         class="chat-message"
                         class:favorited={isCopypastaFavorited(chatMessage.message)}
-                        class:clickable={true}
                         onclick={() => toggleCopypasta(chatMessage)}
                     >
-                        {#if chatMessage.user_name}
-                            <span class="username" style="color: {chatMessage.color || '#9146ff'}"
-                                >{chatMessage.user_name}:</span
-                            >
-                        {/if}
+                        <span class="username" style="color: {chatMessage.color || '#9146ff'}"
+                            >{chatMessage.user_name}:</span
+                        >
                         <span class="message-content">
                             {#each parseMessageWithEmotes(chatMessage.message, emotes) as part}
                                 {#if typeof part === "string"}
@@ -565,10 +562,6 @@
 
     .chat-message.favorited:hover {
         background: rgba(145, 70, 255, 0.15);
-    }
-
-    .chat-message.clickable {
-        cursor: pointer;
     }
 
     .username {
