@@ -37,6 +37,11 @@
     });
 
     async function loadEmotes() {
+        if (!$currentAccessToken) {
+            goto(`${base}/setup`);
+            return;
+        }
+
         try {
             // Fetch all available emotes
             allEmotes = await loadAllEmotes($currentAccessToken, channel);

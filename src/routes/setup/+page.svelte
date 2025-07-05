@@ -1,12 +1,11 @@
 <script lang="ts">
-    import { twitchApiKey, oauthToken, currentAccessToken } from "$lib/stores";
+    import { oauthToken, currentAccessToken } from "$lib/stores";
     import { initiateOAuth, isTokenExpired, validateToken } from "$lib/oauth";
     import { onMount } from "svelte";
 
     let deferredPrompt: any = null;
     let showInstallButton = $state(false);
     let isInstalled = $state(false);
-    let showLegacyInput = $state(false);
     let userInfo = $state<any>(null);
     let authStatus = $state<"loading" | "authenticated" | "unauthenticated">("loading");
 
@@ -56,9 +55,6 @@
             if ($oauthToken) {
                 oauthToken.set(null);
             }
-            if ($twitchApiKey) {
-                twitchApiKey.set("");
-            }
             authStatus = "unauthenticated";
         }
     }
@@ -69,7 +65,6 @@
 
     function logout() {
         oauthToken.set(null);
-        twitchApiKey.set("");
         userInfo = null;
         authStatus = "unauthenticated";
     }
@@ -138,37 +133,15 @@
             </button>
 
             <div class="oauth-benefits">
-                <h4>Benefits of signing in:</h4>
+                <h4>Why use OAuth?</h4>
                 <ul>
                     <li>✅ Secure authentication</li>
                     <li>✅ Access to your followed channels</li>
                     <li>✅ Send messages to chat</li>
                     <li>✅ Read live chat messages</li>
                     <li>✅ No manual token management</li>
+                    <li>✅ Automatic token refresh</li>
                 </ul>
-            </div>
-
-            <div class="legacy-option">
-                <button class="text-button" onclick={() => (showLegacyInput = !showLegacyInput)}>
-                    {showLegacyInput ? "Hide" : "Show"} manual token input (advanced)
-                </button>
-
-                {#if showLegacyInput}
-                    <div class="legacy-input">
-                        <label for="apiKey">Manual API Token:</label>
-                        <input
-                            id="apiKey"
-                            type="text"
-                            bind:value={$twitchApiKey}
-                            placeholder="Enter your Twitch access token"
-                            autocomplete="off"
-                            class="api-key-input"
-                        />
-                        <p class="help-text">
-                            Only use this if you can't use OAuth authentication.
-                        </p>
-                    </div>
-                {/if}
             </div>
         </div>
     {/if}
@@ -236,28 +209,6 @@
                 <li><code>chat:edit</code> - Send messages to chat</li>
             </ul>
         </div>
-
-        <h3>Manual Token Setup (Advanced):</h3>
-        <p>If you prefer to use a manually generated token:</p>
-        <ol>
-            <li>
-                Go to <a href="https://dev.twitch.tv/console" target="_blank"
-                    >Twitch Developer Console</a
-                >
-            </li>
-            <li>
-                Register your application with redirect URI: <code
-                    >{window?.location?.origin}/oauth</code
-                >
-            </li>
-            <li>
-                Generate an access token using OAuth flow or <a
-                    href="https://twitchtokengenerator.com/"
-                    target="_blank">Twitch Token Generator</a
-                >
-            </li>
-            <li>Use the "Show manual token input" option above</li>
-        </ol>
     </div>
 {/if}
 
@@ -397,63 +348,6 @@
     .oauth-benefits li {
         margin: 0.5rem 0;
         color: var(--text-secondary);
-    }
-
-    .legacy-option {
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--border-color);
-    }
-
-    .text-button {
-        background: none;
-        border: none;
-        color: var(--accent-primary);
-        cursor: pointer;
-        text-decoration: underline;
-        font-size: 0.9rem;
-    }
-
-    .text-button:hover {
-        color: var(--accent-hover);
-    }
-
-    .legacy-input {
-        margin-top: 1rem;
-        text-align: left;
-    }
-
-    .setup-form {
-        margin: 2rem 0;
-    }
-
-    label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: bold;
-    }
-
-    input {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        font-size: 1rem;
-        margin-bottom: 1rem;
-        box-sizing: border-box;
-        background-color: var(--bg-secondary);
-        color: var(--text-primary);
-    }
-
-    .api-key-input {
-        -webkit-text-security: circle;
-    }
-
-    .help-text {
-        margin: 0.5rem 0 0 0;
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        font-style: italic;
     }
 
     .help {
