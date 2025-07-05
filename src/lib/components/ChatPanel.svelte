@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from "svelte";
     import { browser } from "$app/environment";
     import { currentAccessToken, getFavoriteCopypastasStore } from "$lib/stores";
+    import { persisted } from "svelte-persisted-store";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import type { ChatMessage } from "$lib/twitch-api";
     import type { Emote } from "$lib/emote-api";
@@ -32,6 +33,12 @@
 
     // Detect if running in iframe
     let isInIframe = $derived(browser && window.self !== window.top);
+
+    // Resizable chat height for mobile
+    let chatHeightStore = persisted("chat-height", 300);
+    let isResizing = $state(false);
+    let startY = $state(0);
+    let startHeight = $state(0);
 
     onMount(() => {
         initializeChat();
@@ -113,9 +120,58 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     });
+
+    // Resize handlers for mobile
+    function startResize(e: TouchEvent | MouseEvent) {
+        if (!browser) return;
+
+        isResizing = true;
+        startY = "touches" in e ? e.touches[0].clientY : e.clientY;
+        startHeight = $chatHeightStore;
+
+        // Prevent default to avoid text selection or scrolling
+        e.preventDefault();
+
+        // Add global event listeners
+        const handleMove = (e: TouchEvent | MouseEvent) => {
+            if (!isResizing) return;
+
+            const currentY = "touches" in e ? e.touches[0].clientY : e.clientY;
+            const deltaY = startY - currentY; // Inverted because we want dragging up to increase height
+            const newHeight = Math.max(150, Math.min(600, startHeight + deltaY));
+
+            $chatHeightStore = newHeight; // Persist the new height
+        };
+
+        const handleEnd = () => {
+            isResizing = false;
+            document.removeEventListener("mousemove", handleMove);
+            document.removeEventListener("mouseup", handleEnd);
+            document.removeEventListener("touchmove", handleMove);
+            document.removeEventListener("touchend", handleEnd);
+        };
+
+        document.addEventListener("mousemove", handleMove);
+        document.addEventListener("mouseup", handleEnd);
+        document.addEventListener("touchmove", handleMove);
+        document.addEventListener("touchend", handleEnd);
+    }
 </script>
 
-<div class="chat-container" class:iframe={isInIframe}>
+<div class="chat-container" class:iframe={isInIframe} style="height: {$chatHeightStore}px;">
+    <!-- Resize handle for mobile -->
+    <div
+        class="resize-handle"
+        class:resizing={isResizing}
+        onmousedown={startResize}
+        ontouchstart={startResize}
+        role="slider"
+        aria-label="Resize chat height"
+        tabindex="0"
+    >
+        <div class="resize-grip"></div>
+    </div>
+
     {#if chatLoading}
         <div class="chat-loading">
             <Spinner />
@@ -169,9 +225,45 @@
         border-top: 1px solid var(--border-color);
         display: flex;
         flex-direction: column;
-        height: 300px;
+        /* height is now controlled by inline style */
         overflow: hidden;
         width: 100%;
+        position: relative;
+    }
+
+    .resize-handle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 20px;
+        cursor: ns-resize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border-color);
+        z-index: 10;
+        touch-action: none;
+        user-select: none;
+    }
+
+    .resize-handle:hover,
+    .resize-handle.resizing {
+        background: var(--accent-primary);
+    }
+
+    .resize-grip {
+        width: 30px;
+        height: 3px;
+        background: var(--border-color);
+        border-radius: 2px;
+        transition: background-color 0.2s ease;
+    }
+
+    .resize-handle:hover .resize-grip,
+    .resize-handle.resizing .resize-grip {
+        background: white;
     }
 
     .chat-loading {
@@ -179,12 +271,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-top: 20px; /* Account for resize handle */
     }
 
     .chat-error {
         padding: 1rem;
         text-align: center;
         color: var(--text-primary);
+        margin-top: 20px; /* Account for resize handle */
     }
 
     .chat-error p {
@@ -215,6 +309,7 @@
         text-align: center;
         color: var(--text-secondary);
         font-style: italic;
+        margin-top: 20px; /* Account for resize handle */
     }
 
     .no-messages p {
@@ -226,6 +321,7 @@
         overflow-y: auto;
         overflow-x: hidden;
         padding: 0.5rem;
+        padding-top: calc(0.5rem + 20px); /* Account for resize handle */
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
@@ -240,6 +336,20 @@
             height: auto;
             border-top: none;
             border-left: 1px solid var(--border-color);
+        }
+
+        .chat-container:not(.iframe) .resize-handle {
+            display: none; /* Hide resize handle on desktop sidebar */
+        }
+
+        .chat-container:not(.iframe) .chat-messages {
+            padding-top: 0.5rem; /* Reset padding for desktop */
+        }
+
+        .chat-container:not(.iframe) .chat-loading,
+        .chat-container:not(.iframe) .chat-error,
+        .chat-container:not(.iframe) .no-messages {
+            margin-top: 0; /* Reset margin for desktop */
         }
 
         /* In iframe, keep mobile layout even on desktop */
