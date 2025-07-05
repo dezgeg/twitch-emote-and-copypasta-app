@@ -59,10 +59,6 @@
         }
     }
 
-    function startOAuth() {
-        initiateOAuth();
-    }
-
     function logout() {
         oauthToken.set(null);
         userInfo = null;
@@ -127,7 +123,7 @@
             <h3>🔐 Twitch Authentication</h3>
             <p>Connect your Twitch account to use all features of this app.</p>
 
-            <button class="oauth-button" onclick={startOAuth}>
+            <button class="oauth-button" onclick={initiateOAuth}>
                 <span class="twitch-icon">🟣</span>
                 Sign in with Twitch
             </button>

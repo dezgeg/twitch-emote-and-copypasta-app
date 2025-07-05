@@ -32,9 +32,7 @@
     });
 
     function toggleFavorite(emote: { name: string; url: string; type: string }) {
-        const isFavorited = $favoriteEmotesStore.includes(emote.name);
-
-        if (isFavorited) {
+        if ($favoriteEmotesStore.includes(emote.name)) {
             $favoriteEmotesStore = $favoriteEmotesStore.filter((name) => name !== emote.name);
         } else {
             $favoriteEmotesStore = [...$favoriteEmotesStore, emote.name];
