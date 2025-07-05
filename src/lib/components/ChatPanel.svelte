@@ -4,7 +4,7 @@
     import { currentAccessToken, getFavoriteCopypastasStore } from "$lib/stores";
     import { persisted } from "svelte-persisted-store";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
-    import type { ChatMessage } from "$lib/twitch-api";
+    import { sendChatMessage, getUser, type ChatMessage } from "$lib/twitch-api";
     import type { Emote } from "$lib/emote-api";
     import ChatMessageCard from "./ChatMessageCard.svelte";
     import Spinner from "./Spinner.svelte";
@@ -29,6 +29,13 @@
         sessionId: null,
     });
     let isAtBottom = $state(true);
+
+    // Message input state
+    let messageInput = $state("");
+    let sendingMessage = $state(false);
+    let messageError = $state("");
+    let currentUser = $state<{ id: string; login: string } | null>(null);
+    let broadcasterUser = $state<{ id: string; login: string } | null>(null);
 
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
 
@@ -61,6 +68,12 @@
         }
 
         try {
+            // Get current user info
+            currentUser = await getUser($currentAccessToken);
+
+            // Get broadcaster user info
+            broadcasterUser = await getUser($currentAccessToken, channel);
+
             // Create WebSocket connection with access token and channel
             chatWS = new ChatWebSocket($currentAccessToken, channel);
 
@@ -147,6 +160,45 @@
 
         $chatHeightStore = newHeight;
     }
+
+    // Message sending functions
+    async function sendMessage() {
+        if (
+            !messageInput.trim() ||
+            sendingMessage ||
+            !$currentAccessToken ||
+            !currentUser ||
+            !broadcasterUser
+        ) {
+            return;
+        }
+
+        const message = messageInput.trim();
+        messageInput = "";
+        sendingMessage = true;
+        messageError = "";
+
+        try {
+            await sendChatMessage($currentAccessToken, broadcasterUser.id, currentUser.id, message);
+        } catch (err) {
+            console.error("Error sending message:", err);
+            messageError = err instanceof Error ? err.message : "Failed to send message";
+            messageInput = message; // Restore the message
+        } finally {
+            sendingMessage = false;
+        }
+    }
+
+    function handleKeyPress(event: KeyboardEvent) {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function clearMessageError() {
+        messageError = "";
+    }
 </script>
 
 <div class="chat-container" class:iframe={isInIframe} style="height: {$chatHeightStore}px;">
@@ -205,6 +257,46 @@
                         onClick={() => toggleCopypasta(chatMessage)}
                     />
                 {/each}
+            </div>
+        {/if}
+
+        <!-- Message input -->
+        {#if chatState.connected && currentUser && broadcasterUser}
+            <div class="message-input-container">
+                {#if messageError}
+                    <button
+                        type="button"
+                        class="message-error"
+                        onclick={clearMessageError}
+                        aria-label="Dismiss error message"
+                    >
+                        {messageError}
+                    </button>
+                {/if}
+                <div class="message-input-wrapper">
+                    <input
+                        type="text"
+                        bind:value={messageInput}
+                        onkeypress={handleKeyPress}
+                        oninput={clearMessageError}
+                        placeholder="Type a message..."
+                        disabled={sendingMessage}
+                        class="message-input"
+                        maxlength="500"
+                    />
+                    <button
+                        onclick={sendMessage}
+                        disabled={!messageInput.trim() || sendingMessage}
+                        class="send-button"
+                        aria-label="Send message"
+                    >
+                        {#if sendingMessage}
+                            <div class="send-spinner"></div>
+                        {:else}
+                            Send
+                        {/if}
+                    </button>
+                </div>
             </div>
         {/if}
     {/if}
@@ -318,6 +410,106 @@
         gap: 0.5rem;
         width: 100%;
         box-sizing: border-box;
+    }
+
+    .message-input-container {
+        border-top: 1px solid var(--border-color);
+        padding: 0.5rem;
+        background: var(--bg-primary);
+    }
+
+    .message-error {
+        background: rgba(255, 87, 87, 0.1);
+        color: #ff5757;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        border: 1px solid rgba(255, 87, 87, 0.3);
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+    }
+
+    .message-error:hover {
+        background: rgba(255, 87, 87, 0.15);
+    }
+
+    .message-input-wrapper {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+
+    .message-input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        line-height: 1.4;
+        resize: none;
+        min-height: 20px;
+        max-height: 100px;
+    }
+
+    .message-input:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 2px rgba(145, 70, 255, 0.2);
+    }
+
+    .message-input:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .send-button {
+        padding: 0.75rem 1rem;
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 500;
+        min-width: 60px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s ease;
+    }
+
+    .send-button:hover:not(:disabled) {
+        background: var(--accent-hover);
+    }
+
+    .send-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: var(--accent-primary);
+    }
+
+    .send-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     /* Desktop layout - sidebar */
