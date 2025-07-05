@@ -16,12 +16,6 @@
     }
 
     let { message, emotes = new Map(), isFavorited = false, onClick }: Props = $props();
-
-    function handleClick() {
-        if (onClick) {
-            onClick(message);
-        }
-    }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -30,7 +24,7 @@
     class="card copypasta-card"
     class:card--favorited={isFavorited}
     class:card--clickable={!!onClick}
-    onclick={onClick ? handleClick : undefined}
+    onclick={onClick ? () => onClick(message) : undefined}
 >
     <div class="message-content">
         {#each parseMessageWithEmotes(message, emotes) as part}
