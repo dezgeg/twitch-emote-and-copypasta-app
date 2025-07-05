@@ -78,6 +78,31 @@ export function getEmoteOrPlaceholder(emotesMap: Map<string, Emote>, name: strin
 }
 
 /**
+ * Parse message text and replace emote names with Emote objects
+ */
+export function parseMessageWithEmotes(
+    messageText: string,
+    emotes: Map<string, Emote>,
+): (string | Emote)[] {
+    if (!emotes.size) {
+        return [messageText];
+    }
+
+    // Normalize whitespace to single spaces
+    const normalizedText = messageText.replace(/\s+/g, " ").trim();
+
+    // Split by spaces, preserving the spaces as separate elements
+    const parts = normalizedText.split(/( )/);
+
+    return parts.map((part) => {
+        if (emotes.has(part)) {
+            return emotes.get(part)!;
+        }
+        return part;
+    });
+}
+
+/**
  * Helper function to build Twitch emote URL from template
  */
 function buildTwitchEmoteUrl(template: string, emote: any): string {
