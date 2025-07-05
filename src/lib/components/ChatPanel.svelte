@@ -14,7 +14,7 @@
         type ChatMessage as TwitchChatMessage,
     } from "$lib/twitch-api";
     import type { Emote } from "$lib/emote-api";
-    import ChatMessageInline from "./ChatMessageInline.svelte";
+    import { parseMessageWithEmotes } from "$lib/emote-api";
     import Spinner from "./Spinner.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
 
@@ -315,15 +315,34 @@
         {#if messages.length > 0}
             <div class="chat-messages" bind:this={messagesContainer} onscroll={handleScroll}>
                 {#each messages as chatMessage (chatMessage.id)}
-                    <ChatMessageInline
-                        message={chatMessage.message}
-                        timestamp={chatMessage.timestamp}
-                        user_name={chatMessage.user_name}
-                        color={chatMessage.color}
-                        {emotes}
-                        isFavorited={isCopypastaFavorited(chatMessage.message)}
-                        onClick={() => toggleCopypasta(chatMessage)}
-                    />
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_no_static_element_interactions -->
+                    <div
+                        class="chat-message"
+                        class:favorited={isCopypastaFavorited(chatMessage.message)}
+                        class:clickable={true}
+                        onclick={() => toggleCopypasta(chatMessage)}
+                    >
+                        {#if chatMessage.user_name}
+                            <span class="username" style="color: {chatMessage.color || '#9146ff'}"
+                                >{chatMessage.user_name}:</span
+                            >
+                        {/if}
+                        <span class="message-content">
+                            {#each parseMessageWithEmotes(chatMessage.message, emotes) as part}
+                                {#if typeof part === "string"}
+                                    {part}
+                                {:else}
+                                    <img
+                                        src={part.url}
+                                        alt={part.name}
+                                        class="chat-emote"
+                                        title={part.name}
+                                    />
+                                {/if}
+                            {/each}
+                        </span>
+                    </div>
                 {/each}
             </div>
         {/if}
@@ -518,6 +537,60 @@
         scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
     }
 
+    /* Inline chat message styling */
+    .chat-message {
+        padding: 0.25rem 0.5rem;
+        flex-shrink: 0;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+        line-height: 1.4;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background-color 0.1s ease;
+        border-radius: 0;
+        border: none;
+        background: transparent;
+    }
+
+    .chat-message:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .chat-message.favorited {
+        background: rgba(145, 70, 255, 0.1);
+        border-left: 3px solid var(--accent-primary);
+        padding-left: calc(0.5rem - 3px);
+    }
+
+    .chat-message.favorited:hover {
+        background: rgba(145, 70, 255, 0.15);
+    }
+
+    .chat-message.clickable {
+        cursor: pointer;
+    }
+
+    .username {
+        font-weight: bold;
+        font-size: 0.875rem;
+        margin-right: 0.25rem;
+    }
+
+    .message-content {
+        color: var(--text-primary);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .chat-emote {
+        height: 1.2rem;
+        width: auto;
+        vertical-align: middle;
+        margin: 0 0.1rem;
+        border-radius: 2px;
+    }
+
     .message-input-container {
         border-top: 1px solid var(--border-color);
         padding: 0.5rem;
@@ -679,6 +752,19 @@
     @media (max-width: 600px) {
         .chat-container {
             height: 250px;
+        }
+
+        .chat-message {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .username {
+            font-size: 0.8rem;
+        }
+
+        .chat-emote {
+            height: 1rem;
         }
     }
 </style>
