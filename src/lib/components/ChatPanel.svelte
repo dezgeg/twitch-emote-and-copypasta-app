@@ -1,7 +1,11 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import { browser } from "$app/environment";
-    import { currentAccessToken, getFavoriteCopypastasStore } from "$lib/stores";
+    import {
+        currentAccessToken,
+        getFavoriteCopypastasStore,
+        getFavoriteEmotesStore,
+    } from "$lib/stores";
     import { persisted } from "svelte-persisted-store";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import { sendChatMessage, getUser, type ChatMessage } from "$lib/twitch-api";
@@ -39,6 +43,7 @@
     let lastSentMessage = $state<string>("");
 
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
+    let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
 
     // Detect if running in iframe
     let isInIframe = $derived(browser && window.self !== window.top);
@@ -102,21 +107,46 @@
     }
 
     function toggleCopypasta(message: ChatMessage) {
-        const existingIndex = $favoriteCopypastasStore.findIndex((cp) => cp === message.message);
+        if (isSingleEmote(message.message)) {
+            // Handle as emote toggle
+            const emoteName = message.message.trim();
+            const existingIndex = $favoriteEmotesStore.findIndex((emote) => emote === emoteName);
 
-        if (existingIndex >= 0) {
-            // Remove from favorites
-            favoriteCopypastasStore.update((copypastas) =>
-                copypastas.filter((_, index) => index !== existingIndex),
-            );
+            if (existingIndex >= 0) {
+                // Remove from favorite emotes
+                favoriteEmotesStore.update((emotes) =>
+                    emotes.filter((_, index) => index !== existingIndex),
+                );
+            } else {
+                // Add to favorite emotes
+                favoriteEmotesStore.update((emotes) => [...emotes, emoteName]);
+            }
         } else {
-            // Add to favorites
-            favoriteCopypastasStore.update((copypastas) => [...copypastas, message.message]);
+            // Handle as copypasta toggle
+            const existingIndex = $favoriteCopypastasStore.findIndex(
+                (cp) => cp === message.message,
+            );
+
+            if (existingIndex >= 0) {
+                // Remove from favorites
+                favoriteCopypastasStore.update((copypastas) =>
+                    copypastas.filter((_, index) => index !== existingIndex),
+                );
+            } else {
+                // Add to favorites
+                favoriteCopypastasStore.update((copypastas) => [...copypastas, message.message]);
+            }
         }
     }
 
     function isCopypastaFavorited(messageText: string): boolean {
-        return $favoriteCopypastasStore.includes(messageText);
+        if (isSingleEmote(messageText)) {
+            // Check if emote is favorited
+            return $favoriteEmotesStore.includes(messageText.trim());
+        } else {
+            // Check if copypasta is favorited
+            return $favoriteCopypastasStore.includes(messageText);
+        }
     }
 
     function checkIfAtBottom() {
@@ -204,16 +234,38 @@
         messageError = "";
     }
 
+    function isSingleEmote(messageText: string): boolean {
+        const trimmed = messageText.trim();
+
+        // Check if the message contains only one word and that word is an available emote
+        const words = trimmed.split(/\s+/);
+        if (words.length === 1) {
+            return emotes.has(words[0]);
+        }
+
+        return false;
+    }
+
     function saveCopypasta() {
         const messageToSave = messageInput.trim() || lastSentMessage.trim();
 
         if (!messageToSave) return;
 
-        const existingIndex = $favoriteCopypastasStore.findIndex((cp) => cp === messageToSave);
+        if (isSingleEmote(messageToSave)) {
+            // Save as favorite emote instead
+            const emoteName = messageToSave.trim();
+            const existingIndex = $favoriteEmotesStore.findIndex((emote) => emote === emoteName);
 
-        if (existingIndex === -1) {
-            // Add to favorites if not already there
-            favoriteCopypastasStore.update((copypastas) => [...copypastas, messageToSave]);
+            if (existingIndex === -1) {
+                favoriteEmotesStore.update((emotes) => [...emotes, emoteName]);
+            }
+        } else {
+            // Save as copypasta
+            const existingIndex = $favoriteCopypastasStore.findIndex((cp) => cp === messageToSave);
+
+            if (existingIndex === -1) {
+                favoriteCopypastasStore.update((copypastas) => [...copypastas, messageToSave]);
+            }
         }
 
         // Clear message input if we saved from text box
