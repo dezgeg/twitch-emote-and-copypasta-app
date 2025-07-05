@@ -68,53 +68,41 @@
 <FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load streams and channels">
     <div class="page-padding">
         <!-- Live Streams -->
-        {#if streams.length > 0}
-            <div class="streams-grid">
-                {#each streams as stream (stream.id)}
-                    <a class="stream-card live" href="{base}/channel/{stream.user_login}">
-                        <div class="stream-info">
-                            <div class="stream-header">
-                                <div class="channel-name">{stream.user_name}</div>
-                                <div class="stream-stats">
-                                    <span class="viewer-count"
-                                        >👥 {formatViewerCount(stream.viewer_count)}</span
-                                    >
-                                    <span class="duration"
-                                        >⏱️ {getTimeSinceStart(stream.started_at)}</span
-                                    >
-                                </div>
-                            </div>
-                            <div class="stream-title">{stream.title}</div>
-                            <div class="stream-meta">
-                                {#if stream.game_name}
-                                    <div class="game-name">{stream.game_name}</div>
-                                {/if}
+        <div class="streams-grid">
+            {#each streams as stream (stream.id)}
+                <a class="stream-card live" href="{base}/channel/{stream.user_login}">
+                    <div class="stream-info">
+                        <div class="stream-header">
+                            <div class="channel-name">{stream.user_name}</div>
+                            <div class="stream-stats">
+                                <span class="viewer-count"
+                                    >👥 {formatViewerCount(stream.viewer_count)}</span
+                                >
+                                <span class="duration"
+                                    >⏱️ {getTimeSinceStart(stream.started_at)}</span
+                                >
                             </div>
                         </div>
-                    </a>
-                {/each}
-            </div>
-        {/if}
+                        <div class="stream-title">{stream.title}</div>
+                        <div class="stream-meta">
+                            {#if stream.game_name}
+                                <div class="game-name">{stream.game_name}</div>
+                            {/if}
+                        </div>
+                    </div>
+                </a>
+            {/each}
+        </div>
 
         <!-- Offline Channels -->
-        {#if offlineChannels.length > 0}
-            <div class="channels-grid">
-                {#each offlineChannels as channel (channel.broadcaster_id)}
-                    <a
-                        class="channel-card offline"
-                        href="{base}/channel/{channel.broadcaster_login}"
-                    >
-                        <div class="channel-name">{channel.broadcaster_name}</div>
-                        <div class="offline-status">Offline</div>
-                    </a>
-                {/each}
-            </div>
-        {/if}
-
-        <!-- No Content Message -->
-        {#if streams.length === 0 && offlineChannels.length === 0}
-            <p class="no-content">No followed channels found.</p>
-        {/if}
+        <div class="channels-grid">
+            {#each offlineChannels as channel (channel.broadcaster_id)}
+                <a class="channel-card offline" href="{base}/channel/{channel.broadcaster_login}">
+                    <div class="channel-name">{channel.broadcaster_name}</div>
+                    <div class="offline-status">Offline</div>
+                </a>
+            {/each}
+        </div>
     </div>
 </FetchStatus>
 
@@ -222,13 +210,6 @@
     .offline-status {
         color: var(--text-secondary);
         font-size: 0.875rem;
-    }
-
-    .no-content {
-        text-align: center;
-        color: var(--text-secondary);
-        font-style: italic;
-        margin: 3rem 0;
     }
 
     @media (max-width: 600px) {
