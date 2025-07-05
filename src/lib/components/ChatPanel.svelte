@@ -308,17 +308,7 @@
             </div>
         {/if}
 
-        {#if messages.length === 0}
-            <div class="no-messages">
-                <p>
-                    {#if chatState.connected}
-                        Waiting for chat messages...
-                    {:else}
-                        Connecting to chat...
-                    {/if}
-                </p>
-            </div>
-        {:else}
+        {#if messages.length > 0}
             <div class="chat-messages" bind:this={messagesContainer} onscroll={handleScroll}>
                 {#each messages as chatMessage (chatMessage.id)}
                     <ChatMessageCard
