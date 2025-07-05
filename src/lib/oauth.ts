@@ -1,10 +1,5 @@
 import { browser } from "$app/environment";
-import {
-    TWITCH_CLIENT_ID,
-    TWITCH_OAUTH_REDIRECT_URI,
-    TWITCH_OAUTH_SCOPES,
-    TWITCH_OAUTH_AUTHORIZE_URL,
-} from "./config";
+import { TWITCH_CLIENT_ID, TWITCH_OAUTH_REDIRECT_URI, TWITCH_OAUTH_SCOPES } from "./config";
 
 export interface OAuthToken {
     access_token: string;
@@ -58,7 +53,7 @@ export function buildAuthorizationUrl(): string {
         force_verify: "true",
     });
 
-    return `${TWITCH_OAUTH_AUTHORIZE_URL}?${params.toString()}`;
+    return `https://id.twitch.tv/oauth2/authorize?${params.toString()}`;
 }
 
 /**

@@ -14,8 +14,6 @@ export const TWITCH_OAUTH_SCOPES = [
     "chat:edit",
 ];
 
-export const TWITCH_OAUTH_AUTHORIZE_URL = "https://id.twitch.tv/oauth2/authorize";
-
 // You can get a Client ID by:
 // 1. Go to https://dev.twitch.tv/console
 // 2. Register your application
