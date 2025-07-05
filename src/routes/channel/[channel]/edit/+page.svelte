@@ -14,7 +14,6 @@
     import DragAndDropList from "$lib/components/DragAndDropList.svelte";
     import TrashDropZone from "$lib/components/TrashDropZone.svelte";
     import { base } from "$app/paths";
-    import "drag-drop-touch";
 
     let fetchStatus: any;
     let allEmotes: Map<string, Emote> = $state(new Map());

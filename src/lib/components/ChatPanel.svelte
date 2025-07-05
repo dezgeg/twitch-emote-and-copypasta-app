@@ -8,6 +8,7 @@
     import type { Emote } from "$lib/emote-api";
     import ChatMessageCard from "./ChatMessageCard.svelte";
     import Spinner from "./Spinner.svelte";
+    import { enableDragDropTouch } from "drag-drop-touch";
 
     interface Props {
         channel: string;
@@ -40,6 +41,8 @@
     let startHeight = $state(0);
 
     onMount(() => {
+        // Enable drag-drop-touch for mobile support
+        enableDragDropTouch();
         initializeChat();
     });
 

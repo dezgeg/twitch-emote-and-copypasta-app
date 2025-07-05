@@ -1,6 +1,8 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import type { Writable } from "svelte/store";
     import type TrashDropZone from "./TrashDropZone.svelte";
+    import { enableDragDropTouch } from "drag-drop-touch";
 
     interface Props<T> {
         // The store containing the array of items to render
@@ -117,6 +119,11 @@
             dropIndicatorIndex = null;
         }
     }
+
+    onMount(() => {
+        // Enable drag-drop-touch for mobile support
+        enableDragDropTouch();
+    });
 </script>
 
 <div class={className}>

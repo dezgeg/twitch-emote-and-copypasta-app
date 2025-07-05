@@ -1,0 +1,15 @@
+diff --git a/node_modules/drag-drop-touch/dist/drag-drop-touch.esm.js b/node_modules/drag-drop-touch/dist/drag-drop-touch.esm.js
+index 553901b..1ffc1f0 100644
+--- a/node_modules/drag-drop-touch/dist/drag-drop-touch.esm.js
++++ b/node_modules/drag-drop-touch/dist/drag-drop-touch.esm.js
+@@ -484,8 +484,8 @@ var DragDropTouch = class {
+   _moveImage(e) {
+     requestAnimationFrame(() => {
+       if (this._img) {
+-        let pt = pointFrom(e, true), s = this._img.style;
+-        s.position = `absolute`;
++        let pt = pointFrom(e, false), s = this._img.style;
++        s.position = `fixed`;
+         s.pointerEvents = `none`;
+         s.zIndex = `999999`;
+         s.left = `${round(pt.x - this._imgOffset.x)}px`;
