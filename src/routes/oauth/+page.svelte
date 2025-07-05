@@ -2,7 +2,8 @@
     import { onMount } from "svelte";
     import { goto, replaceState } from "$app/navigation";
     import { base } from "$app/paths";
-    import { parseOAuthCallback, validateToken } from "$lib/oauth";
+    import { parseOAuthCallback } from "$lib/oauth";
+    import { getUser } from "$lib/twitch-api";
     import { oauthToken } from "$lib/stores";
 
     let status = $state<"loading" | "success" | "error">("loading");
@@ -23,18 +24,17 @@
                 return;
             }
 
-            // Validate the token with Twitch API
-            const validation = await validateToken(token.access_token);
+            // Validate the token by trying to get user info
+            try {
+                userInfo = await getUser(token.access_token);
 
-            if (!validation.valid) {
+                // Store the token
+                oauthToken.set(token);
+            } catch (error) {
                 status = "error";
                 errorMessage = "Invalid access token received";
                 return;
             }
-
-            // Store the token
-            oauthToken.set(token);
-            userInfo = validation.user;
             status = "success";
 
             // Clear the URL fragment using SvelteKit's navigation API

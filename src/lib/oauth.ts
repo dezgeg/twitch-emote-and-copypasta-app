@@ -123,27 +123,3 @@ export function isTokenExpiringSoon(token: OAuthToken): boolean {
     const fiveMinutes = 5 * 60 * 1000;
     return Date.now() >= token.expires_at - fiveMinutes;
 }
-
-/**
- * Validate a token with the Twitch API
- */
-export async function validateToken(accessToken: string): Promise<{ valid: boolean; user?: any }> {
-    try {
-        const response = await fetch("https://api.twitch.tv/helix/users", {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Client-Id": TWITCH_CLIENT_ID,
-            },
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            return { valid: true, user: data.data[0] };
-        } else {
-            return { valid: false };
-        }
-    } catch (error) {
-        console.error("Token validation error:", error);
-        return { valid: false };
-    }
-}

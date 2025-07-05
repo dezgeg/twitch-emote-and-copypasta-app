@@ -1,6 +1,7 @@
 <script lang="ts">
     import { oauthToken, currentAccessToken } from "$lib/stores";
-    import { initiateOAuth, isTokenExpired, validateToken } from "$lib/oauth";
+    import { initiateOAuth } from "$lib/oauth";
+    import { getUser } from "$lib/twitch-api";
     import { onMount } from "svelte";
 
     let deferredPrompt: any = null;
@@ -45,13 +46,13 @@
             return;
         }
 
-        // Validate current token
-        const validation = await validateToken(token);
-        if (validation.valid) {
-            userInfo = validation.user;
+        // Validate current token by trying to get user info
+        try {
+            userInfo = await getUser(token);
             authStatus = "authenticated";
-        } else {
+        } catch (error) {
             // Token is invalid, clear it
+            console.error("Token validation failed:", error);
             if ($oauthToken) {
                 oauthToken.set(null);
             }
