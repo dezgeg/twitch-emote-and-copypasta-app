@@ -36,6 +36,7 @@
     let messageError = $state("");
     let currentUser = $state<{ id: string; login: string } | null>(null);
     let broadcasterUser = $state<{ id: string; login: string } | null>(null);
+    let lastSentMessage = $state<string>("");
 
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
 
@@ -180,6 +181,9 @@
 
         try {
             await sendChatMessage($currentAccessToken, broadcasterUser.id, currentUser.id, message);
+
+            // Track successfully sent message for potential copypasta saving
+            lastSentMessage = message;
         } catch (err) {
             console.error("Error sending message:", err);
             messageError = err instanceof Error ? err.message : "Failed to send message";
@@ -198,6 +202,24 @@
 
     function clearMessageError() {
         messageError = "";
+    }
+
+    function saveCopypasta() {
+        const messageToSave = messageInput.trim() || lastSentMessage.trim();
+
+        if (!messageToSave) return;
+
+        const existingIndex = $favoriteCopypastasStore.findIndex((cp) => cp === messageToSave);
+
+        if (existingIndex === -1) {
+            // Add to favorites if not already there
+            favoriteCopypastasStore.update((copypastas) => [...copypastas, messageToSave]);
+        }
+
+        // Clear message input if we saved from text box
+        if (messageInput.trim()) {
+            messageInput = "";
+        }
     }
 </script>
 
@@ -273,6 +295,7 @@
                         {messageError}
                     </button>
                 {/if}
+
                 <div class="message-input-wrapper">
                     <input
                         type="text"
@@ -285,6 +308,19 @@
                         maxlength="500"
                     />
                     <button
+                        onclick={saveCopypasta}
+                        disabled={!messageInput.trim() && !lastSentMessage.trim()}
+                        class="copypasta-button"
+                        aria-label={messageInput.trim()
+                            ? "Save current text as copypasta"
+                            : "Save last sent message as copypasta"}
+                        title={messageInput.trim()
+                            ? "Save current text as copypasta"
+                            : "Save last sent message as copypasta"}
+                    >
+                        💾
+                    </button>
+                    <button
                         onclick={sendMessage}
                         disabled={!messageInput.trim() || sendingMessage}
                         class="send-button"
@@ -293,7 +329,7 @@
                         {#if sendingMessage}
                             <div class="send-spinner"></div>
                         {:else}
-                            Send
+                            📤
                         {/if}
                     </button>
                 </div>
@@ -436,6 +472,32 @@
         background: rgba(255, 87, 87, 0.15);
     }
 
+    .copypasta-button {
+        padding: 0.5rem;
+        background: rgba(145, 70, 255, 0.8);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        min-width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s ease;
+    }
+
+    .copypasta-button:hover:not(:disabled) {
+        background: var(--accent-primary);
+    }
+
+    .copypasta-button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: rgba(145, 70, 255, 0.3);
+    }
+
     .message-input-wrapper {
         display: flex;
         gap: 0.5rem;
@@ -444,7 +506,7 @@
 
     .message-input {
         flex: 1;
-        padding: 0.75rem;
+        padding: 0.5rem 0.75rem;
         border: 1px solid var(--border-color);
         border-radius: 6px;
         background: var(--bg-secondary);
@@ -452,8 +514,8 @@
         font-size: 0.875rem;
         line-height: 1.4;
         resize: none;
-        min-height: 20px;
-        max-height: 100px;
+        height: 36px;
+        box-sizing: border-box;
     }
 
     .message-input:focus {
@@ -468,16 +530,16 @@
     }
 
     .send-button {
-        padding: 0.75rem 1rem;
+        padding: 0.5rem;
         background: var(--accent-primary);
         color: white;
         border: none;
         border-radius: 6px;
         cursor: pointer;
-        font-size: 0.875rem;
+        font-size: 1rem;
         font-weight: 500;
-        min-width: 60px;
-        height: 48px;
+        min-width: 36px;
+        height: 36px;
         display: flex;
         align-items: center;
         justify-content: center;
