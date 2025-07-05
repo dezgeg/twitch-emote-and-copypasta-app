@@ -403,11 +403,11 @@
         flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: 0.5rem;
-        padding-top: calc(0.5rem + 20px); /* Account for resize handle */
+        padding: 0.25rem 0;
+        padding-top: calc(0.25rem + 20px); /* Account for resize handle */
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0;
         width: 100%;
         box-sizing: border-box;
     }
@@ -526,7 +526,7 @@
         }
 
         .chat-container:not(.iframe) .chat-messages {
-            padding-top: 0.5rem; /* Reset padding for desktop */
+            padding-top: 0.25rem; /* Reset padding for desktop */
         }
 
         .chat-container:not(.iframe) .chat-loading,
