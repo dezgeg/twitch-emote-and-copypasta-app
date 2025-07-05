@@ -121,40 +121,39 @@
         }
     });
 
-    // Resize handlers for mobile
-    function startResize(e: TouchEvent | MouseEvent) {
+    // Resize handlers for mobile using drag events
+    function handleDragStart(e: DragEvent) {
         if (!browser) return;
 
         isResizing = true;
-        startY = "touches" in e ? e.touches[0].clientY : e.clientY;
+        startY = e.clientY;
         startHeight = $chatHeightStore;
 
-        // Prevent default to avoid text selection or scrolling
+        // Create a transparent drag image
+        const dragImage = document.createElement("div");
+        dragImage.style.opacity = "0";
+        document.body.appendChild(dragImage);
+        e.dataTransfer?.setDragImage(dragImage, 0, 0);
+
+        // Clean up drag image after a short delay
+        setTimeout(() => document.body.removeChild(dragImage), 0);
+    }
+
+    function handleDrag(e: DragEvent) {
+        if (!isResizing || !browser) return;
+
+        // e.clientY can be 0 during drag, so we need to handle that
+        if (e.clientY === 0) return;
+
+        const deltaY = startY - e.clientY; // Inverted because we want dragging up to increase height
+        const newHeight = Math.max(150, Math.min(600, startHeight + deltaY));
+
+        $chatHeightStore = newHeight;
+    }
+
+    function handleDragEnd(e: DragEvent) {
+        isResizing = false;
         e.preventDefault();
-
-        // Add global event listeners
-        const handleMove = (e: TouchEvent | MouseEvent) => {
-            if (!isResizing) return;
-
-            const currentY = "touches" in e ? e.touches[0].clientY : e.clientY;
-            const deltaY = startY - currentY; // Inverted because we want dragging up to increase height
-            const newHeight = Math.max(150, Math.min(600, startHeight + deltaY));
-
-            $chatHeightStore = newHeight; // Persist the new height
-        };
-
-        const handleEnd = () => {
-            isResizing = false;
-            document.removeEventListener("mousemove", handleMove);
-            document.removeEventListener("mouseup", handleEnd);
-            document.removeEventListener("touchmove", handleMove);
-            document.removeEventListener("touchend", handleEnd);
-        };
-
-        document.addEventListener("mousemove", handleMove);
-        document.addEventListener("mouseup", handleEnd);
-        document.addEventListener("touchmove", handleMove);
-        document.addEventListener("touchend", handleEnd);
     }
 </script>
 
@@ -163,8 +162,10 @@
     <div
         class="resize-handle"
         class:resizing={isResizing}
-        onmousedown={startResize}
-        ontouchstart={startResize}
+        draggable="true"
+        ondragstart={handleDragStart}
+        ondrag={handleDrag}
+        ondragend={handleDragEnd}
         role="slider"
         aria-label="Resize chat height"
         tabindex="0"
