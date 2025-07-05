@@ -8,9 +8,13 @@
     } from "$lib/stores";
     import { persisted } from "svelte-persisted-store";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
-    import { sendChatMessage, getUser, type ChatMessage } from "$lib/twitch-api";
+    import {
+        sendChatMessage,
+        getUser,
+        type ChatMessage as TwitchChatMessage,
+    } from "$lib/twitch-api";
     import type { Emote } from "$lib/emote-api";
-    import ChatMessageCard from "./ChatMessageCard.svelte";
+    import ChatMessageInline from "./ChatMessageInline.svelte";
     import Spinner from "./Spinner.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
 
@@ -26,7 +30,7 @@
     let chatError = $state("");
     let chatWS: ChatWebSocket | null = null;
     let messagesContainer = $state<HTMLDivElement>();
-    let messages = $state<ChatMessage[]>([]);
+    let messages = $state<TwitchChatMessage[]>([]);
     let chatState = $state<ChatWebSocketState>({
         connected: false,
         error: null,
@@ -106,7 +110,7 @@
         }
     }
 
-    function toggleCopypasta(message: ChatMessage) {
+    function toggleCopypasta(message: TwitchChatMessage) {
         if (isSingleEmote(message.message)) {
             // Handle as emote toggle
             const emoteName = message.message.trim();
@@ -311,7 +315,7 @@
         {#if messages.length > 0}
             <div class="chat-messages" bind:this={messagesContainer} onscroll={handleScroll}>
                 {#each messages as chatMessage (chatMessage.id)}
-                    <ChatMessageCard
+                    <ChatMessageInline
                         message={chatMessage.message}
                         timestamp={chatMessage.timestamp}
                         user_name={chatMessage.user_name}
