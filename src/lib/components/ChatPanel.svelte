@@ -36,7 +36,6 @@
 
     // Resizable chat height for mobile
     let chatHeightStore = persisted("chat-height", 300);
-    let isResizing = $state(false);
     let startY = $state(0);
     let startHeight = $state(0);
 
@@ -123,9 +122,6 @@
 
     // Resize handlers for mobile using drag events
     function handleDragStart(e: DragEvent) {
-        if (!browser) return;
-
-        isResizing = true;
         startY = e.clientY;
         startHeight = $chatHeightStore;
 
@@ -140,8 +136,6 @@
     }
 
     function handleDrag(e: DragEvent) {
-        if (!isResizing || !browser) return;
-
         // e.clientY can be 0 during drag, so we need to handle that
         if (e.clientY === 0) return;
 
@@ -150,22 +144,15 @@
 
         $chatHeightStore = newHeight;
     }
-
-    function handleDragEnd(e: DragEvent) {
-        isResizing = false;
-        e.preventDefault();
-    }
 </script>
 
 <div class="chat-container" class:iframe={isInIframe} style="height: {$chatHeightStore}px;">
     <!-- Resize handle for mobile -->
     <div
         class="resize-handle"
-        class:resizing={isResizing}
         draggable="true"
         ondragstart={handleDragStart}
         ondrag={handleDrag}
-        ondragend={handleDragEnd}
         role="slider"
         aria-label="Resize chat height"
         tabindex="0"
@@ -250,7 +237,7 @@
     }
 
     .resize-handle:hover,
-    .resize-handle.resizing {
+    .resize-handle:active {
         background: var(--accent-primary);
     }
 
@@ -263,7 +250,7 @@
     }
 
     .resize-handle:hover .resize-grip,
-    .resize-handle.resizing .resize-grip {
+    .resize-handle:active .resize-grip {
         background: white;
     }
 
