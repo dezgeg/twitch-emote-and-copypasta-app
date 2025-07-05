@@ -10,7 +10,7 @@
     } from "$lib/stores";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
-    import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
+    import CopypastaCard from "$lib/components/CopypastaCard.svelte";
     import DragAndDropList from "$lib/components/DragAndDropList.svelte";
     import TrashDropZone from "$lib/components/TrashDropZone.svelte";
     import { base } from "$app/paths";
@@ -62,7 +62,7 @@
                 gridClass="copypasta-list"
             >
                 {#snippet renderItem(copypasta: string)}
-                    <ChatMessageCard message={copypasta} emotes={allEmotes} />
+                    <CopypastaCard message={copypasta} emotes={allEmotes} />
                 {/snippet}
                 {#snippet renderEmpty()}
                     <p>No favorite copypastas yet.</p>

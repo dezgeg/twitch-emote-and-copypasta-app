@@ -12,7 +12,7 @@
     import { sendChatMessage, getUser } from "$lib/twitch-api";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
-    import ChatMessageCard from "$lib/components/ChatMessageCard.svelte";
+    import CopypastaCard from "$lib/components/CopypastaCard.svelte";
     import ChatPanel from "$lib/components/ChatPanel.svelte";
     import { base } from "$app/paths";
 
@@ -143,7 +143,7 @@
                 <section class="copypastas-section">
                     <div class="copypastas-list">
                         {#each $favoriteCopypastasStore as copypasta (copypasta)}
-                            <ChatMessageCard
+                            <CopypastaCard
                                 message={copypasta}
                                 emotes={allEmotes}
                                 onClick={sendToChat}
