@@ -85,7 +85,7 @@
 
             // Set up message callback
             chatWS.setOnMessage((message) => {
-                messages = [...messages.slice(-49), message]; // Keep last 50 messages
+                messages = [...messages.slice(-499), message]; // Keep last 500 messages
             });
 
             // Subscribe to state changes
