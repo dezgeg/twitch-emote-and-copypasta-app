@@ -62,15 +62,15 @@
         overlay.style.cssText = `
             position: fixed;
             top: 0;
-            left: -24rem;
-            width: 24rem;
+            right: -34rem;
+            width: 34rem;
             height: 100vh;
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(10px);
             z-index: 9999;
-            border-right: 2px solid #9146ff;
-            transition: left 0.3s ease-in-out;
-            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.5);
+            border-left: 2px solid #9146ff;
+            transition: right 0.3s ease-in-out;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
         `;
 
         // Create iframe for the emote app
@@ -93,7 +93,7 @@
         if (!overlay) createOverlay();
 
         isVisible = true;
-        overlay.style.left = "0";
+        overlay.style.right = "0";
 
         // Focus the iframe to allow keyboard navigation
         setTimeout(() => {
@@ -106,7 +106,7 @@
         if (!overlay) return;
 
         isVisible = false;
-        overlay.style.left = "-24rem";
+        overlay.style.right = "-34rem";
     }
 
     // Toggle overlay
@@ -152,7 +152,7 @@
         button.style.cssText = `
             position: fixed;
             top: 0;
-            left: 0;
+            right: 0;
             width: 48px;
             height: 48px;
             background: ${isEnabled ? "#9146ff" : "#666666"};

@@ -24,9 +24,7 @@
 </script>
 
 <nav class:iframe={isInIframe}>
-    {#if isInIframe}
-        <button class="close-button" onclick={closeIframe} title="Close overlay">×</button>
-    {:else}
+    {#if !isInIframe}
         <a href="{base}/" class:active={routeId === "/"}>📺</a>
     {/if}
 
@@ -48,6 +46,10 @@
         >
     {:else}
         <a href="{base}/setup" class:active={routeId === "/setup"} title="Setup">⚙️</a>
+    {/if}
+
+    {#if isInIframe}
+        <button class="close-button" onclick={closeIframe} title="Close overlay">×</button>
     {/if}
 </nav>
 
@@ -106,9 +108,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border-right: 1px solid #5f5f5f;
+        border-left: 1px solid #5f5f5f;
         transition: background-color 0.1s ease;
         flex-shrink: 0;
+        margin-left: auto;
     }
 
     .close-button:hover {
