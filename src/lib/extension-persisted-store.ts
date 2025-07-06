@@ -132,3 +132,22 @@ export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPe
 
     return extensionStore;
 }
+
+// Clear all stored data across both localStorage and Tampermonkey storage
+export function clearAllExtensionData(): void {
+    // Clear localStorage completely
+    if (typeof localStorage !== "undefined") {
+        localStorage.clear();
+    }
+
+    // Clear Tampermonkey storage completely
+    if (typeof window.TampermonkeyStorage !== "undefined" && window.TampermonkeyStorage) {
+        const allKeys = window.TampermonkeyStorage.listValues();
+        allKeys.forEach((key) => {
+            window.TampermonkeyStorage!.deleteValue(key);
+        });
+    }
+
+    // Clear the global store map since all data is gone
+    globalStoreMap.clear();
+}

@@ -2,6 +2,7 @@
     import { oauthToken, currentAccessToken } from "$lib/stores";
     import { initiateOAuth } from "$lib/oauth";
     import { getUser } from "$lib/twitch-api";
+    import { clearAllExtensionData } from "$lib/extension-persisted-store";
     import { onMount } from "svelte";
 
     let deferredPrompt: any = null;
@@ -64,6 +65,32 @@
         oauthToken.set(null);
         userInfo = null;
         authStatus = "unauthenticated";
+    }
+
+    function clearAllSettings() {
+        if (
+            !confirm(
+                "Are you sure you want to clear all settings? This will:\n\n• Sign you out\n• Clear all favorite emotes\n• Clear all favorite copypastas\n• Clear all stored data\n• Reset the app to its initial state\n\nThis action cannot be undone.",
+            )
+        ) {
+            return;
+        }
+
+        try {
+            // Clear all extension data (localStorage and Tampermonkey storage)
+            clearAllExtensionData();
+
+            // Reset UI state
+            userInfo = null;
+            authStatus = "unauthenticated";
+
+            alert("All settings have been cleared successfully!");
+        } catch (error) {
+            console.error("Error clearing settings:", error);
+            alert(
+                "There was an error clearing some settings. Please try again or manually clear your browser data.",
+            );
+        }
     }
 
     async function installApp() {
@@ -208,6 +235,29 @@
         </div>
     </div>
 {/if}
+
+<!-- Clear Settings Section -->
+<div class="page-padding clear-settings-section">
+    <h3>🗑️ Clear All Settings</h3>
+    <p>Reset the app to its initial state by clearing all stored data.</p>
+
+    <div class="clear-warning">
+        <h4>⚠️ Warning</h4>
+        <p>This action will permanently delete:</p>
+        <ul>
+            <li>Your authentication token</li>
+            <li>All favorite emotes for all channels</li>
+            <li>All favorite copypastas for all channels</li>
+            <li>Any other app settings</li>
+        </ul>
+        <p><strong>This cannot be undone!</strong></p>
+    </div>
+
+    <button class="clear-button" onclick={clearAllSettings}>
+        <span class="clear-icon">🗑️</span>
+        Clear All Settings
+    </button>
+</div>
 
 <style>
     .auth-section {
@@ -446,5 +496,62 @@
 
     .install-instructions strong {
         color: var(--text-primary);
+    }
+
+    .clear-settings-section {
+        margin: 3rem 0;
+        border-top: 1px solid var(--border-color);
+        padding-top: 3rem;
+    }
+
+    .clear-warning {
+        background: linear-gradient(135deg, #4d1a1a 0%, #5a2d2d 100%);
+        border: 1px solid #8f4a4a;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        max-width: 500px;
+    }
+
+    .clear-warning h4 {
+        margin-top: 0;
+        color: #ff9999;
+    }
+
+    .clear-warning ul {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .clear-warning li {
+        margin: 0.3rem 0;
+        color: #ffcccc;
+    }
+
+    .clear-button {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        margin: 1rem 0;
+    }
+
+    .clear-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+        background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+    }
+
+    .clear-icon {
+        font-size: 1.2rem;
     }
 </style>
