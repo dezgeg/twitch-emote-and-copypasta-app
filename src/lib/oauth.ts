@@ -1,5 +1,7 @@
 import { browser } from "$app/environment";
+import { get } from "svelte/store";
 import { TWITCH_CLIENT_ID, TWITCH_OAUTH_REDIRECT_URI, TWITCH_OAUTH_SCOPES } from "./config";
+import { extensionPersisted } from "./extension-persisted-store";
 
 export interface OAuthToken {
     access_token: string;
@@ -18,12 +20,15 @@ function generateState(): string {
     );
 }
 
+// OAuth state store that works across iframe/popup contexts
+const oauthStateStore = extensionPersisted("oauth_state", null as string | null);
+
 /**
- * Store state in session storage for verification
+ * Store state for verification (works across iframe/popup contexts)
  */
 function storeState(state: string): void {
     if (browser) {
-        sessionStorage.setItem("oauth_state", state);
+        oauthStateStore.set(state);
     }
 }
 
@@ -32,8 +37,11 @@ function storeState(state: string): void {
  */
 function verifyState(state: string): boolean {
     if (!browser) return false;
-    const storedState = sessionStorage.getItem("oauth_state");
-    sessionStorage.removeItem("oauth_state");
+    const storedState = get(oauthStateStore);
+
+    // Clear the stored state after verification
+    oauthStateStore.set(null);
+
     return storedState === state;
 }
 
@@ -57,11 +65,43 @@ export function buildAuthorizationUrl(): string {
 }
 
 /**
- * Initiate the OAuth flow by redirecting to Twitch
+ * Initiate the OAuth flow by redirecting to Twitch or opening in new window if in iframe
  */
 export function initiateOAuth(): void {
-    if (browser) {
-        window.location.href = buildAuthorizationUrl();
+    if (!browser) return;
+
+    const authUrl = buildAuthorizationUrl();
+
+    // Check if we're in an iframe (Tampermonkey context)
+    if (window.self !== window.top) {
+        // Open OAuth in new window for iframe context
+        const popup = window.open(
+            authUrl,
+            "twitchOAuth",
+            "width=500,height=700,scrollbars=yes,resizable=yes",
+        );
+
+        if (popup) {
+            // Focus the popup window
+            popup.focus();
+
+            // Listen for the popup to complete OAuth and redirect back
+            const checkClosed = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(checkClosed);
+                    // Refresh the iframe to check for new token in URL
+                    window.location.reload();
+                }
+            }, 1000);
+        } else {
+            // Popup blocked, fallback to direct navigation (will likely fail but worth trying)
+            alert(
+                "Popup was blocked. Please allow popups for this site and try again, or use the standalone app for OAuth.",
+            );
+        }
+    } else {
+        // Normal redirect for standalone app
+        window.location.href = authUrl;
     }
 }
 

@@ -119,6 +119,6 @@ All channel pages (`/channel/<channel>`, `/channel/<channel>/add`, `/channel/<ch
 
 ## Other Commands
 
-- `npm run dev` - Start development server
+- `npm run dev` - Start development server (note: do not run this command as it's a persistent process - user already has it running)
 - `npm run build` - Build for production
 - `npm run check` - Type check with svelte-check

@@ -9,7 +9,7 @@ export const oauthToken = extensionPersisted<OAuthToken | null>("oauthToken", nu
 // Derived store that returns the current access token from OAuth
 export const currentAccessToken = derived([oauthToken], ([$oauthToken]) => {
     // Return OAuth token if available and not expired
-    if ($oauthToken && Date.now() < $oauthToken.expires_at) {
+    if ($oauthToken && ($oauthToken.expires_at === null || Date.now() < $oauthToken.expires_at)) {
         return $oauthToken.access_token;
     }
     return null;
