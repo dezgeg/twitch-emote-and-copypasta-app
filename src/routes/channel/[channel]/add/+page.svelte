@@ -1,12 +1,11 @@
 <script lang="ts">
     import { page } from "$app/stores";
-    import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { loadAllEmotes, type Emote } from "$lib/emote-api";
-    import { currentAccessToken, getFavoriteEmotesStore } from "$lib/stores";
+    import { getFavoriteEmotesStore } from "$lib/stores";
+    import { requireAuthAsync } from "$lib/auth-guard";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
-    import { base } from "$app/paths";
 
     let fetchStatus: any;
     let allEmotes: Map<string, Emote> = $state(new Map());
@@ -22,12 +21,8 @@
 
     onMount(async () => {
         fetchStatus.run(async () => {
-            if (!$currentAccessToken) {
-                goto(`${base}/setup`);
-                return;
-            }
-
-            allEmotes = await loadAllEmotes($currentAccessToken, channel);
+            const token = await requireAuthAsync();
+            allEmotes = await loadAllEmotes(token, channel);
         });
     });
 

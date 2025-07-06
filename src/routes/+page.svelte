@@ -1,13 +1,12 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { goto } from "$app/navigation";
     import {
         getFollowedStreams,
         getFollowedChannels,
         type Stream,
         type FollowedChannel,
     } from "$lib/twitch-api";
-    import { currentAccessToken } from "$lib/stores";
+    import { requireAuthAsync } from "$lib/auth-guard";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import { base } from "$app/paths";
 
@@ -16,16 +15,13 @@
     let offlineChannels: FollowedChannel[] = [];
 
     onMount(async () => {
-        if (!$currentAccessToken) {
-            goto(`${base}/setup`);
-            return;
-        }
-
         fetchStatus.run(async () => {
+            const token = await requireAuthAsync();
+
             // Load both live streams and all followed channels
             const [liveStreams, allChannels] = await Promise.all([
-                getFollowedStreams($currentAccessToken),
-                getFollowedChannels($currentAccessToken),
+                getFollowedStreams(token),
+                getFollowedChannels(token),
             ]);
 
             streams = liveStreams;

@@ -1,20 +1,15 @@
 <script lang="ts">
     import { page } from "$app/stores";
-    import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { browser } from "$app/environment";
     import { loadAllEmotes, getEmoteOrPlaceholder, type Emote } from "$lib/emote-api";
-    import {
-        currentAccessToken,
-        getFavoriteEmotesStore,
-        getFavoriteCopypastasStore,
-    } from "$lib/stores";
+    import { getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
     import { sendChatMessage, getUser } from "$lib/twitch-api";
+    import { requireAuthAsync } from "$lib/auth-guard";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import CopypastaCard from "$lib/components/CopypastaCard.svelte";
     import ChatPanel from "$lib/components/ChatPanel.svelte";
-    import { base } from "$app/paths";
 
     let fetchStatus: any;
     let allEmotes = $state(new Map<string, Emote>());
@@ -37,14 +32,11 @@
     });
 
     async function loadEmotes() {
-        if (!$currentAccessToken) {
-            goto(`${base}/setup`);
-            return;
-        }
+        const token = await requireAuthAsync();
 
         try {
             // Fetch all available emotes
-            allEmotes = await loadAllEmotes($currentAccessToken, channel);
+            allEmotes = await loadAllEmotes(token, channel);
         } catch (err) {
             console.error("Error fetching emote URLs:", err);
             // If API fails, allEmotes remains empty and getEmoteOrPlaceholder will handle it
@@ -52,15 +44,12 @@
     }
 
     async function loadUserIds() {
-        if (!$currentAccessToken) {
-            goto(`${base}/setup`);
-            return;
-        }
+        const token = await requireAuthAsync();
 
         // Get current user and broadcaster info once and cache them
         const [currentUser, broadcaster] = await Promise.all([
-            getUser($currentAccessToken),
-            getUser($currentAccessToken, channel),
+            getUser(token),
+            getUser(token, channel),
         ]);
 
         senderId = currentUser.id;
@@ -69,9 +58,7 @@
 
     async function sendToChat(item: { name: string; url: string } | string) {
         try {
-            if (!$currentAccessToken) {
-                throw new Error("No access token configured");
-            }
+            const token = await requireAuthAsync();
 
             if (!broadcasterId || !senderId) {
                 throw new Error("User information not loaded yet");
@@ -85,7 +72,7 @@
                 text += " \u{E0000}";
             }
 
-            await sendChatMessage($currentAccessToken, broadcasterId, senderId, text);
+            await sendChatMessage(token, broadcasterId, senderId, text);
             lastSentMessage = text;
         } catch (err) {
             console.error("Failed to send to chat:", err);
