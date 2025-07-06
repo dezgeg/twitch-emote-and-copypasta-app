@@ -279,7 +279,11 @@
     }
 </script>
 
-<div class="chat-container" class:iframe={isInIframe} style="height: {$chatHeightStore}px;">
+<div
+    class="chat-container"
+    class:iframe={isInIframe}
+    style:height={isInIframe ? `${$chatHeightStore}px` : null}
+>
     <!-- Resize handle for mobile -->
     <div
         class="resize-handle"
@@ -714,7 +718,7 @@
     @media (min-width: 1024px) {
         .chat-container:not(.iframe) {
             width: 400px;
-            height: auto;
+            height: 100%;
             border-top: none;
             border-left: 1px solid var(--border-color);
         }
