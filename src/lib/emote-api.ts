@@ -10,9 +10,45 @@ export interface Emote {
     type: "twitch" | "7tv" | "bttv" | "ffz";
 }
 
+export interface EmoteDataStore extends Writable<Record<string, Emote>> {
+    lazyFetch(apiKey: string): Promise<void>;
+}
+
+/**
+ * Create an EmoteDataStore for a channel with lazy loading capabilities
+ */
+export function createEmoteDataStore(channel: string): EmoteDataStore {
+    const store = getEmotesStore(channel);
+
+    const emoteDataStore: EmoteDataStore = {
+        // Delegate all store methods to the underlying store
+        subscribe: store.subscribe,
+        set: store.set,
+        update: store.update,
+
+        // Implement lazyFetch method
+        async lazyFetch(apiKey: string): Promise<void> {
+            const cachedEmotes = get(store);
+
+            // If we have cached data, refresh in background
+            if (Object.keys(cachedEmotes).length > 0) {
+                // Background refresh (don't throw on error)
+                fetchAndUpdateEmotes(apiKey, channel, store, false);
+                return;
+            }
+
+            // No cached data, fetch synchronously and await
+            await fetchAndUpdateEmotes(apiKey, channel, store);
+        },
+    };
+
+    return emoteDataStore;
+}
+
 /**
  * Load all available emotes for a channel (global, user, 7TV, BetterTTV, and FrankerFaceZ emotes)
  * Returns a store that provides cached data immediately and updates with fresh data in background
+ * @deprecated Use createEmoteDataStore instead
  */
 export async function loadAllEmotes(
     apiKey: string,
@@ -97,18 +133,7 @@ async function loadEmotesData(apiKey: string, channel: string): Promise<Record<s
 /**
  * Get an emote from a store by name, or return a placeholder emote if not found
  */
-export function getEmoteOrPlaceholder(
-    emotesStore: Writable<Record<string, Emote>> | null,
-    name: string,
-): Emote {
-    if (!emotesStore) {
-        return {
-            name,
-            url: "", // Emote not found, show without image
-            type: "twitch" as const,
-        };
-    }
-
+export function getEmoteOrPlaceholder(emotesStore: EmoteDataStore, name: string): Emote {
     const emotesRecord = get(emotesStore);
     const emote = emotesRecord[name];
     return (
@@ -125,7 +150,7 @@ export function getEmoteOrPlaceholder(
  */
 export function parseMessageWithEmotes(
     messageText: string,
-    allEmotesStore: Writable<Record<string, Emote>> | null,
+    allEmotesStore: EmoteDataStore | null,
 ): (string | Emote)[] {
     if (!allEmotesStore) {
         return [messageText];

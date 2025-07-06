@@ -13,16 +13,15 @@
         getUser,
         type ChatMessage as TwitchChatMessage,
     } from "$lib/twitch-api";
-    import type { Emote } from "$lib/emote-api";
+    import type { Emote, EmoteDataStore } from "$lib/emote-api";
     import { parseMessageWithEmotes } from "$lib/emote-api";
-    import type { Writable } from "svelte/store";
     import { get } from "svelte/store";
     import Spinner from "./Spinner.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
 
     interface Props {
         channel: string;
-        allEmotesStore: Writable<Record<string, Emote>> | null;
+        allEmotesStore: EmoteDataStore;
     }
 
     let { channel, allEmotesStore }: Props = $props();

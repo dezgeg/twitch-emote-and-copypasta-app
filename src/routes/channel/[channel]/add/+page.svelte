@@ -1,30 +1,31 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import { onMount } from "svelte";
-    import { loadAllEmotes, type Emote } from "$lib/emote-api";
+    import { createEmoteDataStore, type Emote, type EmoteDataStore } from "$lib/emote-api";
     import { getFavoriteEmotesStore } from "$lib/stores";
     import { requireAuthAsync } from "$lib/auth-guard";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
 
     let fetchStatus: any;
-    let allEmotesStore: Awaited<ReturnType<typeof loadAllEmotes>> | null = $state(null);
     let searchTerm = $state("");
 
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
+
+    // Initialize emote store directly
+    let allEmotesStore = $derived(createEmoteDataStore(channel));
+
     let filteredEmotes: Emote[] = $derived(
-        allEmotesStore && $allEmotesStore
-            ? (Object.values($allEmotesStore) as Emote[]).filter((emote: Emote) =>
-                  emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
-              )
-            : [],
+        (Object.values($allEmotesStore) as Emote[]).filter((emote: Emote) =>
+            emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
     );
 
     onMount(async () => {
         fetchStatus.run(async () => {
             const token = await requireAuthAsync();
-            allEmotesStore = await loadAllEmotes(token, channel);
+            await allEmotesStore.lazyFetch(token);
         });
     });
 

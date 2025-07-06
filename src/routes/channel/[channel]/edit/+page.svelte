@@ -1,7 +1,12 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import { onMount } from "svelte";
-    import { loadAllEmotes, getEmoteOrPlaceholder, type Emote } from "$lib/emote-api";
+    import {
+        createEmoteDataStore,
+        getEmoteOrPlaceholder,
+        type Emote,
+        type EmoteDataStore,
+    } from "$lib/emote-api";
     import { getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
     import { requireAuthAsync } from "$lib/auth-guard";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
@@ -11,17 +16,19 @@
     import TrashDropZone from "$lib/components/TrashDropZone.svelte";
 
     let fetchStatus: any;
-    let allEmotesStore: Awaited<ReturnType<typeof loadAllEmotes>> | null = $state(null);
     let trashDropZone: TrashDropZone = $state()!;
 
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
 
+    // Initialize emote store directly
+    let allEmotesStore = $derived(createEmoteDataStore(channel));
+
     onMount(async () => {
         fetchStatus.run(async () => {
             const token = await requireAuthAsync();
-            allEmotesStore = await loadAllEmotes(token, channel);
+            await allEmotesStore.lazyFetch(token);
         });
     });
 </script>

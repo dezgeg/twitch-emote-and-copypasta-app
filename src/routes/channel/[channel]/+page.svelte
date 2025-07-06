@@ -2,7 +2,12 @@
     import { page } from "$app/stores";
     import { onMount } from "svelte";
     import { browser } from "$app/environment";
-    import { loadAllEmotes, getEmoteOrPlaceholder, type Emote } from "$lib/emote-api";
+    import {
+        createEmoteDataStore,
+        getEmoteOrPlaceholder,
+        type Emote,
+        type EmoteDataStore,
+    } from "$lib/emote-api";
     import { getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
     import { sendChatMessage, getUser } from "$lib/twitch-api";
     import { requireAuthAsync } from "$lib/auth-guard";
@@ -12,7 +17,6 @@
     import ChatPanel from "$lib/components/ChatPanel.svelte";
 
     let fetchStatus: any;
-    let allEmotesStore: Awaited<ReturnType<typeof loadAllEmotes>> | null = $state(null);
     let broadcasterId = $state("");
     let senderId = $state("");
     let lastSentMessage = $state("");
@@ -20,6 +24,9 @@
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
+
+    // Initialize emote store directly
+    let allEmotesStore = $derived(createEmoteDataStore(channel));
 
     // Detect if running in iframe
     let isInIframe = $derived(browser && window.self !== window.top);
@@ -33,13 +40,12 @@
 
     async function loadEmotes() {
         const token = await requireAuthAsync();
-
         try {
-            // Get emotes store (returns immediately if cached, updates in background)
-            allEmotesStore = await loadAllEmotes(token, channel);
+            // Trigger lazy fetch on the emote store with token
+            await allEmotesStore.lazyFetch(token);
         } catch (err) {
             console.error("Error fetching emote URLs:", err);
-            // If API fails, allEmotesStore remains null and getEmoteOrPlaceholder will handle it
+            // If API fails, getEmoteOrPlaceholder will handle it
         }
     }
 

@@ -1,7 +1,6 @@
 <script lang="ts">
-    import type { Emote } from "$lib/emote-api";
+    import type { Emote, EmoteDataStore } from "$lib/emote-api";
     import { parseMessageWithEmotes } from "$lib/emote-api";
-    import type { Writable } from "svelte/store";
     import "$lib/styles/card.css";
 
     interface Props {
@@ -9,7 +8,7 @@
         message: string;
 
         // Display settings
-        allEmotesStore?: Writable<Record<string, Emote>> | null;
+        allEmotesStore?: EmoteDataStore | null;
         isFavorited?: boolean;
 
         // Event handlers
