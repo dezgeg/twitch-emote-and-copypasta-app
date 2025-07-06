@@ -1,10 +1,10 @@
-import { persisted } from "svelte-persisted-store";
 import { writable, derived } from "svelte/store";
 import type { Emote } from "./emote-api";
 import type { OAuthToken } from "./oauth";
+import { extensionPersisted } from "./extension-persisted-store";
 
 // Persisted store for OAuth token
-export const oauthToken = persisted<OAuthToken | null>("oauthToken", null);
+export const oauthToken = extensionPersisted<OAuthToken | null>("oauthToken", null);
 
 // Derived store that returns the current access token from OAuth
 export const currentAccessToken = derived([oauthToken], ([$oauthToken]) => {
@@ -17,12 +17,12 @@ export const currentAccessToken = derived([oauthToken], ([$oauthToken]) => {
 
 // Function to get a persisted store for favorites per channel
 export function getFavoriteEmotesStore(channel: string) {
-    return persisted(`favorites_${channel}`, [] as string[]);
+    return extensionPersisted(`favorites_${channel}`, [] as string[]);
 }
 
 // Function to get a persisted store for favorite copypastas per channel
 export function getFavoriteCopypastasStore(channel: string) {
-    return persisted(`copypastas_${channel}`, [] as string[]);
+    return extensionPersisted(`copypastas_${channel}`, [] as string[]);
 }
 
 // Cache for emotes data per channel

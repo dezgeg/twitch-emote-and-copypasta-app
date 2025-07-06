@@ -6,7 +6,12 @@
 // @author       You
 // @match        https://www.twitch.tv/*
 // @match        https://twitch.tv/*
-// @grant        none
+// @match        http://localhost:5173/*
+// @match        https://localhost:5173/*
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_deleteValue
+// @grant        GM_listValues
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -235,8 +240,35 @@
         }
     });
 
-    // Initialize
-    init();
+    // Expose Tampermonkey storage API to page context for standalone app
+    function exposeTampermonkeyAPI() {
+        // Create a global API that the standalone app can detect and use
+        unsafeWindow.TampermonkeyStorage = {
+            getItem: (key) => GM_getValue(key, null),
+            setItem: (key, value) => GM_setValue(key, value),
+            removeItem: (key) => GM_deleteValue(key),
+            clear: () => {
+                const keys = GM_listValues();
+                keys.forEach((key) => GM_deleteValue(key));
+            },
+            key: (index) => {
+                const keys = GM_listValues();
+                return keys[index] || null;
+            },
+            get length() {
+                return GM_listValues().length;
+            },
+        };
+    }
+
+    // Expose Tampermonkey API
+    exposeTampermonkeyAPI();
+
+    // Only initialize overlay on Twitch pages, not localhost
+    if (window.location.hostname.includes("twitch.tv")) {
+        // Initialize
+        init();
+    }
 
     console.log("Twitch Emote App Overlay loaded");
 })();
