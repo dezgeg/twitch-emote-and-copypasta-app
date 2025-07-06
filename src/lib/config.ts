@@ -1,10 +1,12 @@
+import { base } from "$app/paths";
+
 // Twitch API configuration
 export const TWITCH_CLIENT_ID = "4iu9xwadj4m2hdbilfa7fxwaqrkz49";
 
 // OAuth configuration
 export const TWITCH_OAUTH_REDIRECT_URI =
     typeof window !== "undefined"
-        ? `${window.location.origin}/oauth`
+        ? `${window.location.origin}${base}/oauth`
         : "http://localhost:5173/oauth";
 
 export const TWITCH_OAUTH_SCOPES = [
