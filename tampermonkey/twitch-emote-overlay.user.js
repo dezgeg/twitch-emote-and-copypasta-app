@@ -18,6 +18,42 @@
 (function () {
     "use strict";
 
+    // ==========================================
+    // EMOTE-APP SPECIFIC: Expose Tampermonkey userscript storage
+    // ==========================================
+
+    // Expose Tampermonkey storage API to page context
+    function exposeTampermonkeyAPI() {
+        // Create a global API that the standalone app can detect and use
+        unsafeWindow.TampermonkeyStorage = {
+            getItem: (key) => GM_getValue(key, null),
+            setItem: (key, value) => GM_setValue(key, value),
+            removeItem: (key) => GM_deleteValue(key),
+            clear: () => {
+                const keys = GM_listValues();
+                keys.forEach((key) => GM_deleteValue(key));
+            },
+            key: (index) => {
+                const keys = GM_listValues();
+                return keys[index] || null;
+            },
+            get length() {
+                return GM_listValues().length;
+            },
+        };
+    }
+
+    // Non-Twitch pages only need storage API
+    if (!window.location.hostname.includes("twitch.tv")) {
+        exposeTampermonkeyAPI();
+        console.log("Twitch Emote App Storage API loaded");
+        return;
+    }
+
+    // ==========================================
+    // TWITCH-SPECIFIC: Overlay functionality
+    // ==========================================
+
     // Configuration - Update this URL to match your GitHub Pages deployment
     //const EMOTE_APP_URL = 'https://dezgeg.github.io/twitch-emote-and-copypasta-app';
     const EMOTE_APP_URL = "http://localhost:5173";
@@ -191,8 +227,8 @@
         document.body.appendChild(button);
     }
 
-    // Wait for page to load and create toggle button
-    function init() {
+    // Initialize Twitch overlay toggle button
+    function initializeTwitchOverlay() {
         // Create toggle button after a short delay to ensure page is ready
         setTimeout(() => {
             createToggleButton();
@@ -216,7 +252,7 @@
                 isVisible = false;
             }
             // Reinitialize
-            init();
+            initializeTwitchOverlay();
         }
     });
 
@@ -240,35 +276,8 @@
         }
     });
 
-    // Expose Tampermonkey storage API to page context for standalone app
-    function exposeTampermonkeyAPI() {
-        // Create a global API that the standalone app can detect and use
-        unsafeWindow.TampermonkeyStorage = {
-            getItem: (key) => GM_getValue(key, null),
-            setItem: (key, value) => GM_setValue(key, value),
-            removeItem: (key) => GM_deleteValue(key),
-            clear: () => {
-                const keys = GM_listValues();
-                keys.forEach((key) => GM_deleteValue(key));
-            },
-            key: (index) => {
-                const keys = GM_listValues();
-                return keys[index] || null;
-            },
-            get length() {
-                return GM_listValues().length;
-            },
-        };
-    }
-
-    // Expose Tampermonkey API
-    exposeTampermonkeyAPI();
-
-    // Only initialize overlay on Twitch pages, not localhost
-    if (window.location.hostname.includes("twitch.tv")) {
-        // Initialize
-        init();
-    }
+    // Initialize Twitch overlay functionality
+    initializeTwitchOverlay();
 
     console.log("Twitch Emote App Overlay loaded");
 })();
