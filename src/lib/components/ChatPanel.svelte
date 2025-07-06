@@ -316,37 +316,35 @@
             </div>
         {/if}
 
-        {#if messages.length > 0}
-            <div class="chat-messages" bind:this={messagesContainer} onscroll={handleScroll}>
-                {#each messages as chatMessage (chatMessage.id)}
-                    <!-- svelte-ignore a11y_click_events_have_key_events -->
-                    <!-- svelte-ignore a11y_no_static_element_interactions -->
-                    <div
-                        class="chat-message"
-                        class:favorited={isCopypastaFavorited(chatMessage.message)}
-                        onclick={() => toggleCopypasta(chatMessage)}
+        <div class="chat-messages" bind:this={messagesContainer} onscroll={handleScroll}>
+            {#each messages as chatMessage (chatMessage.id)}
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div
+                    class="chat-message"
+                    class:favorited={isCopypastaFavorited(chatMessage.message)}
+                    onclick={() => toggleCopypasta(chatMessage)}
+                >
+                    <span class="username" style="color: {chatMessage.color || '#9146ff'}"
+                        >{chatMessage.user_name}:</span
                     >
-                        <span class="username" style="color: {chatMessage.color || '#9146ff'}"
-                            >{chatMessage.user_name}:</span
-                        >
-                        <span class="message-content">
-                            {#each parseMessageWithEmotes(chatMessage.message, $allEmotesStore) as part}
-                                {#if typeof part === "string"}
-                                    {part}
-                                {:else}
-                                    <img
-                                        src={part.url}
-                                        alt={part.name}
-                                        class="chat-emote"
-                                        title={part.name}
-                                    />
-                                {/if}
-                            {/each}
-                        </span>
-                    </div>
-                {/each}
-            </div>
-        {/if}
+                    <span class="message-content">
+                        {#each parseMessageWithEmotes(chatMessage.message, $allEmotesStore) as part}
+                            {#if typeof part === "string"}
+                                {part}
+                            {:else}
+                                <img
+                                    src={part.url}
+                                    alt={part.name}
+                                    class="chat-emote"
+                                    title={part.name}
+                                />
+                            {/if}
+                        {/each}
+                    </span>
+                </div>
+            {/each}
+        </div>
 
         <!-- Message input -->
         {#if chatState.connected && currentUser && broadcasterUser}
