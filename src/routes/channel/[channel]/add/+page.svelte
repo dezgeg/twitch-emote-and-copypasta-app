@@ -8,7 +8,7 @@
     import EmoteCard from "$lib/components/EmoteCard.svelte";
 
     let fetchStatus: any;
-    let allEmotesStore: ReturnType<typeof loadAllEmotes> | null = $state(null);
+    let allEmotesStore: Awaited<ReturnType<typeof loadAllEmotes>> | null = $state(null);
     let searchTerm = $state("");
 
     let channel = $derived($page.params.channel);
@@ -24,7 +24,7 @@
     onMount(async () => {
         fetchStatus.run(async () => {
             const token = await requireAuthAsync();
-            allEmotesStore = loadAllEmotes(token, channel);
+            allEmotesStore = await loadAllEmotes(token, channel);
         });
     });
 

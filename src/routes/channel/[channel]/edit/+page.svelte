@@ -11,7 +11,7 @@
     import TrashDropZone from "$lib/components/TrashDropZone.svelte";
 
     let fetchStatus: any;
-    let allEmotesStore: ReturnType<typeof loadAllEmotes> | null = $state(null);
+    let allEmotesStore: Awaited<ReturnType<typeof loadAllEmotes>> | null = $state(null);
     let trashDropZone: TrashDropZone = $state()!;
 
     let channel = $derived($page.params.channel);
@@ -21,7 +21,7 @@
     onMount(async () => {
         fetchStatus.run(async () => {
             const token = await requireAuthAsync();
-            allEmotesStore = loadAllEmotes(token, channel);
+            allEmotesStore = await loadAllEmotes(token, channel);
         });
     });
 </script>
@@ -35,10 +35,7 @@
         <section class="emotes-section">
             <DragAndDropList store={favoriteEmotesStore} {trashDropZone}>
                 {#snippet renderItem(emoteName: string)}
-                    {@const emote = getEmoteOrPlaceholder(
-                        allEmotesStore ? $allEmotesStore! : {},
-                        emoteName,
-                    )}
+                    {@const emote = getEmoteOrPlaceholder(allEmotesStore, emoteName)}
                     <EmoteCard {emote} mode="edit" />
                 {/snippet}
                 {#snippet renderEmpty()}
@@ -56,10 +53,7 @@
                 gridClass="copypasta-list"
             >
                 {#snippet renderItem(copypasta: string)}
-                    <CopypastaCard
-                        message={copypasta}
-                        emotes={allEmotesStore ? $allEmotesStore! : {}}
-                    />
+                    <CopypastaCard message={copypasta} {allEmotesStore} />
                 {/snippet}
                 {#snippet renderEmpty()}
                     <p>No favorite copypastas yet.</p>

@@ -15,15 +15,17 @@
     } from "$lib/twitch-api";
     import type { Emote } from "$lib/emote-api";
     import { parseMessageWithEmotes } from "$lib/emote-api";
+    import type { Writable } from "svelte/store";
+    import { get } from "svelte/store";
     import Spinner from "./Spinner.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
 
     interface Props {
         channel: string;
-        emotes: Record<string, Emote>;
+        allEmotesStore: Writable<Record<string, Emote>> | null;
     }
 
-    let { channel, emotes }: Props = $props();
+    let { channel, allEmotesStore }: Props = $props();
 
     // Chat state
     let chatLoading = $state(true);
@@ -244,6 +246,7 @@
         // Check if the message contains only one word and that word is an available emote
         const words = trimmed.split(/\s+/);
         if (words.length === 1) {
+            const emotes = allEmotesStore ? get(allEmotesStore) : {};
             return words[0] in emotes;
         }
 
@@ -326,7 +329,7 @@
                             >{chatMessage.user_name}:</span
                         >
                         <span class="message-content">
-                            {#each parseMessageWithEmotes(chatMessage.message, emotes) as part}
+                            {#each parseMessageWithEmotes(chatMessage.message, allEmotesStore) as part}
                                 {#if typeof part === "string"}
                                     {part}
                                 {:else}

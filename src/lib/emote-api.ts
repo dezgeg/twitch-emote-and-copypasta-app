@@ -14,63 +14,51 @@ export interface Emote {
  * Load all available emotes for a channel (global, user, 7TV, BetterTTV, and FrankerFaceZ emotes)
  * Returns a store that provides cached data immediately and updates with fresh data in background
  */
-export function loadAllEmotes(apiKey: string, channel: string): Writable<Record<string, Emote>> {
+export async function loadAllEmotes(
+    apiKey: string,
+    channel: string,
+): Promise<Writable<Record<string, Emote>>> {
     const store = getEmotesStore(channel);
     const cachedEmotes = get(store);
 
     // If we have cached data, return store immediately and refresh in background
     if (Object.keys(cachedEmotes).length > 0) {
-        // Background refresh
-        refreshEmotes(apiKey, channel, store);
+        // Background refresh (don't throw on error)
+        fetchAndUpdateEmotes(apiKey, channel, store, false);
         return store;
     }
 
     // No cached data, fetch synchronously and update store
-    fetchEmotes(apiKey, channel, store);
+    await fetchAndUpdateEmotes(apiKey, channel, store);
     return store;
 }
 
 /**
  * Fetch emotes and update the store
  */
-async function fetchEmotes(
+async function fetchAndUpdateEmotes(
     apiKey: string,
     channel: string,
     store: Writable<Record<string, Emote>>,
+    throwOnError = true,
 ) {
     try {
-        const emotesMap = await loadEmotesData(apiKey, channel);
-        const emotesRecord = Object.fromEntries(emotesMap);
+        const emotesRecord = await loadEmotesData(apiKey, channel);
         store.set(emotesRecord);
     } catch (err) {
-        console.error("Error loading emotes:", err);
-        throw err;
-    }
-}
-
-/**
- * Refresh emotes in the background
- */
-async function refreshEmotes(
-    apiKey: string,
-    channel: string,
-    store: Writable<Record<string, Emote>>,
-) {
-    try {
-        const emotesMap = await loadEmotesData(apiKey, channel);
-        const emotesRecord = Object.fromEntries(emotesMap);
-        store.set(emotesRecord);
-    } catch (err) {
-        console.error("Error refreshing emotes:", err);
-        // Don't throw, just log the error since this is background refresh
+        const errorMsg = throwOnError ? "Error loading emotes:" : "Error refreshing emotes:";
+        console.error(errorMsg, err);
+        if (throwOnError) {
+            throw err;
+        }
     }
 }
 
 /**
  * Core logic to load emotes data
  */
-async function loadEmotesData(apiKey: string, channel: string): Promise<Map<string, Emote>> {
-    const emotesMap = new Map<string, Emote>();
+async function loadEmotesData(apiKey: string, channel: string): Promise<Record<string, Emote>> {
+    const emotesRecord: Record<string, Emote> = {};
 
     // Get broadcaster and current user info
     const broadcaster = await getUser(apiKey, channel);
@@ -84,11 +72,11 @@ async function loadEmotesData(apiKey: string, channel: string): Promise<Map<stri
         loadFFZEmotes(broadcaster.id),
     ]);
 
-    // Add all emotes to the map, keyed by emote name
+    // Add all emotes to the record, keyed by emote name
     for (const emotes of emoteResults) {
         for (const emote of emotes) {
-            if (emotesMap.has(emote.name)) {
-                const existingEmote = emotesMap.get(emote.name)!;
+            if (emotesRecord[emote.name]) {
+                const existingEmote = emotesRecord[emote.name];
                 // Only log if the emotes are actually different (not identical duplicates)
                 if (existingEmote.url !== emote.url || existingEmote.type !== emote.type) {
                     console.log(
@@ -98,18 +86,30 @@ async function loadEmotesData(apiKey: string, channel: string): Promise<Map<stri
                     );
                 }
             } else {
-                emotesMap.set(emote.name, emote);
+                emotesRecord[emote.name] = emote;
             }
         }
     }
 
-    return emotesMap;
+    return emotesRecord;
 }
 
 /**
- * Get an emote from a record by name, or return a placeholder emote if not found
+ * Get an emote from a store by name, or return a placeholder emote if not found
  */
-export function getEmoteOrPlaceholder(emotesRecord: Record<string, Emote>, name: string): Emote {
+export function getEmoteOrPlaceholder(
+    emotesStore: Writable<Record<string, Emote>> | null,
+    name: string,
+): Emote {
+    if (!emotesStore) {
+        return {
+            name,
+            url: "", // Emote not found, show without image
+            type: "twitch" as const,
+        };
+    }
+
+    const emotesRecord = get(emotesStore);
     const emote = emotesRecord[name];
     return (
         emote || {
@@ -125,8 +125,13 @@ export function getEmoteOrPlaceholder(emotesRecord: Record<string, Emote>, name:
  */
 export function parseMessageWithEmotes(
     messageText: string,
-    emotes: Record<string, Emote>,
+    allEmotesStore: Writable<Record<string, Emote>> | null,
 ): (string | Emote)[] {
+    if (!allEmotesStore) {
+        return [messageText];
+    }
+
+    const emotes = get(allEmotesStore);
     if (!Object.keys(emotes).length) {
         return [messageText];
     }

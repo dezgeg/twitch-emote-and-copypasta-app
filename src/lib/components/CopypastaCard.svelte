@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Emote } from "$lib/emote-api";
     import { parseMessageWithEmotes } from "$lib/emote-api";
+    import type { Writable } from "svelte/store";
     import "$lib/styles/card.css";
 
     interface Props {
@@ -8,14 +9,14 @@
         message: string;
 
         // Display settings
-        emotes?: Record<string, Emote>;
+        allEmotesStore?: Writable<Record<string, Emote>> | null;
         isFavorited?: boolean;
 
         // Event handlers
         onClick?: (message: string) => void;
     }
 
-    let { message, emotes = {}, isFavorited = false, onClick }: Props = $props();
+    let { message, allEmotesStore = null, isFavorited = false, onClick }: Props = $props();
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -27,7 +28,7 @@
     onclick={onClick ? () => onClick(message) : undefined}
 >
     <div class="message-content">
-        {#each parseMessageWithEmotes(message, emotes) as part}
+        {#each parseMessageWithEmotes(message, allEmotesStore) as part}
             {#if typeof part === "string"}
                 {part}
             {:else}
