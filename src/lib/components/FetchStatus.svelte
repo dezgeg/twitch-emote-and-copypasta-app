@@ -8,7 +8,7 @@
 
     let { errorPrefix = "", children }: Props = $props();
 
-    let loading = $state(false);
+    let loading = $state(true);
     let error = $state("");
 
     export function run(asyncFn: () => Promise<void>) {
