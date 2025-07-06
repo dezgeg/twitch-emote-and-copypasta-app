@@ -12,6 +12,7 @@
 // @grant        GM_getValue
 // @grant        GM_deleteValue
 // @grant        GM_listValues
+// @grant        GM_addValueChangeListener
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -24,22 +25,13 @@
 
     // Expose Tampermonkey storage API to page context
     function exposeTampermonkeyAPI() {
-        // Create a global API that the standalone app can detect and use
+        // Directly expose GM_ functions to page context
         unsafeWindow.TampermonkeyStorage = {
-            getItem: (key) => GM_getValue(key, null),
-            setItem: (key, value) => GM_setValue(key, value),
-            removeItem: (key) => GM_deleteValue(key),
-            clear: () => {
-                const keys = GM_listValues();
-                keys.forEach((key) => GM_deleteValue(key));
-            },
-            key: (index) => {
-                const keys = GM_listValues();
-                return keys[index] || null;
-            },
-            get length() {
-                return GM_listValues().length;
-            },
+            getValue: GM_getValue,
+            setValue: GM_setValue,
+            deleteValue: GM_deleteValue,
+            listValues: GM_listValues,
+            addValueChangeListener: GM_addValueChangeListener,
         };
     }
 

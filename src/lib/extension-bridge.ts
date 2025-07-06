@@ -5,90 +5,76 @@
 declare global {
     interface Window {
         TampermonkeyStorage?: {
-            getItem: (key: string) => any;
-            setItem: (key: string, value: any) => void;
-            removeItem: (key: string) => void;
-            clear: () => void;
-            key: (index: number) => string | null;
-            length: number;
+            getValue: (key: string, defaultValue?: any) => any;
+            setValue: (key: string, value: any) => void;
+            deleteValue: (key: string) => void;
+            listValues: () => string[];
+            addValueChangeListener: (
+                key: string,
+                callback: (key: string, oldValue: any, newValue: any, remote: boolean) => void,
+            ) => string;
         };
     }
 }
 
 class ExtensionStorage {
-    constructor() {
-        // No setup needed - we just check for TampermonkeyStorage at runtime
-    }
-
-    private async sendRequest(method: string, key?: string, value?: any): Promise<any> {
-        // Check if Tampermonkey storage is available (works in both iframe and standalone)
-        if (window.TampermonkeyStorage) {
-            // Direct synchronous access to Tampermonkey storage
-            switch (method) {
-                case "getItem":
-                    return window.TampermonkeyStorage.getItem(key!);
-                case "setItem":
-                    window.TampermonkeyStorage.setItem(key!, value);
-                    return null;
-                case "removeItem":
-                    window.TampermonkeyStorage.removeItem(key!);
-                    return null;
-                case "clear":
-                    window.TampermonkeyStorage.clear();
-                    return null;
-                case "key":
-                    return window.TampermonkeyStorage.key(value);
-                case "length":
-                    return window.TampermonkeyStorage.length;
-                default:
-                    throw new Error(`Unknown method: ${method}`);
-            }
-        }
-
-        // Fallback to localStorage when Tampermonkey is not available
-        switch (method) {
-            case "getItem":
-                return localStorage.getItem(key!);
-            case "setItem":
-                localStorage.setItem(key!, value);
-                return null;
-            case "removeItem":
-                localStorage.removeItem(key!);
-                return null;
-            case "clear":
-                localStorage.clear();
-                return null;
-            case "key":
-                return localStorage.key(value);
-            case "length":
-                return localStorage.length;
-            default:
-                throw new Error(`Unknown method: ${method}`);
-        }
-    }
-
     async getItem(key: string): Promise<string | null> {
-        return await this.sendRequest("getItem", key);
+        if (window.TampermonkeyStorage) {
+            return window.TampermonkeyStorage.getValue(key, null);
+        }
+        return localStorage.getItem(key);
     }
 
     async setItem(key: string, value: string): Promise<void> {
-        await this.sendRequest("setItem", key, value);
+        if (window.TampermonkeyStorage) {
+            window.TampermonkeyStorage.setValue(key, value);
+        } else {
+            localStorage.setItem(key, value);
+        }
     }
 
     async removeItem(key: string): Promise<void> {
-        await this.sendRequest("removeItem", key);
+        if (window.TampermonkeyStorage) {
+            window.TampermonkeyStorage.deleteValue(key);
+        } else {
+            localStorage.removeItem(key);
+        }
     }
 
     async clear(): Promise<void> {
-        await this.sendRequest("clear");
+        if (window.TampermonkeyStorage) {
+            const keys = window.TampermonkeyStorage.listValues();
+            keys.forEach((k) => window.TampermonkeyStorage!.deleteValue(k));
+        } else {
+            localStorage.clear();
+        }
     }
 
     async key(index: number): Promise<string | null> {
-        return await this.sendRequest("key", undefined, index);
+        if (window.TampermonkeyStorage) {
+            const keys = window.TampermonkeyStorage.listValues();
+            return keys[index] || null;
+        }
+        return localStorage.key(index);
     }
 
     async length(): Promise<number> {
-        return await this.sendRequest("length");
+        if (window.TampermonkeyStorage) {
+            return window.TampermonkeyStorage.listValues().length;
+        }
+        return localStorage.length;
+    }
+
+    // Add value change listener (only works with Tampermonkey)
+    addValueChangeListener(
+        key: string,
+        callback: (key: string, oldValue: any, newValue: any, remote: boolean) => void,
+    ): string | null {
+        if (window.TampermonkeyStorage?.addValueChangeListener) {
+            return window.TampermonkeyStorage.addValueChangeListener(key, callback);
+        }
+        console.warn("Value change listeners are only available with Tampermonkey");
+        return null;
     }
 }
 
