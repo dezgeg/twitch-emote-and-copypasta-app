@@ -28,23 +28,17 @@ const globalStoreMap = new Map<string, ExtensionPersistedStore<any>>();
 export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPersistedStore<T> {
     // Early return for localStorage fallback when Tampermonkey not available
     if (typeof window.TampermonkeyStorage === "undefined") {
-        console.log(
-            `ExtensionPersistedStore[${key}]: Using localStorage via svelte-persisted-store`,
-        );
         return persisted(key, initialValue) as ExtensionPersistedStore<T>;
     }
 
     // Return existing store if already created for this key
     if (globalStoreMap.has(key)) {
-        console.log(`ExtensionPersistedStore[${key}]: Returning existing store`);
         return globalStoreMap.get(key)! as ExtensionPersistedStore<T>;
     }
 
     // Create new store for this key
     const store = writable<T>(initialValue);
     let isInitialized = false;
-
-    console.log(`ExtensionPersistedStore[${key}]: Creating new store with Tampermonkey storage`);
 
     // Initialize store with value from Tampermonkey storage
     const initializeStore = async () => {
@@ -55,14 +49,7 @@ export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPe
             if (storedValue !== null) {
                 const parsedValue = JSON.parse(storedValue);
                 store.set(parsedValue);
-                console.log(
-                    `ExtensionPersistedStore[${key}]: Loaded from Tampermonkey storage:`,
-                    parsedValue,
-                );
             } else {
-                console.log(
-                    `ExtensionPersistedStore[${key}]: No stored value found, using initial value`,
-                );
             }
             isInitialized = true;
         } catch (error) {
@@ -93,16 +80,9 @@ export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPe
                         if (newValue !== null) {
                             const parsedValue = JSON.parse(newValue);
                             store.set(parsedValue);
-                            console.log(
-                                `ExtensionPersistedStore[${key}]: Synced from other context:`,
-                                parsedValue,
-                            );
                         } else {
                             // Value was deleted in another context
                             store.set(initialValue);
-                            console.log(
-                                `ExtensionPersistedStore[${key}]: Value deleted in other context, reset to initial value`,
-                            );
                         }
                     } catch (error) {
                         console.error(`Failed to sync value change for key "${key}":`, error);
