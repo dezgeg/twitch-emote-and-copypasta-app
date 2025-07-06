@@ -8,14 +8,14 @@
         message: string;
 
         // Display settings
-        allEmotesStore?: EmoteDataStore | null;
+        allEmotesStore: EmoteDataStore;
         isFavorited?: boolean;
 
         // Event handlers
         onClick?: (message: string) => void;
     }
 
-    let { message, allEmotesStore = null, isFavorited = false, onClick }: Props = $props();
+    let { message, allEmotesStore, isFavorited = false, onClick }: Props = $props();
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->

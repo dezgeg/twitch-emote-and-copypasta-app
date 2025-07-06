@@ -46,30 +46,6 @@ export function createEmoteDataStore(channel: string): EmoteDataStore {
 }
 
 /**
- * Load all available emotes for a channel (global, user, 7TV, BetterTTV, and FrankerFaceZ emotes)
- * Returns a store that provides cached data immediately and updates with fresh data in background
- * @deprecated Use createEmoteDataStore instead
- */
-export async function loadAllEmotes(
-    apiKey: string,
-    channel: string,
-): Promise<Writable<Record<string, Emote>>> {
-    const store = getEmotesStore(channel);
-    const cachedEmotes = get(store);
-
-    // If we have cached data, return store immediately and refresh in background
-    if (Object.keys(cachedEmotes).length > 0) {
-        // Background refresh (don't throw on error)
-        fetchAndUpdateEmotes(apiKey, channel, store, false);
-        return store;
-    }
-
-    // No cached data, fetch synchronously and update store
-    await fetchAndUpdateEmotes(apiKey, channel, store);
-    return store;
-}
-
-/**
  * Fetch emotes and update the store
  */
 async function fetchAndUpdateEmotes(
@@ -150,12 +126,8 @@ export function getEmoteOrPlaceholder(emotesStore: EmoteDataStore, name: string)
  */
 export function parseMessageWithEmotes(
     messageText: string,
-    allEmotesStore: EmoteDataStore | null,
+    allEmotesStore: EmoteDataStore,
 ): (string | Emote)[] {
-    if (!allEmotesStore) {
-        return [messageText];
-    }
-
     const emotes = get(allEmotesStore);
     if (!Object.keys(emotes).length) {
         return [messageText];
