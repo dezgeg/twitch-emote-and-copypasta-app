@@ -3,7 +3,7 @@
     import { onMount } from "svelte";
     import { createEmoteDataStore, type Emote, type EmoteDataStore } from "$lib/emote-api";
     import { getFavoriteEmotesStore } from "$lib/stores";
-    import { requireAuthAsync } from "$lib/auth-guard";
+    import { requireAuth } from "$lib/auth-guard";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
 
@@ -24,7 +24,7 @@
 
     onMount(async () => {
         fetchStatus.run(async () => {
-            const token = await requireAuthAsync();
+            const token = await requireAuth();
             await allEmotesStore.lazyFetch(token);
         });
     });

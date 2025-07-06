@@ -8,7 +8,7 @@
         type EmoteDataStore,
     } from "$lib/emote-api";
     import { getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
-    import { requireAuthAsync } from "$lib/auth-guard";
+    import { requireAuth } from "$lib/auth-guard";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import CopypastaCard from "$lib/components/CopypastaCard.svelte";
@@ -27,7 +27,7 @@
 
     onMount(async () => {
         fetchStatus.run(async () => {
-            const token = await requireAuthAsync();
+            const token = await requireAuth();
             await allEmotesStore.lazyFetch(token);
         });
     });

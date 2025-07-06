@@ -6,7 +6,7 @@
         type Stream,
         type FollowedChannel,
     } from "$lib/twitch-api";
-    import { requireAuthAsync } from "$lib/auth-guard";
+    import { requireAuth } from "$lib/auth-guard";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import { base } from "$app/paths";
 
@@ -16,7 +16,7 @@
 
     onMount(async () => {
         fetchStatus.run(async () => {
-            const token = await requireAuthAsync();
+            const token = await requireAuth();
 
             // Load both live streams and all followed channels
             const [liveStreams, allChannels] = await Promise.all([

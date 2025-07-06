@@ -10,7 +10,7 @@
     } from "$lib/emote-api";
     import { getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
     import { sendChatMessage, getUser } from "$lib/twitch-api";
-    import { requireAuthAsync } from "$lib/auth-guard";
+    import { requireAuth } from "$lib/auth-guard";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import CopypastaCard from "$lib/components/CopypastaCard.svelte";
@@ -39,7 +39,7 @@
     });
 
     async function loadEmotes() {
-        const token = await requireAuthAsync();
+        const token = await requireAuth();
         try {
             // Trigger lazy fetch on the emote store with token
             await allEmotesStore.lazyFetch(token);
@@ -50,7 +50,7 @@
     }
 
     async function loadUserIds() {
-        const token = await requireAuthAsync();
+        const token = await requireAuth();
 
         // Get current user and broadcaster info once and cache them
         const [currentUser, broadcaster] = await Promise.all([
@@ -64,7 +64,7 @@
 
     async function sendToChat(item: { name: string; url: string } | string) {
         try {
-            const token = await requireAuthAsync();
+            const token = await requireAuth();
 
             if (!broadcasterId || !senderId) {
                 throw new Error("User information not loaded yet");
