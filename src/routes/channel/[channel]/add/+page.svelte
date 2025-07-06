@@ -8,21 +8,23 @@
     import EmoteCard from "$lib/components/EmoteCard.svelte";
 
     let fetchStatus: any;
-    let allEmotes: Map<string, Emote> = $state(new Map());
+    let allEmotesStore: ReturnType<typeof loadAllEmotes> | null = $state(null);
     let searchTerm = $state("");
 
     let channel = $derived($page.params.channel);
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
-    let filteredEmotes = $derived(
-        Array.from(allEmotes.values()).filter((emote) =>
-            emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
-        ),
+    let filteredEmotes: Emote[] = $derived(
+        allEmotesStore && $allEmotesStore
+            ? (Object.values($allEmotesStore) as Emote[]).filter((emote: Emote) =>
+                  emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
+              )
+            : [],
     );
 
     onMount(async () => {
         fetchStatus.run(async () => {
             const token = await requireAuthAsync();
-            allEmotes = await loadAllEmotes(token, channel);
+            allEmotesStore = loadAllEmotes(token, channel);
         });
     });
 

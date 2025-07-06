@@ -12,7 +12,7 @@
     import ChatPanel from "$lib/components/ChatPanel.svelte";
 
     let fetchStatus: any;
-    let allEmotes = $state(new Map<string, Emote>());
+    let allEmotesStore: ReturnType<typeof loadAllEmotes> | null = $state(null);
     let broadcasterId = $state("");
     let senderId = $state("");
     let lastSentMessage = $state("");
@@ -35,11 +35,11 @@
         const token = await requireAuthAsync();
 
         try {
-            // Fetch all available emotes
-            allEmotes = await loadAllEmotes(token, channel);
+            // Get emotes store (returns immediately if cached, updates in background)
+            allEmotesStore = loadAllEmotes(token, channel);
         } catch (err) {
             console.error("Error fetching emote URLs:", err);
-            // If API fails, allEmotes remains empty and getEmoteOrPlaceholder will handle it
+            // If API fails, allEmotesStore remains null and getEmoteOrPlaceholder will handle it
         }
     }
 
@@ -122,7 +122,10 @@
                 <section class="emotes-section">
                     <div class="emotes-grid">
                         {#each $favoriteEmotesStore as emoteName (emoteName)}
-                            {@const emote = getEmoteOrPlaceholder(allEmotes, emoteName)}
+                            {@const emote = getEmoteOrPlaceholder(
+                                allEmotesStore ? $allEmotesStore! : {},
+                                emoteName,
+                            )}
                             <EmoteCard {emote} mode="view" onClick={sendToChat} />
                         {:else}
                             <p>No favorite emotes yet.</p>
@@ -137,7 +140,7 @@
                         {#each $favoriteCopypastasStore as copypasta (copypasta)}
                             <CopypastaCard
                                 message={copypasta}
-                                emotes={allEmotes}
+                                emotes={allEmotesStore ? $allEmotesStore! : {}}
                                 onClick={sendToChat}
                             />
                         {:else}
@@ -148,7 +151,7 @@
             </div>
         </div>
 
-        <ChatPanel {channel} emotes={allEmotes} />
+        <ChatPanel {channel} emotes={allEmotesStore ? $allEmotesStore! : {}} />
     </div>
 </FetchStatus>
 

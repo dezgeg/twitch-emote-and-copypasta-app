@@ -20,7 +20,7 @@
 
     interface Props {
         channel: string;
-        emotes: Map<string, Emote>;
+        emotes: Record<string, Emote>;
     }
 
     let { channel, emotes }: Props = $props();
@@ -244,7 +244,7 @@
         // Check if the message contains only one word and that word is an available emote
         const words = trimmed.split(/\s+/);
         if (words.length === 1) {
-            return emotes.has(words[0]);
+            return words[0] in emotes;
         }
 
         return false;

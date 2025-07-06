@@ -25,19 +25,7 @@ export function getFavoriteCopypastasStore(channel: string) {
     return extensionPersisted(`copypastas_${channel}`, [] as string[]);
 }
 
-// Cache for emotes data per channel
-const emotesCache = new Map<string, Map<string, Emote>>();
-
-// Function to get or create emotes store for a channel
+// Function to get a persisted store for emotes per channel
 export function getEmotesStore(channel: string) {
-    const cached = emotesCache.get(channel);
-    if (cached) {
-        return writable(cached);
-    }
-    return writable<Map<string, Emote>>(new Map());
-}
-
-// Function to set emotes cache
-export function setEmotesCache(channel: string, emotes: Map<string, Emote>) {
-    emotesCache.set(channel, emotes);
+    return extensionPersisted(`emotes_${channel}`, {} as Record<string, Emote>);
 }

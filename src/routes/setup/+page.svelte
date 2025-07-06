@@ -231,6 +231,7 @@
                 <li><code>user:read:follows</code> - Access your followed channels list</li>
                 <li><code>user:read:chat</code> - Read chat messages from channels</li>
                 <li><code>user:write:chat</code> - Send messages to chat</li>
+                <li><code>user:read:emotes</code> - Access your emote collection</li>
             </ul>
         </div>
     </div>

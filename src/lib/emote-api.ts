@@ -1,7 +1,8 @@
 import { getUser } from "./twitch-api";
 import { TWITCH_CLIENT_ID } from "./config";
-import { setEmotesCache, getEmotesStore } from "./stores";
+import { getEmotesStore } from "./stores";
 import { get } from "svelte/store";
+import type { Writable } from "svelte/store";
 
 export interface Emote {
     name: string;
@@ -11,63 +12,105 @@ export interface Emote {
 
 /**
  * Load all available emotes for a channel (global, user, 7TV, BetterTTV, and FrankerFaceZ emotes)
+ * Returns a store that provides cached data immediately and updates with fresh data in background
  */
-export async function loadAllEmotes(apiKey: string, channel: string): Promise<Map<string, Emote>> {
-    // Check if we already have cached data
-    const cachedEmotes = get(getEmotesStore(channel));
-    if (cachedEmotes.size > 0) {
-        return cachedEmotes;
+export function loadAllEmotes(apiKey: string, channel: string): Writable<Record<string, Emote>> {
+    const store = getEmotesStore(channel);
+    const cachedEmotes = get(store);
+
+    // If we have cached data, return store immediately and refresh in background
+    if (Object.keys(cachedEmotes).length > 0) {
+        // Background refresh
+        refreshEmotes(apiKey, channel, store);
+        return store;
     }
 
-    const emotesMap = new Map<string, Emote>();
+    // No cached data, fetch synchronously and update store
+    fetchEmotes(apiKey, channel, store);
+    return store;
+}
 
+/**
+ * Fetch emotes and update the store
+ */
+async function fetchEmotes(
+    apiKey: string,
+    channel: string,
+    store: Writable<Record<string, Emote>>,
+) {
     try {
-        // Get broadcaster and current user info
-        const broadcaster = await getUser(apiKey, channel);
-        const currentUser = await getUser(apiKey);
-
-        // Fetch all emote types in parallel
-        const emoteResults = await Promise.all([
-            loadTwitchEmotes(apiKey, broadcaster.id, currentUser.id),
-            load7TVEmotes(broadcaster.id),
-            loadBetterTTVEmotes(broadcaster.id),
-            loadFFZEmotes(broadcaster.id),
-        ]);
-
-        // Add all emotes to the map, keyed by emote name
-        for (const emotes of emoteResults) {
-            for (const emote of emotes) {
-                if (emotesMap.has(emote.name)) {
-                    const existingEmote = emotesMap.get(emote.name)!;
-                    // Only log if the emotes are actually different (not identical duplicates)
-                    if (existingEmote.url !== emote.url || existingEmote.type !== emote.type) {
-                        console.log(
-                            `Duplicate emote found: ${emote.name}\n` +
-                                `  Existing: ${existingEmote.type} - ${existingEmote.url}\n` +
-                                `  New:      ${emote.type} - ${emote.url}`,
-                        );
-                    }
-                } else {
-                    emotesMap.set(emote.name, emote);
-                }
-            }
-        }
-
-        // Cache the results
-        setEmotesCache(channel, emotesMap);
+        const emotesMap = await loadEmotesData(apiKey, channel);
+        const emotesRecord = Object.fromEntries(emotesMap);
+        store.set(emotesRecord);
     } catch (err) {
         console.error("Error loading emotes:", err);
         throw err;
+    }
+}
+
+/**
+ * Refresh emotes in the background
+ */
+async function refreshEmotes(
+    apiKey: string,
+    channel: string,
+    store: Writable<Record<string, Emote>>,
+) {
+    try {
+        const emotesMap = await loadEmotesData(apiKey, channel);
+        const emotesRecord = Object.fromEntries(emotesMap);
+        store.set(emotesRecord);
+    } catch (err) {
+        console.error("Error refreshing emotes:", err);
+        // Don't throw, just log the error since this is background refresh
+    }
+}
+
+/**
+ * Core logic to load emotes data
+ */
+async function loadEmotesData(apiKey: string, channel: string): Promise<Map<string, Emote>> {
+    const emotesMap = new Map<string, Emote>();
+
+    // Get broadcaster and current user info
+    const broadcaster = await getUser(apiKey, channel);
+    const currentUser = await getUser(apiKey);
+
+    // Fetch all emote types in parallel
+    const emoteResults = await Promise.all([
+        loadTwitchEmotes(apiKey, broadcaster.id, currentUser.id),
+        load7TVEmotes(broadcaster.id),
+        loadBetterTTVEmotes(broadcaster.id),
+        loadFFZEmotes(broadcaster.id),
+    ]);
+
+    // Add all emotes to the map, keyed by emote name
+    for (const emotes of emoteResults) {
+        for (const emote of emotes) {
+            if (emotesMap.has(emote.name)) {
+                const existingEmote = emotesMap.get(emote.name)!;
+                // Only log if the emotes are actually different (not identical duplicates)
+                if (existingEmote.url !== emote.url || existingEmote.type !== emote.type) {
+                    console.log(
+                        `Duplicate emote found: ${emote.name}\n` +
+                            `  Existing: ${existingEmote.type} - ${existingEmote.url}\n` +
+                            `  New:      ${emote.type} - ${emote.url}`,
+                    );
+                }
+            } else {
+                emotesMap.set(emote.name, emote);
+            }
+        }
     }
 
     return emotesMap;
 }
 
 /**
- * Get an emote from a map by name, or return a placeholder emote if not found
+ * Get an emote from a record by name, or return a placeholder emote if not found
  */
-export function getEmoteOrPlaceholder(emotesMap: Map<string, Emote>, name: string): Emote {
-    const emote = emotesMap.get(name);
+export function getEmoteOrPlaceholder(emotesRecord: Record<string, Emote>, name: string): Emote {
+    const emote = emotesRecord[name];
     return (
         emote || {
             name,
@@ -82,9 +125,9 @@ export function getEmoteOrPlaceholder(emotesMap: Map<string, Emote>, name: strin
  */
 export function parseMessageWithEmotes(
     messageText: string,
-    emotes: Map<string, Emote>,
+    emotes: Record<string, Emote>,
 ): (string | Emote)[] {
-    if (!emotes.size) {
+    if (!Object.keys(emotes).length) {
         return [messageText];
     }
 
@@ -95,8 +138,8 @@ export function parseMessageWithEmotes(
     const parts = normalizedText.split(/( )/);
 
     return parts.map((part) => {
-        if (emotes.has(part)) {
-            return emotes.get(part)!;
+        if (emotes[part]) {
+            return emotes[part];
         }
         return part;
     });

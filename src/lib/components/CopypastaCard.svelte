@@ -8,14 +8,14 @@
         message: string;
 
         // Display settings
-        emotes?: Map<string, Emote>;
+        emotes?: Record<string, Emote>;
         isFavorited?: boolean;
 
         // Event handlers
         onClick?: (message: string) => void;
     }
 
-    let { message, emotes = new Map(), isFavorited = false, onClick }: Props = $props();
+    let { message, emotes = {}, isFavorited = false, onClick }: Props = $props();
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
