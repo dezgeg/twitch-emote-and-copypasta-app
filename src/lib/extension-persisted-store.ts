@@ -1,104 +1,108 @@
-// Custom persisted store that works with extension storage bridge and localStorage fallback
+// Custom persisted store that works with Tampermonkey storage or falls back to svelte-persisted-store
 import { writable, type Writable } from "svelte/store";
-import { extensionStorage, getStorageType } from "./extension-bridge";
+import { persisted } from "svelte-persisted-store";
 
 export interface ExtensionPersistedStore<T> extends Writable<T> {
     reset(): void;
 }
 
-// Storage adapter that automatically chooses the best storage method
-class StorageAdapter {
-    private storageType: "tampermonkey" | "localStorage";
-
-    constructor() {
-        this.storageType = getStorageType();
+// Global interface for Tampermonkey storage exposed to page context
+declare global {
+    interface Window {
+        TampermonkeyStorage?: {
+            getValue: (key: string, defaultValue?: any) => any;
+            setValue: (key: string, value: any) => void;
+            deleteValue: (key: string) => void;
+            listValues: () => string[];
+            addValueChangeListener: (
+                key: string,
+                callback: (key: string, oldValue: any, newValue: any, remote: boolean) => void,
+            ) => string;
+        };
     }
+}
 
-    async getItem(key: string): Promise<string | null> {
-        // Always use extensionStorage which handles all cases internally
-        return await extensionStorage.getItem(key);
-    }
-
-    async setItem(key: string, value: string): Promise<void> {
-        // Always use extensionStorage which handles all cases internally
-        await extensionStorage.setItem(key, value);
-    }
-
-    async removeItem(key: string): Promise<void> {
-        // Always use extensionStorage which handles all cases internally
-        await extensionStorage.removeItem(key);
-    }
-
-    getStorageType(): "tampermonkey" | "localStorage" {
-        return this.storageType;
-    }
+// Helper function to detect if Tampermonkey is available
+function hasTampermonkey(): boolean {
+    return typeof window.TampermonkeyStorage !== "undefined";
 }
 
 export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPersistedStore<T> {
-    const store = writable<T>(initialValue);
-    const storage = new StorageAdapter();
-    let isInitialized = false;
+    // Check if Tampermonkey is available
+    if (hasTampermonkey()) {
+        // Use Tampermonkey storage with our custom implementation
+        const store = writable<T>(initialValue);
+        let isInitialized = false;
 
-    // Log storage type for debugging
-    console.log(`ExtensionPersistedStore[${key}]: Using storage type: ${storage.getStorageType()}`);
+        console.log(`ExtensionPersistedStore[${key}]: Using Tampermonkey storage`);
 
-    // Initialize store with value from storage
-    const initializeStore = async () => {
-        if (isInitialized) return;
+        // Initialize store with value from Tampermonkey storage
+        const initializeStore = async () => {
+            if (isInitialized) return;
 
-        try {
-            const storedValue = await storage.getItem(key);
-            if (storedValue !== null) {
-                const parsedValue = JSON.parse(storedValue);
-                store.set(parsedValue);
-                console.log(`ExtensionPersistedStore[${key}]: Loaded from storage:`, parsedValue);
-            } else {
-                console.log(
-                    `ExtensionPersistedStore[${key}]: No stored value found, using initial value`,
-                );
-            }
-            isInitialized = true;
-        } catch (error) {
-            console.error(`Failed to initialize persisted store for key "${key}":`, error);
-            isInitialized = true;
-        }
-    };
-
-    // Subscribe to store changes and persist them
-    store.subscribe(async (value) => {
-        if (!isInitialized) return;
-
-        try {
-            await storage.setItem(key, JSON.stringify(value));
-        } catch (error) {
-            console.error(`Failed to persist store value for key "${key}":`, error);
-        }
-    });
-
-    // Initialize the store
-    initializeStore();
-
-    return {
-        ...store,
-        reset: async () => {
             try {
-                await storage.removeItem(key);
-                store.set(initialValue);
+                const storedValue = window.TampermonkeyStorage!.getValue(key, null);
+                if (storedValue !== null) {
+                    const parsedValue = JSON.parse(storedValue);
+                    store.set(parsedValue);
+                    console.log(
+                        `ExtensionPersistedStore[${key}]: Loaded from Tampermonkey storage:`,
+                        parsedValue,
+                    );
+                } else {
+                    console.log(
+                        `ExtensionPersistedStore[${key}]: No stored value found, using initial value`,
+                    );
+                }
+                isInitialized = true;
             } catch (error) {
-                console.error(`Failed to reset persisted store for key "${key}":`, error);
+                console.error(`Failed to initialize persisted store for key "${key}":`, error);
+                isInitialized = true;
             }
-        },
-    };
+        };
+
+        // Subscribe to store changes and persist them
+        store.subscribe(async (value) => {
+            if (!isInitialized) return;
+
+            try {
+                window.TampermonkeyStorage!.setValue(key, JSON.stringify(value));
+            } catch (error) {
+                console.error(`Failed to persist store value for key "${key}":`, error);
+            }
+        });
+
+        // Initialize the store
+        initializeStore();
+
+        return {
+            ...store,
+            reset: async () => {
+                try {
+                    window.TampermonkeyStorage!.deleteValue(key);
+                    store.set(initialValue);
+                } catch (error) {
+                    console.error(`Failed to reset persisted store for key "${key}":`, error);
+                }
+            },
+        };
+    } else {
+        // Fallback to svelte-persisted-store for localStorage
+        console.log(
+            `ExtensionPersistedStore[${key}]: Using localStorage via svelte-persisted-store`,
+        );
+        return persisted(key, initialValue) as ExtensionPersistedStore<T>;
+    }
 }
 
-// Helper function to migrate from regular localStorage to extension storage
+// Helper function to migrate from regular localStorage to Tampermonkey storage
 export async function migrateFromLocalStorage(key: string): Promise<string | null> {
     try {
         // Check if we have data in regular localStorage
         const localStorageValue = localStorage.getItem(key);
-        if (localStorageValue !== null) {
-            // Migrate to extension storage
-            await extensionStorage.setItem(key, localStorageValue);
+        if (localStorageValue !== null && window.TampermonkeyStorage) {
+            // Migrate to Tampermonkey storage
+            window.TampermonkeyStorage.setValue(key, localStorageValue);
             // Remove from localStorage to avoid conflicts
             localStorage.removeItem(key);
             return localStorageValue;
