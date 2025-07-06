@@ -1,33 +1,22 @@
 <script lang="ts">
     import { page } from "$app/stores";
-    import { onMount } from "svelte";
-    import { createEmoteDataStore, type Emote, type EmoteDataStore } from "$lib/emote-api";
+    import { createEmoteDataStore, type EmoteDataStore, type Emote } from "$lib/emote-api";
     import { getFavoriteEmotesStore } from "$lib/stores";
-    import { requireAuth } from "$lib/auth-guard";
-    import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
 
-    let fetchStatus: any;
     let searchTerm = $state("");
 
     let channel = $derived($page.params.channel);
+
+    // Create our own store instance (will share cached data with layout)
+    let allEmotesStore = $derived(createEmoteDataStore(channel));
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
 
-    // Initialize emote store directly
-    let allEmotesStore = $derived(createEmoteDataStore(channel));
-
     let filteredEmotes: Emote[] = $derived(
-        (Object.values($allEmotesStore) as Emote[]).filter((emote: Emote) =>
-            emote.name.toLowerCase().includes(searchTerm.toLowerCase()),
-        ),
+        (Object.values($allEmotesStore) as Emote[])
+            .filter((emote: Emote) => emote.name.toLowerCase().includes(searchTerm.toLowerCase()))
+            .slice(0, 50),
     );
-
-    onMount(async () => {
-        fetchStatus.run(async () => {
-            const token = await requireAuth();
-            await allEmotesStore.lazyFetch(token);
-        });
-    });
 
     function toggleFavorite(emote: { name: string; url: string; type: string }) {
         if ($favoriteEmotesStore.includes(emote.name)) {
@@ -49,35 +38,37 @@
     <title>Twitch Emote and Copypasta App - Manage Emotes for {channel}</title>
 </svelte:head>
 
-<FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load emotes">
-    <div class="page-padding">
-        <div class="search-container">
-            <input
-                type="text"
-                placeholder="Search emotes..."
-                bind:value={searchTerm}
-                class="search-input"
-                onkeydown={handleSearchKeydown}
-            />
-            <div class="results-count">
-                {filteredEmotes.length} emotes found
-            </div>
-        </div>
-
-        <div class="emotes-grid">
-            {#each filteredEmotes as emote (emote.name)}
-                <EmoteCard
-                    {emote}
-                    mode="add"
-                    isFavorited={$favoriteEmotesStore.includes(emote.name)}
-                    onClick={toggleFavorite}
-                />
+<div class="page-padding">
+    <div class="search-container">
+        <input
+            type="text"
+            placeholder="Search emotes..."
+            bind:value={searchTerm}
+            class="search-input"
+            onkeydown={handleSearchKeydown}
+        />
+        <div class="results-count">
+            {#if filteredEmotes.length === 50}
+                50+ emotes found (showing first 50)
             {:else}
-                <p>No emotes found matching "{searchTerm}"</p>
-            {/each}
+                {filteredEmotes.length} emotes found
+            {/if}
         </div>
     </div>
-</FetchStatus>
+
+    <div class="emotes-grid">
+        {#each filteredEmotes as emote (emote.name)}
+            <EmoteCard
+                {emote}
+                mode="add"
+                isFavorited={$favoriteEmotesStore.includes(emote.name)}
+                onClick={toggleFavorite}
+            />
+        {:else}
+            <p>No emotes found matching "{searchTerm}"</p>
+        {/each}
+    </div>
+</div>
 
 <style>
     .search-container {

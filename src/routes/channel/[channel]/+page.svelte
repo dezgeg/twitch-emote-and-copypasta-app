@@ -1,53 +1,31 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import { onMount } from "svelte";
-    import { browser } from "$app/environment";
     import {
         createEmoteDataStore,
         getEmoteOrPlaceholder,
-        type Emote,
         type EmoteDataStore,
     } from "$lib/emote-api";
     import { getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
     import { sendChatMessage, getUser } from "$lib/twitch-api";
     import { requireAuth } from "$lib/auth-guard";
-    import FetchStatus from "$lib/components/FetchStatus.svelte";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import CopypastaCard from "$lib/components/CopypastaCard.svelte";
-    import ChatPanel from "$lib/components/ChatPanel.svelte";
 
-    let fetchStatus: any;
     let broadcasterId = $state("");
     let senderId = $state("");
     let lastSentMessage = $state("");
 
     let channel = $derived($page.params.channel);
+
+    // Create our own store instance (will share cached data with layout)
+    let allEmotesStore = $derived(createEmoteDataStore(channel));
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
 
-    // Initialize emote store directly
-    let allEmotesStore = $derived(createEmoteDataStore(channel));
-
-    // Detect if running in iframe
-    let isInIframe = $derived(browser && window.self !== window.top);
-
     onMount(async () => {
-        fetchStatus.run(async () => {
-            // Load emotes and user IDs in parallel
-            await Promise.all([loadEmotes(), loadUserIds()]);
-        });
+        await loadUserIds();
     });
-
-    async function loadEmotes() {
-        const token = await requireAuth();
-        try {
-            // Trigger lazy fetch on the emote store with token
-            await allEmotesStore.lazyFetch(token);
-        } catch (err) {
-            console.error("Error fetching emote URLs:", err);
-            // If API fails, getEmoteOrPlaceholder will handle it
-        }
-    }
 
     async function loadUserIds() {
         const token = await requireAuth();
@@ -121,62 +99,32 @@
     <title>Twitch Emote and Copypasta App - {channel} Favorites</title>
 </svelte:head>
 
-<FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load channel data">
-    <div class="main-container" class:iframe={isInIframe}>
-        <div class="favorites-content">
-            <div class="page-padding">
-                <section class="emotes-section">
-                    <div class="emotes-grid">
-                        {#each $favoriteEmotesStore as emoteName (emoteName)}
-                            {@const emote = getEmoteOrPlaceholder($allEmotesStore, emoteName)}
-                            <EmoteCard {emote} mode="view" onClick={sendToChat} />
-                        {:else}
-                            <p>No favorite emotes yet.</p>
-                        {/each}
-                    </div>
-                </section>
-
-                <hr class="section-separator" />
-
-                <section class="copypastas-section">
-                    <div class="copypastas-list">
-                        {#each $favoriteCopypastasStore as copypasta (copypasta)}
-                            <CopypastaCard
-                                message={copypasta}
-                                {allEmotesStore}
-                                onClick={sendToChat}
-                            />
-                        {:else}
-                            <p>No favorite copypastas yet.</p>
-                        {/each}
-                    </div>
-                </section>
-            </div>
+<div class="page-padding">
+    <section class="emotes-section">
+        <div class="emotes-grid">
+            {#each $favoriteEmotesStore as emoteName (emoteName)}
+                {@const emote = getEmoteOrPlaceholder($allEmotesStore, emoteName)}
+                <EmoteCard {emote} mode="view" onClick={sendToChat} />
+            {:else}
+                <p>No favorite emotes yet.</p>
+            {/each}
         </div>
+    </section>
 
-        <ChatPanel {channel} {allEmotesStore} />
-    </div>
-</FetchStatus>
+    <hr class="section-separator" />
+
+    <section class="copypastas-section">
+        <div class="copypastas-list">
+            {#each $favoriteCopypastasStore as copypasta (copypasta)}
+                <CopypastaCard message={copypasta} {allEmotesStore} onClick={sendToChat} />
+            {:else}
+                <p>No favorite copypastas yet.</p>
+            {/each}
+        </div>
+    </section>
+</div>
 
 <style>
-    .main-container {
-        display: flex;
-        flex-direction: column;
-        height: calc(100vh - var(--nav-height, 1cm));
-    }
-
-    .main-container.iframe {
-        height: calc(100vh - 48px);
-        flex-direction: column;
-        overflow: hidden;
-        width: 100%;
-    }
-
-    .favorites-content {
-        flex: 1;
-        overflow-y: auto;
-    }
-
     .section-separator {
         border: none;
         border-top: 1px solid var(--border-color);
@@ -193,23 +141,6 @@
         display: flex;
         flex-direction: column;
         gap: 0.125rem;
-    }
-
-    /* Desktop layout - sidebar */
-    @media (min-width: 1024px) {
-        .main-container:not(.iframe) {
-            flex-direction: row;
-        }
-
-        .main-container:not(.iframe) .favorites-content {
-            flex: 1;
-            border-right: 1px solid var(--border-color);
-        }
-
-        /* In iframe, keep vertical layout even on desktop for better fit */
-        .main-container.iframe {
-            flex-direction: column;
-        }
     }
 
     @media (max-width: 600px) {
