@@ -27,7 +27,7 @@
     onclick={onClick ? () => onClick(message) : undefined}
 >
     <div class="message-content">
-        {#each parseMessageWithEmotes(message, allEmotesStore) as part}
+        {#each parseMessageWithEmotes(message, $allEmotesStore) as part}
             {#if typeof part === "string"}
                 {part}
             {:else}

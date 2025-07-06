@@ -42,7 +42,7 @@
         <section class="emotes-section">
             <DragAndDropList store={favoriteEmotesStore} {trashDropZone}>
                 {#snippet renderItem(emoteName: string)}
-                    {@const emote = getEmoteOrPlaceholder(allEmotesStore, emoteName)}
+                    {@const emote = getEmoteOrPlaceholder($allEmotesStore, emoteName)}
                     <EmoteCard {emote} mode="edit" />
                 {/snippet}
                 {#snippet renderEmpty()}

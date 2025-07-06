@@ -326,7 +326,7 @@
                             >{chatMessage.user_name}:</span
                         >
                         <span class="message-content">
-                            {#each parseMessageWithEmotes(chatMessage.message, allEmotesStore) as part}
+                            {#each parseMessageWithEmotes(chatMessage.message, $allEmotesStore) as part}
                                 {#if typeof part === "string"}
                                     {part}
                                 {:else}

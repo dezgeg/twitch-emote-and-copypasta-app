@@ -128,7 +128,7 @@
                 <section class="emotes-section">
                     <div class="emotes-grid">
                         {#each $favoriteEmotesStore as emoteName (emoteName)}
-                            {@const emote = getEmoteOrPlaceholder(allEmotesStore, emoteName)}
+                            {@const emote = getEmoteOrPlaceholder($allEmotesStore, emoteName)}
                             <EmoteCard {emote} mode="view" onClick={sendToChat} />
                         {:else}
                             <p>No favorite emotes yet.</p>

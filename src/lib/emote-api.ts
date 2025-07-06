@@ -107,10 +107,9 @@ async function loadEmotesData(apiKey: string, channel: string): Promise<Record<s
 }
 
 /**
- * Get an emote from a store by name, or return a placeholder emote if not found
+ * Get an emote from a record by name, or return a placeholder emote if not found
  */
-export function getEmoteOrPlaceholder(emotesStore: EmoteDataStore, name: string): Emote {
-    const emotesRecord = get(emotesStore);
+export function getEmoteOrPlaceholder(emotesRecord: Record<string, Emote>, name: string): Emote {
     const emote = emotesRecord[name];
     return (
         emote || {
@@ -126,10 +125,9 @@ export function getEmoteOrPlaceholder(emotesStore: EmoteDataStore, name: string)
  */
 export function parseMessageWithEmotes(
     messageText: string,
-    allEmotesStore: EmoteDataStore,
+    emotesRecord: Record<string, Emote>,
 ): (string | Emote)[] {
-    const emotes = get(allEmotesStore);
-    if (!Object.keys(emotes).length) {
+    if (!Object.keys(emotesRecord).length) {
         return [messageText];
     }
 
@@ -140,8 +138,8 @@ export function parseMessageWithEmotes(
     const parts = normalizedText.split(/( )/);
 
     return parts.map((part) => {
-        if (emotes[part]) {
-            return emotes[part];
+        if (emotesRecord[part]) {
+            return emotesRecord[part];
         }
         return part;
     });
