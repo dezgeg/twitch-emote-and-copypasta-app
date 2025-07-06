@@ -2,7 +2,7 @@
     "name": "Twitch Emote and Copypasta App",
     "short_name": "TwitchEmotes",
     "description": "Quickly use your favorite emotes and copypastas in Twitch chats",
-    "start_url": "/twitch-emote-and-copypasta-app/",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#9146FF",
     "theme_color": "#9146FF",
@@ -10,20 +10,20 @@
     "categories": ["entertainment", "social"],
     "icons": [
         {
-            "src": "/twitch-emote-and-copypasta-app/icon-192.png",
+            "src": "./icon-192.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/twitch-emote-and-copypasta-app/icon-512.png",
+            "src": "./icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/twitch-emote-and-copypasta-app/apple-touch-icon.png",
-            "sizes": "180x180",
+            "src": "./icon-192.png",
+            "sizes": "192x192",
             "type": "image/png"
         }
     ]

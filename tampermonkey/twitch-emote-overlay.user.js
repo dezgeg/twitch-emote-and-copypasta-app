@@ -8,6 +8,7 @@
 // @match        https://twitch.tv/*
 // @match        http://localhost:5173/*
 // @match        https://localhost:5173/*
+// @match        https://dezgeg.github.io/twitch-emote-and-copypasta-app/*
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
