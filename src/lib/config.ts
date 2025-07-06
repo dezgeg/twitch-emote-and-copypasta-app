@@ -11,7 +11,7 @@ export const TWITCH_OAUTH_SCOPES = [
     "user:read:email",
     "user:read:follows",
     "user:read:chat",
-    "chat:edit",
+    "user:write:chat",
 ];
 
 // You can get a Client ID by:

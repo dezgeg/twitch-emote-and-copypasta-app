@@ -230,7 +230,7 @@
                 <li><code>user:read:email</code> - Read your basic profile information</li>
                 <li><code>user:read:follows</code> - Access your followed channels list</li>
                 <li><code>user:read:chat</code> - Read chat messages from channels</li>
-                <li><code>chat:edit</code> - Send messages to chat</li>
+                <li><code>user:write:chat</code> - Send messages to chat</li>
             </ul>
         </div>
     </div>
