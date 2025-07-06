@@ -4,8 +4,8 @@ import { TWITCH_CLIENT_ID, TWITCH_OAUTH_REDIRECT_URI, TWITCH_OAUTH_SCOPES } from
 export interface OAuthToken {
     access_token: string;
     token_type: string;
-    expires_in: number;
-    expires_at: number;
+    expires_in: number; // Can be Infinity for non-expiring tokens
+    expires_at: number; // Can be Infinity for non-expiring tokens
     scope: string[];
 }
 
@@ -91,9 +91,9 @@ export function parseOAuthCallback(): OAuthToken | null {
         return null;
     }
 
-    // If expires_in is not provided, default to 4 hours (typical for Twitch tokens)
-    const expiresInSeconds = expires_in ? parseInt(expires_in, 10) : 4 * 60 * 60;
-    const expiresAt = Date.now() + expiresInSeconds * 1000;
+    // If expires_in is not provided, treat as non-expiring token
+    const expiresInSeconds = expires_in ? parseInt(expires_in, 10) : Infinity;
+    const expiresAt = expires_in ? Date.now() + expiresInSeconds * 1000 : Infinity;
 
     return {
         access_token,
