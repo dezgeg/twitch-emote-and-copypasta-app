@@ -22,6 +22,9 @@ declare global {
     }
 }
 
+// Global map to ensure one store instance per key
+const globalStoreMap = new Map<string, ExtensionPersistedStore<any>>();
+
 export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPersistedStore<T> {
     // Early return for localStorage fallback when Tampermonkey not available
     if (typeof window.TampermonkeyStorage === "undefined") {
@@ -31,11 +34,17 @@ export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPe
         return persisted(key, initialValue) as ExtensionPersistedStore<T>;
     }
 
-    // Use Tampermonkey storage with our custom implementation
+    // Return existing store if already created for this key
+    if (globalStoreMap.has(key)) {
+        console.log(`ExtensionPersistedStore[${key}]: Returning existing store`);
+        return globalStoreMap.get(key)! as ExtensionPersistedStore<T>;
+    }
+
+    // Create new store for this key
     const store = writable<T>(initialValue);
     let isInitialized = false;
 
-    console.log(`ExtensionPersistedStore[${key}]: Using Tampermonkey storage`);
+    console.log(`ExtensionPersistedStore[${key}]: Creating new store with Tampermonkey storage`);
 
     // Initialize store with value from Tampermonkey storage
     const initializeStore = async () => {
@@ -73,10 +82,40 @@ export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPe
         }
     });
 
+    // Listen for changes from other tabs/contexts
+    if (window.TampermonkeyStorage.addValueChangeListener) {
+        window.TampermonkeyStorage.addValueChangeListener(
+            key,
+            (changedKey, oldValue, newValue, remote) => {
+                // Only handle changes from other contexts (remote=true)
+                if (remote && changedKey === key) {
+                    try {
+                        if (newValue !== null) {
+                            const parsedValue = JSON.parse(newValue);
+                            store.set(parsedValue);
+                            console.log(
+                                `ExtensionPersistedStore[${key}]: Synced from other context:`,
+                                parsedValue,
+                            );
+                        } else {
+                            // Value was deleted in another context
+                            store.set(initialValue);
+                            console.log(
+                                `ExtensionPersistedStore[${key}]: Value deleted in other context, reset to initial value`,
+                            );
+                        }
+                    } catch (error) {
+                        console.error(`Failed to sync value change for key "${key}":`, error);
+                    }
+                }
+            },
+        );
+    }
+
     // Initialize the store
     initializeStore();
 
-    return {
+    const extensionStore: ExtensionPersistedStore<T> = {
         ...store,
         reset: async () => {
             try {
@@ -87,4 +126,9 @@ export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPe
             }
         },
     };
+
+    // Store in global map
+    globalStoreMap.set(key, extensionStore);
+
+    return extensionStore;
 }
