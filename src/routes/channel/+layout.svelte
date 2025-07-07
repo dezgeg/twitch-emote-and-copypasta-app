@@ -41,7 +41,7 @@
     .main-container {
         display: flex;
         flex-direction: column;
-        height: calc(100vh - var(--nav-height, 1cm));
+        height: calc(100vh - var(--nav-height, 32px));
     }
 
     .content {

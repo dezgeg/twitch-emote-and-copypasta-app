@@ -46,7 +46,7 @@
     {#if isInIframe()}
         <Button
             variant="icon"
-            size="large"
+            size="small"
             onclick={closeIframe}
             title="Close overlay"
             class="nav-close-button">×</Button
@@ -58,7 +58,7 @@
     nav {
         display: flex;
         align-items: stretch;
-        height: 1cm;
+        height: 32px;
         margin: 0;
         background: #2f2f2f;
         border-bottom: 1px solid #5f5f5f;
@@ -68,6 +68,7 @@
         overflow-x: auto;
         width: 100%;
         gap: 0;
+        box-sizing: border-box;
     }
 
     nav a {
@@ -81,6 +82,7 @@
         align-items: center;
         white-space: nowrap;
         transition: background-color 0.1s ease;
+        box-sizing: border-box;
     }
 
     nav a:hover {
@@ -114,8 +116,7 @@
     /* Narrow layout: mobile screens or constrained width contexts */
     @media (max-width: 1023px) {
         nav {
-            height: auto;
-            min-height: 1cm;
+            min-height: 32px;
             flex-wrap: wrap;
             padding-left: 0;
             overflow: hidden;

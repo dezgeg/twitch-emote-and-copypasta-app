@@ -62,7 +62,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 1cm;
+        height: 32px;
         padding: 0 1rem;
         border: none;
         border-bottom: 2px dashed var(--border-color);
@@ -99,7 +99,7 @@
     @media (max-width: 768px) {
         .trash-zone {
             height: auto;
-            min-height: 1cm;
+            min-height: 32px;
             flex-wrap: wrap;
         }
     }
