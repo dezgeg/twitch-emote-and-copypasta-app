@@ -51,9 +51,11 @@
                 padding: 1rem;
             }
 
-            /* Reduced padding for iframe mode */
-            .iframe-mode .page-padding {
-                padding: 0.5rem;
+            /* Reduced padding for narrow layouts (mobile or constrained width) */
+            @media (max-width: 1023px) {
+                .page-padding {
+                    padding: 0.5rem;
+                }
             }
 
             /* Headings */

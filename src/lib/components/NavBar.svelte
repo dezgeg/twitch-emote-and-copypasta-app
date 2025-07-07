@@ -22,7 +22,7 @@
     }
 </script>
 
-<nav class:iframe={isInIframe()}>
+<nav>
     {#if !isInIframe()}
         <a href="{base}/" class:active={routeId === "/"}>📺</a>
     {/if}
@@ -70,13 +70,6 @@
         gap: 0;
     }
 
-    nav.iframe {
-        height: 48px;
-        padding-left: 0;
-        overflow: hidden;
-        box-sizing: border-box;
-    }
-
     nav a {
         color: #ffffff;
         text-decoration: none;
@@ -88,14 +81,6 @@
         align-items: center;
         white-space: nowrap;
         transition: background-color 0.1s ease;
-    }
-
-    nav.iframe a {
-        padding: 0 0.5rem;
-        font-size: 0.75rem;
-        min-width: auto;
-        flex-shrink: 1;
-        box-sizing: border-box;
     }
 
     nav a:hover {
@@ -126,11 +111,15 @@
         font-size: 20px !important;
     }
 
-    @media (max-width: 600px) {
+    /* Narrow layout: mobile screens or constrained width contexts */
+    @media (max-width: 1023px) {
         nav {
             height: auto;
             min-height: 1cm;
             flex-wrap: wrap;
+            padding-left: 0;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
         nav a {
@@ -138,6 +127,16 @@
             min-width: auto;
             justify-content: center;
             padding: 0 0.5rem;
+            font-size: 0.75rem;
+            flex-shrink: 1;
+            box-sizing: border-box;
+        }
+    }
+
+    /* Mobile-specific additional height constraint */
+    @media (max-width: 600px) {
+        nav {
+            min-height: 1cm;
         }
     }
 </style>

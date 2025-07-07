@@ -5,7 +5,6 @@
     import { requireAuth } from "$lib/auth-guard";
     import ChatPanel from "$lib/components/ChatPanel.svelte";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
-    import { isInIframe } from "$lib/utils";
 
     let fetchStatus: any;
 
@@ -29,7 +28,7 @@
 </script>
 
 <FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load channel data">
-    <div class="main-container" class:iframe={isInIframe()}>
+    <div class="main-container">
         <div class="content">
             {@render children()}
         </div>
@@ -45,32 +44,28 @@
         height: calc(100vh - var(--nav-height, 1cm));
     }
 
-    .main-container.iframe {
-        height: calc(100vh - 48px);
-        flex-direction: column;
-        overflow: hidden;
-        width: 100%;
-    }
-
     .content {
         flex: 1;
         overflow-y: auto;
     }
 
-    /* Desktop layout - sidebar */
+    /* Wide desktop layout - horizontal sidebar */
     @media (min-width: 1024px) {
-        .main-container:not(.iframe) {
+        .main-container {
             flex-direction: row;
         }
 
-        .main-container:not(.iframe) .content {
+        .content {
             flex: 1;
             border-right: 1px solid var(--border-color);
         }
+    }
 
-        /* In iframe, keep vertical layout even on desktop for better fit */
-        .main-container.iframe {
-            flex-direction: column;
+    /* Narrow layouts (mobile or constrained width) stay vertical */
+    @media (max-width: 1023px) {
+        .main-container {
+            overflow: hidden;
+            width: 100%;
         }
     }
 </style>

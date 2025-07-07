@@ -9,17 +9,33 @@ This project (Twitch Emote and Copypasta App) allows the user to quickly use the
 Functional requirements:
 
 - [x] Should allow user to maintain a list of favourite emotes per Twitch channel and post them to the chat.
-- [x] Should work with both official Twitch emotes (global and subscriber) and 7TV extension emotes.
-- [x] Also supports BetterTTV (BTTV) and FrankerFaceZ (FFZ) emotes.
-- [x] Emotes are cached for better performance.
-- [x] Actual Twitch API integration for sending chat messages.
-- [ ] Should support copypastas (not yet implemented).
+- [x] Should work with official Twitch emotes (global and subscriber) BetterTTV, FrankerFaceZ and 7TV extension emotes.
+- [x] Should allow user to maintain a list of favourite copypastas per Twitch channel and post them to the chat.
+- [x] Should show live Twitch chat and be able to add emotes and copypastas from chat.
 
 Technical requirements:
 
-- [x] Should be a single-page web app that works on mobile (primary usecase) and desktop (for development).
-- [x] Should work without a backend if possible (connect directly to Twitch APIs, store all settings in localStorage).
+- [x] Should be a single-page web app that works across multiple deployment targets.
+- [x] Should work without a backend (connect directly to Twitch APIs, store all settings locally).
 - [x] Should use Svelte with SvelteKit.
+
+### Deployment Targets
+
+The app is designed to work across three distinct deployment scenarios:
+
+1. **Mobile (Browser or PWA)**
+
+    - Layout: Narrow/mobile-optimized layout
+    - Storage: Browser localStorage
+
+2. **Desktop in Tampermonkey iframe overlaid on twitch.tv**
+
+    - Layout: Narrow/mobile-like layout
+    - Storage: Tampermonkey userscript storage
+
+3. **Desktop in regular browser**
+    - Layout: Wide layout with chat panel sidebar
+    - Storage: Tampermonkey userscript storage if installed, otherwise fall back to browser localStorage
 
 ## Views / routes
 
@@ -31,11 +47,8 @@ Technical requirements:
 
 ### Set-up (`/setup`)
 
-- [x] Provides secure Twitch OAuth authentication using OIDC implicit grant flow.
-- [x] Shows user profile information and authentication status.
-- [x] Provides fallback manual token input for advanced users.
-- [x] Detailed setup instructions with links to Twitch Developer Console.
-- [x] Automatic token validation and error handling.
+- [x] Allows user to authenticate with Twitch using OAuth
+- [x] Allows user to reset app state (mostly for debugging)
 
 ### Channel Navigation
 
@@ -45,62 +58,24 @@ All channel pages (`/channel/<channel>`, `/channel/<channel>/add`) share the sam
 - [x] Current channel favorites (`/channel/<channel>`)
 - [x] Add emotes (`/channel/<channel>/add`)
 
+All channel pages show Twitch chat of that channel:
+
+- [x] Live Twitch chat (with emotes).
+- [x] Can manually type to chat, or type an emote/copypasta to be favourited.
+- [x] Clicking a chat message adds/removes it from favourite emotes/copypastas.
+
 ### Favourite emotes & copypastas (`/channel/<channel>`)
 
-- [x] Shows the user's favourited emotes in a grid.
-- [x] Clicking an emote sends it to the chat via Twitch API.
+- [x] Shows the user's favourited emotes and copypastas in a grid.
+- [x] Clicking an emote/copypasta sends it to the chat.
 - [x] Drag & drop functionality to reorder emotes and copypastas.
-- [x] Drag to trash zone to delete items from favourites.
-- [x] Live preview of reordering while dragging.
-- [x] Touch/mobile support for drag and drop.
-- [x] Shows error notifications if chat message sending fails.
-- [x] Integrated live chat panel showing recent chat messages.
-- [x] Clicking a chat message adds/removes it from favourite copypastas.
-- [x] Displays emotes in chat messages graphically instead of as text.
-- [x] Real-time chat updates via WebSocket connection.
-- [x] Auto-scrolling chat that respects user scroll position.
-- [x] Shows the user's favourited copypastas.
-- [x] Clicking a copypasta sends it to the chat via Twitch API.
+- [x] Drag & drop to trash zone to delete items from favourites.
 
 ### Adding favourite emotes (`/channel/<channel>/add`)
 
 - [x] Shows all available emotes for the channel (Twitch, 7TV, BTTV, and FFZ).
 - [x] Clicking an emote adds/removes it from favourites.
 - [x] List is searchable by name.
-- [x] Shows emote count and search results.
-- [x] Visual indicators for already favorited emotes.
-
-## Additional Technical Features
-
-### Authentication & Security
-
-- [x] OAuth 2.0 OIDC implicit grant flow for secure authentication.
-- [x] Automatic token validation and expiration handling.
-- [x] CSRF protection with state parameter verification.
-- [x] Secure token storage in browser localStorage.
-- [x] Backward compatibility with manual API tokens.
-
-### Performance Optimizations
-
-- [x] In-memory caching of emote data to avoid redundant API calls.
-- [x] Parallel loading of emote types (Twitch, 7TV, BTTV, FFZ) for faster performance.
-- [x] Responsive grid layouts optimized for mobile and desktop.
-
-### User Experience
-
-- [x] Instagram-style tight grid layout for emotes.
-- [x] Mobile-first responsive design with touch support.
-- [x] Accessibility features with proper ARIA roles and keyboard navigation.
-- [x] Visual feedback for drag operations and hover states.
-- [x] Auto-saving of preferences to localStorage.
-
-### Code Quality
-
-- [x] TypeScript for type safety.
-- [x] Svelte 5 with modern syntax and best practices.
-- [x] Proper error handling and user feedback.
-- [x] Clean component architecture with reusable EmoteCard component.
-- [x] Zero compilation warnings or errors.
 
 # Development Commands
 

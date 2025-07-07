@@ -12,7 +12,7 @@
     import ParsedMessage from "./ParsedMessage.svelte";
     import Button from "./Button.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
-    import { isInIframe, toggleInArray } from "$lib/utils";
+    import { toggleInArray } from "$lib/utils";
 
     interface Props {
         channel: string;
@@ -228,10 +228,7 @@
 
 <div
     class="chat-container"
-    class:iframe={isInIframe()}
-    style:height={isInIframe() || (browser && window.innerWidth < 1024)
-        ? `${$chatHeightStore}px`
-        : null}
+    style:height={browser && window.innerWidth < 1024 ? `${$chatHeightStore}px` : null}
 >
     <!-- Resize handle for mobile -->
     <div
@@ -563,21 +560,18 @@
         .chat-container:not(.iframe) .chat-error {
             margin-top: 0; /* Reset margin for desktop */
         }
+    }
 
-        /* In iframe, keep mobile layout even on desktop */
-        .chat-container.iframe {
+    /* Narrow layout: mobile screens or constrained width contexts */
+    @media (max-width: 1023px) {
+        .chat-container {
             width: 100%;
-            height: 250px;
             border-top: 1px solid var(--border-color);
             border-left: none;
         }
     }
 
     @media (max-width: 600px) {
-        .chat-container {
-            height: 250px;
-        }
-
         .chat-message {
             padding: 0.25rem 0.5rem;
             font-size: 0.8rem;
