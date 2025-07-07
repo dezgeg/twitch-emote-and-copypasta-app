@@ -8,11 +8,8 @@
     } from "$lib/stores";
     import { persisted } from "svelte-persisted-store";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
-    import {
-        sendChatMessage,
-        getUser,
-        type ChatMessage as TwitchChatMessage,
-    } from "$lib/twitch-api";
+    import { getUser, type ChatMessage as TwitchChatMessage } from "$lib/twitch-api";
+    import { sendChatMessageWithDuplicateHandling } from "$lib/chat-utils";
     import type { Emote, EmoteDataStore } from "$lib/emote-api";
     import { parseMessageWithEmotes } from "$lib/emote-api";
     import Spinner from "./Spinner.svelte";
@@ -41,7 +38,6 @@
     // Message input state
     let messageInput = $state("");
     let sendingMessage = $state(false);
-    let messageError = $state("");
     let currentUser = $state<{ id: string; login: string } | null>(null);
     let broadcasterUser = $state<{ id: string; login: string } | null>(null);
     let lastSentMessage = $state<string>("");
@@ -211,17 +207,20 @@
         const message = messageInput.trim();
         messageInput = "";
         sendingMessage = true;
-        messageError = "";
 
         try {
-            await sendChatMessage($currentAccessToken, broadcasterUser.id, currentUser.id, message);
+            await sendChatMessageWithDuplicateHandling(
+                $currentAccessToken,
+                broadcasterUser.id,
+                currentUser.id,
+                message,
+            );
 
             // Track successfully sent message for potential copypasta saving
             lastSentMessage = message;
         } catch (err) {
-            console.error("Error sending message:", err);
-            messageError = err instanceof Error ? err.message : "Failed to send message";
-            messageInput = message; // Restore the message
+            // Error notification is shown by the utility, just restore the message
+            messageInput = message;
         } finally {
             sendingMessage = false;
         }
@@ -232,10 +231,6 @@
             event.preventDefault();
             sendMessage();
         }
-    }
-
-    function clearMessageError() {
-        messageError = "";
     }
 
     function isSingleEmote(messageText: string): boolean {
@@ -351,23 +346,11 @@
         <!-- Message input -->
         {#if chatState.connected && currentUser && broadcasterUser}
             <div class="message-input-container">
-                {#if messageError}
-                    <button
-                        type="button"
-                        class="message-error"
-                        onclick={clearMessageError}
-                        aria-label="Dismiss error message"
-                    >
-                        {messageError}
-                    </button>
-                {/if}
-
                 <div class="message-input-wrapper">
                     <input
                         type="text"
                         bind:value={messageInput}
                         onkeypress={handleKeyPress}
-                        oninput={clearMessageError}
                         placeholder="Type a message..."
                         disabled={sendingMessage}
                         class="message-input"
@@ -489,18 +472,6 @@
         background: var(--accent-hover);
     }
 
-    .no-messages {
-        padding: 2rem 1rem;
-        text-align: center;
-        color: var(--text-secondary);
-        font-style: italic;
-        margin-top: 20px; /* Account for resize handle */
-    }
-
-    .no-messages p {
-        margin: 0;
-    }
-
     .chat-messages {
         flex: 1;
         overflow-y: auto;
@@ -592,24 +563,6 @@
         border-top: 1px solid var(--border-color);
         padding: 0.5rem;
         background: var(--bg-primary);
-    }
-
-    .message-error {
-        background: rgba(255, 87, 87, 0.1);
-        color: #ff5757;
-        padding: 0.5rem;
-        border-radius: 4px;
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-        cursor: pointer;
-        border: 1px solid rgba(255, 87, 87, 0.3);
-        width: 100%;
-        text-align: left;
-        font-family: inherit;
-    }
-
-    .message-error:hover {
-        background: rgba(255, 87, 87, 0.15);
     }
 
     .copypasta-button {
@@ -732,8 +685,7 @@
         }
 
         .chat-container:not(.iframe) .chat-loading,
-        .chat-container:not(.iframe) .chat-error,
-        .chat-container:not(.iframe) .no-messages {
+        .chat-container:not(.iframe) .chat-error {
             margin-top: 0; /* Reset margin for desktop */
         }
 

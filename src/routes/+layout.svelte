@@ -4,6 +4,7 @@
     import { browser } from "$app/environment";
     import { onMount } from "svelte";
     import NavBar from "$lib/components/NavBar.svelte";
+    import { SvelteToast } from "@zerodevx/svelte-toast";
 
     // Make base available globally for navigation
     export { base };
@@ -26,3 +27,5 @@
 <main>
     {@render children()}
 </main>
+
+<SvelteToast />

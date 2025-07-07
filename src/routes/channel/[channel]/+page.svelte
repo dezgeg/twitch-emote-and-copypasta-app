@@ -7,14 +7,14 @@
         type EmoteDataStore,
     } from "$lib/emote-api";
     import { getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
-    import { sendChatMessage, getUser } from "$lib/twitch-api";
+    import { getUser } from "$lib/twitch-api";
     import { requireAuth } from "$lib/auth-guard";
+    import { sendChatMessageWithDuplicateHandling } from "$lib/chat-utils";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import CopypastaCard from "$lib/components/CopypastaCard.svelte";
 
     let broadcasterId = $state("");
     let senderId = $state("");
-    let lastSentMessage = $state("");
 
     let channel = $derived($page.params.channel);
 
@@ -41,57 +41,14 @@
     }
 
     async function sendToChat(item: { name: string; url: string } | string) {
-        try {
-            const token = await requireAuth();
+        const token = await requireAuth();
 
-            if (!broadcasterId || !senderId) {
-                throw new Error("User information not loaded yet");
-            }
-
-            let text = typeof item === "string" ? item : item.name;
-
-            // If the message is identical to the last sent message, append a space
-            // This prevents Twitch's duplicate message prevention
-            if (text === lastSentMessage) {
-                text += " \u{E0000}";
-            }
-
-            await sendChatMessage(token, broadcasterId, senderId, text);
-            lastSentMessage = text;
-        } catch (err) {
-            console.error("Failed to send to chat:", err);
-            showNotification(
-                `Failed to send message: ${err instanceof Error ? err.message : "Unknown error"}`,
-            );
+        if (!broadcasterId || !senderId) {
+            throw new Error("User information not loaded yet");
         }
-    }
 
-    function showNotification(message: string) {
-        const notification = document.createElement("div");
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #dc3545;
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            z-index: 1000;
-            font-size: 0.875rem;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            max-width: 300px;
-            word-wrap: break-word;
-        `;
-        document.body.appendChild(notification);
-
-        // Auto-remove notification after 3 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 3000);
+        const text = typeof item === "string" ? item : item.name;
+        await sendChatMessageWithDuplicateHandling(token, broadcasterId, senderId, text);
     }
 </script>
 
