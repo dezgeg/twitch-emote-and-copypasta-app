@@ -132,11 +132,4 @@
             box-sizing: border-box;
         }
     }
-
-    /* Mobile-specific additional height constraint */
-    @media (max-width: 600px) {
-        nav {
-            min-height: 1cm;
-        }
-    }
 </style>
