@@ -161,7 +161,6 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
         gap: 0.125rem;
-        margin-bottom: 2rem;
     }
 
     .draggable-item {
