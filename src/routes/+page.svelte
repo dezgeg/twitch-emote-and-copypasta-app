@@ -209,7 +209,7 @@
         font-size: 0.875rem;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
         .streams-grid {
             grid-template-columns: 1fr;
             gap: 1rem;

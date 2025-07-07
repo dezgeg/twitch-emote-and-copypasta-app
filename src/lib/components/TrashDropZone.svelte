@@ -96,7 +96,7 @@
         transform: scale(1.2);
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
         .trash-zone {
             height: auto;
             min-height: 1cm;

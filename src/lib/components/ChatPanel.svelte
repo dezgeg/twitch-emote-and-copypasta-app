@@ -574,7 +574,7 @@
         }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
         .chat-message {
             padding: 0.25rem 0.5rem;
             font-size: 0.8rem;

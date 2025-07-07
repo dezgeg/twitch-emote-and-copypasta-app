@@ -62,7 +62,7 @@
         border-radius: 2px;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
         :global(.chat-emote) {
             height: 1rem;
         }

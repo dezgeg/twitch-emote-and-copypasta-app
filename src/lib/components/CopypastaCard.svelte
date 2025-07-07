@@ -48,10 +48,4 @@
         overflow-wrap: break-word;
         max-width: 100%;
     }
-
-    @media (max-width: 600px) {
-        .copypasta-card {
-            padding: 0.5rem;
-        }
-    }
 </style>

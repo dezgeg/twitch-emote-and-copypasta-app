@@ -239,7 +239,7 @@
         }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
         .drag-drop-grid {
             grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
             gap: 0.0625rem;

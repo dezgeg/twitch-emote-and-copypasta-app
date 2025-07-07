@@ -107,7 +107,7 @@
         gap: 0.25rem;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
         .emotes-grid {
             grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
             gap: 0.125rem;
