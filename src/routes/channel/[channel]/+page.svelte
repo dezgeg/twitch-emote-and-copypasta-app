@@ -12,9 +12,12 @@
     import { sendChatMessageWithDuplicateHandling } from "$lib/chat-utils";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
     import CopypastaCard from "$lib/components/CopypastaCard.svelte";
+    import DragAndDropList from "$lib/components/DragAndDropList.svelte";
+    import TrashDropZone from "$lib/components/TrashDropZone.svelte";
 
     let broadcasterId = $state("");
     let senderId = $state("");
+    let trashDropZone: TrashDropZone = $state()!;
 
     let channel = $derived($page.params.channel);
 
@@ -58,28 +61,32 @@
 
 <div class="page-padding">
     <section class="emotes-section">
-        <div class="emotes-grid">
-            {#each $favoriteEmotesStore as emoteName (emoteName)}
+        <DragAndDropList store={favoriteEmotesStore} {trashDropZone}>
+            {#snippet renderItem(emoteName: string)}
                 {@const emote = getEmoteOrPlaceholder($allEmotesStore, emoteName)}
                 <EmoteCard {emote} mode="view" onClick={sendToChat} />
-            {:else}
+            {/snippet}
+            {#snippet renderEmpty()}
                 <p>No favorite emotes yet.</p>
-            {/each}
-        </div>
+            {/snippet}
+        </DragAndDropList>
     </section>
 
     <hr class="section-separator" />
 
     <section class="copypastas-section">
-        <div class="copypastas-list">
-            {#each $favoriteCopypastasStore as copypasta (copypasta)}
+        <DragAndDropList store={favoriteCopypastasStore} {trashDropZone} gridClass="copypasta-list">
+            {#snippet renderItem(copypasta: string)}
                 <CopypastaCard message={copypasta} {allEmotesStore} onClick={sendToChat} />
-            {:else}
+            {/snippet}
+            {#snippet renderEmpty()}
                 <p>No favorite copypastas yet.</p>
-            {/each}
-        </div>
+            {/snippet}
+        </DragAndDropList>
     </section>
 </div>
+
+<TrashDropZone bind:this={trashDropZone} />
 
 <style>
     .section-separator {
@@ -88,22 +95,10 @@
         margin: 1rem 0;
     }
 
-    .emotes-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-        gap: 0.125rem;
-    }
-
-    .copypastas-list {
+    :global(.copypasta-list) {
         display: flex;
         flex-direction: column;
         gap: 0.125rem;
-    }
-
-    @media (max-width: 600px) {
-        .emotes-grid {
-            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-            gap: 0.0625rem;
-        }
+        margin-bottom: 2rem;
     }
 </style>
