@@ -1,10 +1,12 @@
 <script lang="ts">
     import { page } from "$app/stores";
+    import { onMount } from "svelte";
     import { createEmoteDataStore, type EmoteDataStore, type Emote } from "$lib/emote-api";
     import { getFavoriteEmotesStore } from "$lib/stores";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
 
     let searchTerm = $state("");
+    let searchInput: HTMLInputElement = $state()!;
 
     let channel = $derived($page.params.channel);
 
@@ -26,6 +28,13 @@
         }
     }
 
+    onMount(() => {
+        // Auto-focus the search input when the page loads
+        if (searchInput) {
+            searchInput.focus();
+        }
+    });
+
     function handleSearchKeydown(event: KeyboardEvent) {
         if (event.key === "Enter") {
             // Blur the input to close virtual keyboard on mobile
@@ -41,6 +50,7 @@
 <div class="page-padding">
     <div class="search-container">
         <input
+            bind:this={searchInput}
             type="text"
             placeholder="Search emotes..."
             bind:value={searchTerm}
