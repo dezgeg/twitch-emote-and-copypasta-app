@@ -13,6 +13,7 @@
     import type { Emote, EmoteDataStore } from "$lib/emote-api";
     import Spinner from "./Spinner.svelte";
     import ParsedMessage from "./ParsedMessage.svelte";
+    import Button from "./Button.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
 
     interface Props {
@@ -349,10 +350,10 @@
                         class="message-input"
                         maxlength="500"
                     />
-                    <button
+                    <Button
+                        variant="icon"
                         onclick={saveCopypasta}
                         disabled={!messageInput.trim() && !lastSentMessage.trim()}
-                        class="copypasta-button"
                         aria-label={messageInput.trim()
                             ? "Save current text as copypasta"
                             : "Save last sent message as copypasta"}
@@ -361,11 +362,11 @@
                             : "Save last sent message as copypasta"}
                     >
                         💾
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                        variant="icon"
                         onclick={sendMessage}
                         disabled={!messageInput.trim() || sendingMessage}
-                        class="send-button"
                         aria-label="Send message"
                     >
                         {#if sendingMessage}
@@ -373,7 +374,7 @@
                         {:else}
                             📤
                         {/if}
-                    </button>
+                    </Button>
                 </div>
             </div>
         {/if}
@@ -550,32 +551,6 @@
         background: var(--bg-primary);
     }
 
-    .copypasta-button {
-        padding: 0.5rem;
-        background: rgba(145, 70, 255, 0.8);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 1rem;
-        min-width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease;
-    }
-
-    .copypasta-button:hover:not(:disabled) {
-        background: var(--accent-primary);
-    }
-
-    .copypasta-button:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-        background: rgba(145, 70, 255, 0.3);
-    }
-
     .message-input-wrapper {
         display: flex;
         gap: 0.5rem;
@@ -605,33 +580,6 @@
     .message-input:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-    }
-
-    .send-button {
-        padding: 0.5rem;
-        background: var(--accent-primary);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 1rem;
-        font-weight: 500;
-        min-width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease;
-    }
-
-    .send-button:hover:not(:disabled) {
-        background: var(--accent-hover);
-    }
-
-    .send-button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        background: var(--accent-primary);
     }
 
     .send-spinner {

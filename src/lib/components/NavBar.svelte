@@ -2,6 +2,7 @@
     import { base } from "$app/paths";
     import { page } from "$app/stores";
     import { browser } from "$app/environment";
+    import Button from "./Button.svelte";
 
     interface Props {
         channel?: string | null;
@@ -44,7 +45,13 @@
     {/if}
 
     {#if isInIframe}
-        <button class="close-button" onclick={closeIframe} title="Close overlay">×</button>
+        <Button
+            variant="icon"
+            size="large"
+            onclick={closeIframe}
+            title="Close overlay"
+            class="nav-close-button">×</Button
+        >
     {/if}
 </nav>
 
@@ -92,27 +99,6 @@
         box-sizing: border-box;
     }
 
-    .close-button {
-        width: 48px;
-        height: 48px;
-        background: #9146ff;
-        color: white;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-left: 1px solid #5f5f5f;
-        transition: background-color 0.1s ease;
-        flex-shrink: 0;
-        margin-left: auto;
-    }
-
-    .close-button:hover {
-        background: #772ce8;
-    }
-
     nav a:hover {
         background: #606060;
         color: #ffffff;
@@ -131,6 +117,14 @@
     nav a:first-child {
         border-left: 1px solid #5f5f5f;
         padding-left: 1rem;
+    }
+
+    /* Layout styling for navigation close button */
+    :global(.nav-close-button) {
+        border-left: 1px solid #5f5f5f !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
+        font-size: 20px !important;
     }
 
     @media (max-width: 600px) {

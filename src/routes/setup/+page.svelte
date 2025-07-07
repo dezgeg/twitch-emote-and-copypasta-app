@@ -4,6 +4,7 @@
     import { getUser } from "$lib/twitch-api";
     import { clearAllExtensionData } from "$lib/extension-persisted-store";
     import { onMount } from "svelte";
+    import Button from "$lib/components/Button.svelte";
 
     let deferredPrompt: any = null;
     let showInstallButton = $state(false);
@@ -143,7 +144,7 @@
                         </div>
                     </div>
                 {/if}
-                <button class="logout-button" onclick={logout}>Sign Out</button>
+                <Button variant="destructive" size="small" onclick={logout}>Sign Out</Button>
             </div>
         </div>
     {:else}
@@ -151,10 +152,10 @@
             <h3>🔐 Twitch Authentication</h3>
             <p>Connect your Twitch account to use all features of this app.</p>
 
-            <button class="oauth-button" onclick={initiateOAuth}>
+            <Button variant="primary" size="large" onclick={initiateOAuth}>
                 <span class="twitch-icon">🟣</span>
                 Sign in with Twitch
-            </button>
+            </Button>
 
             <div class="oauth-benefits">
                 <h4>Why use OAuth?</h4>
@@ -178,10 +179,10 @@
         <p>Get the best experience by installing this app on your device!</p>
 
         {#if showInstallButton}
-            <button class="install-button" onclick={installApp}>
+            <Button variant="primary" size="large" onclick={installApp}>
                 <span class="install-icon">📲</span>
                 Install App
-            </button>
+            </Button>
         {:else}
             <div class="install-instructions">
                 <p><strong>To install on mobile:</strong></p>
@@ -254,10 +255,10 @@
         <p><strong>This cannot be undone!</strong></p>
     </div>
 
-    <button class="clear-button" onclick={clearAllSettings}>
+    <Button variant="destructive" size="large" onclick={clearAllSettings}>
         <span class="clear-icon">🗑️</span>
         Clear All Settings
-    </button>
+    </Button>
 </div>
 
 <style>
@@ -328,45 +329,8 @@
         color: var(--text-secondary);
     }
 
-    .logout-button {
-        background: #dc3545;
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .logout-button:hover {
-        background: #c82333;
-    }
-
     .auth-setup {
         text-align: center;
-    }
-
-    .oauth-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        font-weight: bold;
-        background: linear-gradient(135deg, #9146ff 0%, #772ce8 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(145, 70, 255, 0.3);
-        margin: 1rem 0;
-    }
-
-    .oauth-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(145, 70, 255, 0.4);
-        background: linear-gradient(135deg, #772ce8 0%, #9146ff 100%);
     }
 
     .twitch-icon {
@@ -447,30 +411,6 @@
         font-size: 1.25rem;
     }
 
-    .install-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        font-weight: bold;
-        background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-        box-shadow: 0 4px 12px rgba(145, 70, 255, 0.3);
-    }
-
-    .install-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(145, 70, 255, 0.4);
-        background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent-primary) 100%);
-    }
-
     .install-icon {
         font-size: 1.2rem;
     }
@@ -527,29 +467,6 @@
     .clear-warning li {
         margin: 0.3rem 0;
         color: #ffcccc;
-    }
-
-    .clear-button {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        font-weight: bold;
-        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-        margin: 1rem 0;
-    }
-
-    .clear-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
-        background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
     }
 
     .clear-icon {
