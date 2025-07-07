@@ -27,25 +27,3 @@ export function showSuccess(message: string) {
         duration: 3000,
     });
 }
-
-/**
- * Show an info notification
- */
-export function showInfo(message: string) {
-    toast.push(message, {
-        theme: {
-            "--toastBackground": "#17a2b8",
-            "--toastColor": "white",
-            "--toastBarBackground": "#138496",
-        },
-        duration: 3000,
-    });
-}
-
-/**
- * Legacy compatibility function - shows error notification
- * @deprecated Use showError, showSuccess, or showInfo instead
- */
-export function showNotification(message: string) {
-    showError(message);
-}

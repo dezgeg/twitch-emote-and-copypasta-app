@@ -49,7 +49,6 @@ export function extensionPersisted<T>(key: string, initialValue: T): ExtensionPe
             if (storedValue !== null) {
                 const parsedValue = JSON.parse(storedValue);
                 store.set(parsedValue);
-            } else {
             }
             isInitialized = true;
         } catch (error) {

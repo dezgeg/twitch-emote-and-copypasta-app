@@ -48,7 +48,7 @@ function verifyState(state: string): boolean {
 /**
  * Build the Twitch OAuth authorization URL
  */
-export function buildAuthorizationUrl(): string {
+function buildAuthorizationUrl(): string {
     const state = generateState();
     storeState(state);
 
@@ -142,19 +142,4 @@ export function parseOAuthCallback(): OAuthToken | null {
         expires_at: expiresAt,
         scope: scope ? scope.split(" ") : [],
     };
-}
-
-/**
- * Check if a token is expired
- */
-export function isTokenExpired(token: OAuthToken): boolean {
-    return Date.now() >= token.expires_at;
-}
-
-/**
- * Check if a token is close to expiring (within 5 minutes)
- */
-export function isTokenExpiringSoon(token: OAuthToken): boolean {
-    const fiveMinutes = 5 * 60 * 1000;
-    return Date.now() >= token.expires_at - fiveMinutes;
 }
