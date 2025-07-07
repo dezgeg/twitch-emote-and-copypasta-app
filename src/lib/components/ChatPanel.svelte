@@ -15,6 +15,7 @@
     import ParsedMessage from "./ParsedMessage.svelte";
     import Button from "./Button.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
+    import { isInIframe } from "$lib/utils";
 
     interface Props {
         channel: string;
@@ -45,9 +46,6 @@
 
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
-
-    // Detect if running in iframe
-    let isInIframe = $derived(browser && window.self !== window.top);
 
     // Resizable chat height for mobile
     let chatHeightStore = persisted("chat-height", 300);
@@ -277,8 +275,8 @@
 
 <div
     class="chat-container"
-    class:iframe={isInIframe}
-    style:height={isInIframe || (browser && window.innerWidth < 1024)
+    class:iframe={isInIframe()}
+    style:height={isInIframe() || (browser && window.innerWidth < 1024)
         ? `${$chatHeightStore}px`
         : null}
 >

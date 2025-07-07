@@ -1,10 +1,10 @@
 <script>
     import { base } from "$app/paths";
     import { page } from "$app/stores";
-    import { browser } from "$app/environment";
     import { onMount } from "svelte";
     import NavBar from "$lib/components/NavBar.svelte";
     import { SvelteToast } from "@zerodevx/svelte-toast";
+    import { isInIframe } from "$lib/utils";
 
     // Make base available globally for navigation
     export { base };
@@ -16,7 +16,7 @@
 
     // Detect if running in iframe and apply body class
     onMount(() => {
-        if (browser && window.self !== window.top) {
+        if (isInIframe()) {
             document.body.classList.add("iframe-mode");
         }
     });

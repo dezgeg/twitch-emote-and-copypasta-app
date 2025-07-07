@@ -1,11 +1,11 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import { onMount } from "svelte";
-    import { browser } from "$app/environment";
     import { createEmoteDataStore, type EmoteDataStore } from "$lib/emote-api";
     import { requireAuth } from "$lib/auth-guard";
     import ChatPanel from "$lib/components/ChatPanel.svelte";
     import FetchStatus from "$lib/components/FetchStatus.svelte";
+    import { isInIframe } from "$lib/utils";
 
     let fetchStatus: any;
 
@@ -13,9 +13,6 @@
 
     // Initialize emote store directly
     let allEmotesStore = $derived(createEmoteDataStore(channel));
-
-    // Detect if running in iframe
-    let isInIframe = $derived(browser && window.self !== window.top);
 
     onMount(async () => {
         fetchStatus.run(async () => {
@@ -32,7 +29,7 @@
 </script>
 
 <FetchStatus bind:this={fetchStatus} errorPrefix="Failed to load channel data">
-    <div class="main-container" class:iframe={isInIframe}>
+    <div class="main-container" class:iframe={isInIframe()}>
         <div class="content">
             {@render children()}
         </div>

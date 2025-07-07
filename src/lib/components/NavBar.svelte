@@ -3,6 +3,7 @@
     import { page } from "$app/stores";
     import { browser } from "$app/environment";
     import Button from "./Button.svelte";
+    import { isInIframe } from "$lib/utils";
 
     interface Props {
         channel?: string | null;
@@ -13,9 +14,6 @@
     // Get current route ID for highlighting active nav item
     let routeId = $derived($page.route.id);
 
-    // Detect if running in iframe
-    let isInIframe = $derived(browser && window.self !== window.top);
-
     function closeIframe() {
         // Post message to parent window to close the iframe
         if (browser && window.parent) {
@@ -24,8 +22,8 @@
     }
 </script>
 
-<nav class:iframe={isInIframe}>
-    {#if !isInIframe}
+<nav class:iframe={isInIframe()}>
+    {#if !isInIframe()}
         <a href="{base}/" class:active={routeId === "/"}>📺</a>
     {/if}
 
@@ -33,7 +31,8 @@
         <a
             href="{base}/channel/{channel}"
             class:active={routeId === "/channel/[channel]"}
-            title={isInIframe ? `Channel: ${channel}` : undefined}>{isInIframe ? "🎮" : channel}</a
+            title={isInIframe() ? `Channel: ${channel}` : undefined}
+            >{isInIframe() ? "🎮" : channel}</a
         >
         <a
             href="{base}/channel/{channel}/add"
@@ -44,7 +43,7 @@
         <a href="{base}/setup" class:active={routeId === "/setup"} title="Setup">⚙️</a>
     {/if}
 
-    {#if isInIframe}
+    {#if isInIframe()}
         <Button
             variant="icon"
             size="large"
