@@ -126,22 +126,22 @@
     }
 
     .emote-type--twitch {
-        background: #9146ff;
+        background: var(--accent-primary);
         color: white;
     }
 
     .emote-type--7tv {
-        background: #00f5ff;
+        background: var(--emote-7tv);
         color: black;
     }
 
     .emote-type--bttv {
-        background: #d50000;
+        background: var(--emote-bttv);
         color: white;
     }
 
     .emote-type--ffz {
-        background: #755000;
+        background: var(--emote-ffz);
         color: white;
     }
 </style>

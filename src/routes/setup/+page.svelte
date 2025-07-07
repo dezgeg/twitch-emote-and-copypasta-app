@@ -273,15 +273,19 @@
     }
 
     .auth-success {
-        background: linear-gradient(135deg, #1a4d1a 0%, #2d5a2d 100%);
-        border: 1px solid #4a8f4a;
+        background: linear-gradient(
+            135deg,
+            var(--success-primary) 0%,
+            var(--success-secondary) 100%
+        );
+        border: 1px solid var(--success-border);
         border-radius: 12px;
         padding: 2rem;
     }
 
     .user-info h3 {
         margin-top: 0;
-        color: #90ee90;
+        color: var(--success-text);
     }
 
     .user-details {
@@ -298,7 +302,7 @@
         width: 50px;
         height: 50px;
         border-radius: 50%;
-        border: 2px solid #4a8f4a;
+        border: 2px solid var(--success-border);
     }
 
     .user-text p {
@@ -424,8 +428,12 @@
     }
 
     .clear-warning {
-        background: linear-gradient(135deg, #4d1a1a 0%, #5a2d2d 100%);
-        border: 1px solid #8f4a4a;
+        background: linear-gradient(
+            135deg,
+            var(--error-warning-bg) 0%,
+            var(--error-warning-secondary) 100%
+        );
+        border: 1px solid var(--error-warning-border);
         border-radius: 8px;
         padding: 1.5rem;
         margin: 1.5rem 0;
@@ -434,7 +442,7 @@
 
     .clear-warning h4 {
         margin-top: 0;
-        color: #ff9999;
+        color: var(--error-warning-text);
     }
 
     .clear-warning ul {
@@ -444,7 +452,7 @@
 
     .clear-warning li {
         margin: 0.3rem 0;
-        color: #ffcccc;
+        color: var(--error-warning-link);
     }
 
     .clear-icon {

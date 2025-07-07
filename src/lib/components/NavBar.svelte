@@ -60,8 +60,8 @@
         align-items: stretch;
         height: 32px;
         margin: 0;
-        background: #2f2f2f;
-        border-bottom: 1px solid #5f5f5f;
+        background: var(--nav-bg);
+        border-bottom: 1px solid var(--nav-border);
         font-family: monospace;
         font-size: 0.875rem;
         flex-wrap: nowrap;
@@ -72,12 +72,12 @@
     }
 
     nav a {
-        color: #ffffff;
+        color: var(--text-primary);
         text-decoration: none;
         font-weight: normal;
         padding: 0 1rem;
-        background: #404040;
-        border-right: 1px solid #5f5f5f;
+        background: var(--nav-button-bg);
+        border-right: 1px solid var(--nav-border);
         display: flex;
         align-items: center;
         white-space: nowrap;
@@ -86,28 +86,28 @@
     }
 
     nav a:hover {
-        background: #606060;
-        color: #ffffff;
+        background: var(--nav-button-hover);
+        color: var(--text-primary);
     }
 
     nav a.active {
-        background: #9146ff;
-        color: #ffffff;
+        background: var(--accent-primary);
+        color: var(--text-primary);
     }
 
     nav a.active:hover {
-        background: #772ce8;
-        color: #ffffff;
+        background: var(--accent-hover);
+        color: var(--text-primary);
     }
 
     nav a:first-child {
-        border-left: 1px solid #5f5f5f;
+        border-left: 1px solid var(--nav-border);
         padding-left: 1rem;
     }
 
     /* Layout styling for navigation close button */
     :global(.nav-close-button) {
-        border-left: 1px solid #5f5f5f !important;
+        border-left: 1px solid var(--nav-border) !important;
         margin-left: auto !important;
         flex-shrink: 0 !important;
         font-size: 20px !important;

@@ -75,7 +75,7 @@
 
     /* Variants */
     .btn--primary {
-        background: linear-gradient(135deg, #9146ff 0%, #772ce8 100%);
+        background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
         color: white;
         box-shadow: 0 4px 12px rgba(145, 70, 255, 0.3);
     }
@@ -83,7 +83,7 @@
     .btn--primary:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(145, 70, 255, 0.4);
-        background: linear-gradient(135deg, #772ce8 0%, #9146ff 100%);
+        background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent-primary) 100%);
     }
 
     .btn--secondary {
@@ -97,7 +97,11 @@
     }
 
     .btn--destructive {
-        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        background: linear-gradient(
+            135deg,
+            var(--destructive-primary) 0%,
+            var(--destructive-hover) 100%
+        );
         color: white;
         box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
     }
@@ -105,7 +109,11 @@
     .btn--destructive:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
-        background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+        background: linear-gradient(
+            135deg,
+            var(--destructive-hover) 0%,
+            var(--destructive-primary) 100%
+        );
     }
 
     .btn--ghost {
@@ -150,12 +158,12 @@
 
     /* Special styling for specific use cases */
     .btn--destructive.btn--small {
-        background: #dc3545;
+        background: var(--destructive-primary);
         box-shadow: none;
     }
 
     .btn--destructive.btn--small:hover:not(:disabled) {
-        background: #c82333;
+        background: var(--destructive-hover);
         transform: none;
         box-shadow: none;
     }

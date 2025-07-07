@@ -107,12 +107,16 @@
     }
 
     .status-container.success {
-        background: linear-gradient(135deg, #1a4d1a 0%, #2d5a2d 100%);
-        border-color: #4a8f4a;
+        background: linear-gradient(
+            135deg,
+            var(--success-primary) 0%,
+            var(--success-secondary) 100%
+        );
+        border-color: var(--success-border);
     }
 
     .status-container.error {
-        background: linear-gradient(135deg, var(--error-bg) 0%, #5a1a1a 100%);
+        background: linear-gradient(135deg, var(--error-bg) 0%, var(--error-secondary) 100%);
         border-color: var(--error-border);
     }
 

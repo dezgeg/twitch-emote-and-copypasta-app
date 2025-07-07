@@ -66,7 +66,7 @@
         padding: 0 1rem;
         border: none;
         border-bottom: 2px dashed var(--border-color);
-        background: #2f2f2f;
+        background: var(--nav-bg);
         font-family: monospace;
         font-size: 0.875rem;
         transition: all 0.2s ease;
@@ -74,8 +74,8 @@
     }
 
     .trash-zone.drag-over {
-        border-bottom-color: #9146ff;
-        background: #9146ff;
+        border-bottom-color: var(--accent-primary);
+        background: var(--accent-primary);
         box-shadow: 0 4px 12px rgba(145, 70, 255, 0.4);
     }
 
@@ -88,7 +88,7 @@
     .trash-zone p {
         margin: 0;
         font-size: 0.875rem;
-        color: #ffffff;
+        color: var(--text-primary);
         font-weight: normal;
     }
 

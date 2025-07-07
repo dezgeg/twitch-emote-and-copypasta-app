@@ -274,7 +274,9 @@
                     class:favorited={isCopypastaFavorited(chatMessage.message)}
                     onclick={() => toggleCopypasta(chatMessage)}
                 >
-                    <span class="username" style="color: {chatMessage.color || '#9146ff'}"
+                    <span
+                        class="username"
+                        style="color: {chatMessage.color || 'var(--accent-primary)'}"
                         >{chatMessage.user_name}:</span
                     >
                     <span class="message-content">
