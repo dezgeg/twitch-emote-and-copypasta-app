@@ -543,7 +543,7 @@
     }
 
     /* Desktop layout - sidebar */
-    @media (min-width: 1024px) {
+    @media (min-width: 769px) {
         .chat-container:not(.iframe) {
             width: 400px;
             height: 100%;
@@ -566,7 +566,7 @@
     }
 
     /* Narrow layout: mobile screens or constrained width contexts */
-    @media (max-width: 1023px) {
+    @media (max-width: 768px) {
         .chat-container {
             width: 100%;
             border-top: 1px solid var(--border-color);

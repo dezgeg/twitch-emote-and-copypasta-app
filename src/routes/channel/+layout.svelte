@@ -50,7 +50,7 @@
     }
 
     /* Wide desktop layout - horizontal sidebar */
-    @media (min-width: 1024px) {
+    @media (min-width: 769px) {
         .main-container {
             flex-direction: row;
         }
@@ -62,7 +62,7 @@
     }
 
     /* Narrow layouts (mobile or constrained width) stay vertical */
-    @media (max-width: 1023px) {
+    @media (max-width: 768px) {
         .main-container {
             overflow: hidden;
             width: 100%;

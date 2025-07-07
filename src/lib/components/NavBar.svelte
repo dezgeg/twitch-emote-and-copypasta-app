@@ -114,7 +114,7 @@
     }
 
     /* Narrow layout: mobile screens or constrained width contexts */
-    @media (max-width: 1023px) {
+    @media (max-width: 768px) {
         nav {
             min-height: 32px;
             flex-wrap: wrap;
