@@ -11,8 +11,8 @@
     import { getUser, type ChatMessage as TwitchChatMessage } from "$lib/twitch-api";
     import { sendChatMessageWithDuplicateHandling } from "$lib/chat-utils";
     import type { Emote, EmoteDataStore } from "$lib/emote-api";
-    import { parseMessageWithEmotes } from "$lib/emote-api";
     import Spinner from "./Spinner.svelte";
+    import ParsedMessage from "./ParsedMessage.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
 
     interface Props {
@@ -326,18 +326,11 @@
                         >{chatMessage.user_name}:</span
                     >
                     <span class="message-content">
-                        {#each parseMessageWithEmotes(chatMessage.message, $allEmotesStore) as part}
-                            {#if typeof part === "string"}
-                                {part}
-                            {:else}
-                                <img
-                                    src={part.url}
-                                    alt={part.name}
-                                    class="chat-emote"
-                                    title={part.name}
-                                />
-                            {/if}
-                        {/each}
+                        <ParsedMessage
+                            message={chatMessage.message}
+                            {allEmotesStore}
+                            emoteClass="chat-emote"
+                        />
                     </span>
                 </div>
             {/each}
@@ -551,14 +544,6 @@
         overflow-wrap: break-word;
     }
 
-    .chat-emote {
-        height: 1.2rem;
-        width: auto;
-        vertical-align: middle;
-        margin: 0 0.1rem;
-        border-radius: 2px;
-    }
-
     .message-input-container {
         border-top: 1px solid var(--border-color);
         padding: 0.5rem;
@@ -710,10 +695,6 @@
 
         .username {
             font-size: 0.8rem;
-        }
-
-        .chat-emote {
-            height: 1rem;
         }
     }
 </style>

@@ -1,7 +1,7 @@
 <script lang="ts">
-    import type { Emote, EmoteDataStore } from "$lib/emote-api";
-    import { parseMessageWithEmotes } from "$lib/emote-api";
+    import type { EmoteDataStore } from "$lib/emote-api";
     import "$lib/styles/card.css";
+    import ParsedMessage from "./ParsedMessage.svelte";
 
     interface Props {
         // Core message data
@@ -27,13 +27,7 @@
     onclick={onClick ? () => onClick(message) : undefined}
 >
     <div class="message-content">
-        {#each parseMessageWithEmotes(message, $allEmotesStore) as part}
-            {#if typeof part === "string"}
-                {part}
-            {:else}
-                <img src={part.url} alt={part.name} class="copypasta-emote" title={part.name} />
-            {/if}
-        {/each}
+        <ParsedMessage {message} {allEmotesStore} emoteClass="copypasta-emote" />
     </div>
 </div>
 
@@ -53,14 +47,6 @@
         word-wrap: break-word;
         overflow-wrap: break-word;
         max-width: 100%;
-    }
-
-    .copypasta-emote {
-        height: 1.5rem;
-        width: auto;
-        vertical-align: middle;
-        margin: 0 0.1rem;
-        border-radius: 2px;
     }
 
     @media (max-width: 600px) {
