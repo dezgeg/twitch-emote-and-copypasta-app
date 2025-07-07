@@ -5,6 +5,7 @@
     import { clearAllExtensionData } from "$lib/extension-persisted-store";
     import { onMount } from "svelte";
     import Button from "$lib/components/Button.svelte";
+    import Spinner from "$lib/components/Spinner.svelte";
 
     let deferredPrompt: any = null;
     let showInstallButton = $state(false);
@@ -117,7 +118,7 @@
 <div class="page-padding auth-section">
     {#if authStatus === "loading"}
         <div class="auth-loading">
-            <div class="spinner"></div>
+            <Spinner />
             <p>Checking authentication status...</p>
         </div>
     {:else if authStatus === "authenticated"}
@@ -269,25 +270,6 @@
     .auth-loading {
         text-align: center;
         padding: 2rem;
-    }
-
-    .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid var(--border-color);
-        border-top: 4px solid var(--accent-primary);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 1rem;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
     }
 
     .auth-success {

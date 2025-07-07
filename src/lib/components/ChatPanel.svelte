@@ -370,7 +370,9 @@
                         aria-label="Send message"
                     >
                         {#if sendingMessage}
-                            <div class="send-spinner"></div>
+                            <div class="send-spinner-wrapper">
+                                <Spinner />
+                            </div>
                         {:else}
                             📤
                         {/if}
@@ -582,22 +584,11 @@
         cursor: not-allowed;
     }
 
-    .send-spinner {
+    .send-spinner-wrapper :global(.spinner) {
         width: 16px;
         height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top: 2px solid white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
+        border-width: 2px;
+        margin: 0;
     }
 
     /* Desktop layout - sidebar */
