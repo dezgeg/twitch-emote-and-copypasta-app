@@ -356,10 +356,6 @@
         margin-top: 0;
     }
 
-    .help a {
-        color: var(--accent-primary);
-    }
-
     .setup-step {
         margin-bottom: 1.5rem;
     }

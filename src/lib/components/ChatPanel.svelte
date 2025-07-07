@@ -238,6 +238,9 @@
         ondrag={handleDrag}
         role="slider"
         aria-label="Resize chat height"
+        aria-valuenow={$chatHeightStore}
+        aria-valuemin="150"
+        aria-valuemax="600"
         tabindex="0"
     >
         <div class="resize-grip"></div>
