@@ -39,11 +39,6 @@
             class:active={routeId === "/channel/[channel]/add"}
             title="Add emotes">➕</a
         >
-        <a
-            href="{base}/channel/{channel}/edit"
-            class:active={routeId === "/channel/[channel]/edit"}
-            title="Edit favorites">✏️</a
-        >
     {:else}
         <a href="{base}/setup" class:active={routeId === "/setup"} title="Setup">⚙️</a>
     {/if}
