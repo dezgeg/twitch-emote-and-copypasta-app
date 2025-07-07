@@ -1,6 +1,11 @@
 import { sendChatMessage } from "$lib/twitch-api";
 import { showError } from "$lib/notification-utils";
 
+/**
+ * Invisible space character used by some extensions
+ */
+export const INVISIBLE_SPACE = "\u{E0000}";
+
 // Global variable to track the last sent message to prevent duplicates
 let lastSentMessage = "";
 
@@ -20,7 +25,7 @@ export async function sendChatMessageWithDuplicateHandling(
         // If the message is identical to the last sent message, append invisible character
         // This prevents Twitch's duplicate message prevention
         if (text === lastSentMessage) {
-            text += " \u{E0000}";
+            text += ` ${INVISIBLE_SPACE}`;
         }
 
         await sendChatMessage(token, broadcasterId, senderId, text);
@@ -34,4 +39,11 @@ export async function sendChatMessageWithDuplicateHandling(
         );
         throw err; // Re-throw so callers can handle UI state
     }
+}
+
+/**
+ * Cleans a chat message by removing invisible spaces and trimming whitespace
+ */
+export function cleanMessage(text: string): string {
+    return text.replace(new RegExp(INVISIBLE_SPACE, "g"), "").trim();
 }

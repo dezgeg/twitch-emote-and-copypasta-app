@@ -9,7 +9,7 @@
     import { persisted } from "svelte-persisted-store";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import { getUser, type ChatMessage as TwitchChatMessage } from "$lib/twitch-api";
-    import { sendChatMessageWithDuplicateHandling } from "$lib/chat-utils";
+    import { sendChatMessageWithDuplicateHandling, cleanMessage } from "$lib/chat-utils";
     import type { Emote, EmoteDataStore } from "$lib/emote-api";
     import Spinner from "./Spinner.svelte";
     import ParsedMessage from "./ParsedMessage.svelte";
@@ -106,23 +106,25 @@
     }
 
     function toggleCopypasta(message: TwitchChatMessage) {
-        if (isSingleEmote(message.message)) {
+        const cleanedMessage = cleanMessage(message.message);
+
+        if (cleanedMessage in $allEmotesStore) {
             // Handle as emote toggle
-            const emoteName = message.message.trim();
-            $favoriteEmotesStore = toggleInArray($favoriteEmotesStore, emoteName);
+            $favoriteEmotesStore = toggleInArray($favoriteEmotesStore, cleanedMessage);
         } else {
             // Handle as copypasta toggle
-            $favoriteCopypastasStore = toggleInArray($favoriteCopypastasStore, message.message);
+            $favoriteCopypastasStore = toggleInArray($favoriteCopypastasStore, cleanedMessage);
         }
     }
 
     function isCopypastaFavorited(messageText: string): boolean {
-        if (isSingleEmote(messageText)) {
+        const cleanedText = cleanMessage(messageText);
+        if (cleanedText in $allEmotesStore) {
             // Check if emote is favorited
-            return $favoriteEmotesStore.includes(messageText.trim());
+            return $favoriteEmotesStore.includes(cleanedText);
         } else {
             // Check if copypasta is favorited
-            return $favoriteCopypastasStore.includes(messageText);
+            return $favoriteCopypastasStore.includes(cleanedText);
         }
     }
 
@@ -210,37 +212,22 @@
         }
     }
 
-    function isSingleEmote(messageText: string): boolean {
-        const trimmed = messageText.trim();
-
-        // Check if the message contains only one word and that word is an available emote
-        const words = trimmed.split(/\s+/);
-        if (words.length === 1) {
-            return words[0] in $allEmotesStore;
-        }
-
-        return false;
-    }
-
     function saveCopypasta() {
         const messageToSave = messageInput.trim() || lastSentMessage.trim();
 
         if (!messageToSave) return;
 
-        if (isSingleEmote(messageToSave)) {
-            // Save as favorite emote instead
-            const emoteName = messageToSave.trim();
-            const existingIndex = $favoriteEmotesStore.findIndex((emote) => emote === emoteName);
+        const cleanedMessage = cleanMessage(messageToSave);
 
-            if (existingIndex === -1) {
-                favoriteEmotesStore.update((emotes) => [...emotes, emoteName]);
+        if (cleanedMessage in $allEmotesStore) {
+            // Save as favorite emote instead
+            if (!$favoriteEmotesStore.includes(cleanedMessage)) {
+                $favoriteEmotesStore = [...$favoriteEmotesStore, cleanedMessage];
             }
         } else {
             // Save as copypasta
-            const existingIndex = $favoriteCopypastasStore.findIndex((cp) => cp === messageToSave);
-
-            if (existingIndex === -1) {
-                favoriteCopypastasStore.update((copypastas) => [...copypastas, messageToSave]);
+            if (!$favoriteCopypastasStore.includes(cleanedMessage)) {
+                $favoriteCopypastasStore = [...$favoriteCopypastasStore, cleanedMessage];
             }
         }
 
