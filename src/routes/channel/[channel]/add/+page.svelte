@@ -4,6 +4,7 @@
     import { createEmoteDataStore, type EmoteDataStore, type Emote } from "$lib/emote-api";
     import { getFavoriteEmotesStore } from "$lib/stores";
     import EmoteCard from "$lib/components/EmoteCard.svelte";
+    import { toggleInArray } from "$lib/utils";
 
     let searchTerm = $state("");
     let searchInput: HTMLInputElement = $state()!;
@@ -21,11 +22,7 @@
     );
 
     function toggleFavorite(emote: { name: string; url: string; type: string }) {
-        if ($favoriteEmotesStore.includes(emote.name)) {
-            $favoriteEmotesStore = $favoriteEmotesStore.filter((name) => name !== emote.name);
-        } else {
-            $favoriteEmotesStore = [...$favoriteEmotesStore, emote.name];
-        }
+        $favoriteEmotesStore = toggleInArray($favoriteEmotesStore, emote.name);
     }
 
     onMount(() => {

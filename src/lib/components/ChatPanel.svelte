@@ -15,7 +15,7 @@
     import ParsedMessage from "./ParsedMessage.svelte";
     import Button from "./Button.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
-    import { isInIframe } from "$lib/utils";
+    import { isInIframe, toggleInArray } from "$lib/utils";
 
     interface Props {
         channel: string;
@@ -109,32 +109,10 @@
         if (isSingleEmote(message.message)) {
             // Handle as emote toggle
             const emoteName = message.message.trim();
-            const existingIndex = $favoriteEmotesStore.findIndex((emote) => emote === emoteName);
-
-            if (existingIndex >= 0) {
-                // Remove from favorite emotes
-                favoriteEmotesStore.update((emotes) =>
-                    emotes.filter((_, index) => index !== existingIndex),
-                );
-            } else {
-                // Add to favorite emotes
-                favoriteEmotesStore.update((emotes) => [...emotes, emoteName]);
-            }
+            $favoriteEmotesStore = toggleInArray($favoriteEmotesStore, emoteName);
         } else {
             // Handle as copypasta toggle
-            const existingIndex = $favoriteCopypastasStore.findIndex(
-                (cp) => cp === message.message,
-            );
-
-            if (existingIndex >= 0) {
-                // Remove from favorites
-                favoriteCopypastasStore.update((copypastas) =>
-                    copypastas.filter((_, index) => index !== existingIndex),
-                );
-            } else {
-                // Add to favorites
-                favoriteCopypastasStore.update((copypastas) => [...copypastas, message.message]);
-            }
+            $favoriteCopypastasStore = toggleInArray($favoriteCopypastasStore, message.message);
         }
     }
 
