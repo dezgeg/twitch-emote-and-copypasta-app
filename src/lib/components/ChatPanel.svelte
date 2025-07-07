@@ -1,11 +1,8 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import { browser } from "$app/environment";
-    import {
-        currentAccessToken,
-        getFavoriteCopypastasStore,
-        getFavoriteEmotesStore,
-    } from "$lib/stores";
+    import { getFavoriteCopypastasStore, getFavoriteEmotesStore } from "$lib/stores";
+    import { requireAuth } from "$lib/auth-guard";
     import { persisted } from "svelte-persisted-store";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import { getUser, type ChatMessage as TwitchChatMessage } from "$lib/twitch-api";
@@ -66,21 +63,17 @@
 
     // Chat functions
     async function initializeChat() {
-        if (!$currentAccessToken) {
-            chatError = "No access token configured";
-            chatLoading = false;
-            return;
-        }
-
         try {
+            const token = await requireAuth();
+
             // Get current user info
-            currentUser = await getUser($currentAccessToken);
+            currentUser = await getUser(token);
 
             // Get broadcaster user info
-            broadcasterUser = await getUser($currentAccessToken, channel);
+            broadcasterUser = await getUser(token, channel);
 
             // Create WebSocket connection with access token and channel
-            chatWS = new ChatWebSocket($currentAccessToken, channel);
+            chatWS = new ChatWebSocket(token, channel);
 
             // Set up message callback
             chatWS.setOnMessage((message) => {
@@ -173,13 +166,7 @@
 
     // Message sending functions
     async function sendMessage() {
-        if (
-            !messageInput.trim() ||
-            sendingMessage ||
-            !$currentAccessToken ||
-            !currentUser ||
-            !broadcasterUser
-        ) {
+        if (!messageInput.trim() || sendingMessage || !currentUser || !broadcasterUser) {
             return;
         }
 
@@ -188,8 +175,9 @@
         sendingMessage = true;
 
         try {
+            const token = await requireAuth();
             await sendChatMessageWithDuplicateHandling(
-                $currentAccessToken,
+                token,
                 broadcasterUser.id,
                 currentUser.id,
                 message,
