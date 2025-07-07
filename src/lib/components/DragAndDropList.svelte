@@ -35,6 +35,7 @@
 
     let draggedIndex = $state<number | null>(null);
     let dropIndicatorIndex = $state<number | null>(null); // Index where drop line should appear
+    let containerElement = $state<HTMLElement>();
 
     function handleDragStart(event: DragEvent, index: number) {
         if (event.dataTransfer) {
@@ -121,12 +122,14 @@
     }
 
     onMount(() => {
-        // Enable drag-drop-touch for mobile support
-        enableDragDropTouch();
+        // Enable drag-drop-touch for mobile support, scoped to this container only
+        if (containerElement) {
+            enableDragDropTouch(containerElement, containerElement);
+        }
     });
 </script>
 
-<div class={className}>
+<div class={className} bind:this={containerElement}>
     <div class={gridClass} class:has-drop-indicator={dropIndicatorIndex !== null}>
         {#each $store as item, index (item)}
             <!-- svelte-ignore a11y_no_noninteractive_tabindex -->

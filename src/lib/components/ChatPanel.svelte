@@ -48,10 +48,13 @@
     let chatHeightStore = persisted("chat-height", 300);
     let startY = $state(0);
     let startHeight = $state(0);
+    let chatContainer = $state<HTMLElement>();
 
     onMount(() => {
-        // Enable drag-drop-touch for mobile support
-        enableDragDropTouch();
+        // Enable drag-drop-touch for mobile support, scoped to chat container only
+        if (chatContainer) {
+            enableDragDropTouch(chatContainer, chatContainer);
+        }
         initializeChat();
     });
 
@@ -227,6 +230,7 @@
 </script>
 
 <div
+    bind:this={chatContainer}
     class="chat-container"
     style:height={browser && window.innerWidth < 1024 ? `${$chatHeightStore}px` : null}
 >
