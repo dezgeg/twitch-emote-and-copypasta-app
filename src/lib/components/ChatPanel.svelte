@@ -10,7 +10,7 @@
     import type { Emote, EmoteDataStore } from "$lib/emote-api";
     import Spinner from "./Spinner.svelte";
     import ParsedMessage from "./ParsedMessage.svelte";
-    import Button from "./Button.svelte";
+    import ChatInput from "./ChatInput.svelte";
     import { enableDragDropTouch } from "drag-drop-touch";
     import { toggleInArray } from "$lib/utils";
 
@@ -196,11 +196,8 @@
         }
     }
 
-    function handleKeyPress(event: KeyboardEvent) {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            sendMessage();
-        }
+    function handleMessageInput(value: string) {
+        messageInput = value;
     }
 
     function saveCopypasta() {
@@ -296,46 +293,16 @@
 
         <!-- Message input -->
         {#if chatState.connected && currentUser && broadcasterUser}
-            <div class="message-input-container">
-                <div class="message-input-wrapper">
-                    <input
-                        type="text"
-                        bind:value={messageInput}
-                        onkeypress={handleKeyPress}
-                        placeholder="Type a message..."
-                        disabled={sendingMessage}
-                        class="message-input"
-                        maxlength="500"
-                    />
-                    <Button
-                        variant="icon"
-                        onclick={saveCopypasta}
-                        disabled={!messageInput.trim() && !lastSentMessage.trim()}
-                        aria-label={messageInput.trim()
-                            ? "Save current text as copypasta"
-                            : "Save last sent message as copypasta"}
-                        title={messageInput.trim()
-                            ? "Save current text as copypasta"
-                            : "Save last sent message as copypasta"}
-                    >
-                        💾
-                    </Button>
-                    <Button
-                        variant="icon"
-                        onclick={sendMessage}
-                        disabled={!messageInput.trim() || sendingMessage}
-                        aria-label="Send message"
-                    >
-                        {#if sendingMessage}
-                            <div class="send-spinner-wrapper">
-                                <Spinner />
-                            </div>
-                        {:else}
-                            📤
-                        {/if}
-                    </Button>
-                </div>
-            </div>
+            <ChatInput
+                value={messageInput}
+                {allEmotesStore}
+                disabled={sendingMessage}
+                {sendingMessage}
+                {lastSentMessage}
+                onInput={handleMessageInput}
+                onSend={sendMessage}
+                onSaveCopypasta={saveCopypasta}
+            />
         {/if}
     {/if}
 </div>
@@ -502,50 +469,6 @@
         color: var(--text-primary);
         word-wrap: break-word;
         overflow-wrap: break-word;
-    }
-
-    .message-input-container {
-        border-top: 1px solid var(--border-color);
-        padding: 0.5rem;
-        background: var(--bg-primary);
-    }
-
-    .message-input-wrapper {
-        display: flex;
-        gap: 0.5rem;
-        align-items: flex-end;
-    }
-
-    .message-input {
-        flex: 1;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        background: var(--bg-secondary);
-        color: var(--text-primary);
-        font-size: 0.875rem;
-        line-height: 1.4;
-        resize: none;
-        height: 36px;
-        box-sizing: border-box;
-    }
-
-    .message-input:focus {
-        outline: none;
-        border-color: var(--accent-primary);
-        box-shadow: 0 0 0 2px rgba(145, 70, 255, 0.2);
-    }
-
-    .message-input:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    .send-spinner-wrapper :global(.spinner) {
-        width: 16px;
-        height: 16px;
-        border-width: 2px;
-        margin: 0;
     }
 
     /* Desktop layout - sidebar */
