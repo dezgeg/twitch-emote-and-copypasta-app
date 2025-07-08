@@ -194,14 +194,14 @@
 
         if (event.key === "ArrowDown") {
             event.preventDefault();
-            autocompleteSelectedIndex = Math.min(
-                autocompleteSelectedIndex + 1,
-                filteredEmotes.length - 1,
-            );
+            autocompleteSelectedIndex = (autocompleteSelectedIndex + 1) % filteredEmotes.length;
             scrollSelectedIntoView();
         } else if (event.key === "ArrowUp") {
             event.preventDefault();
-            autocompleteSelectedIndex = Math.max(autocompleteSelectedIndex - 1, 0);
+            autocompleteSelectedIndex =
+                autocompleteSelectedIndex === 0
+                    ? filteredEmotes.length - 1
+                    : autocompleteSelectedIndex - 1;
             scrollSelectedIntoView();
         } else if (event.key === "Tab" || event.key === "Enter") {
             if (filteredEmotes[autocompleteSelectedIndex]) {
