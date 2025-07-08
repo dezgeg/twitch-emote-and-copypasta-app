@@ -6,7 +6,7 @@
     import { persisted } from "svelte-persisted-store";
     import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
     import { getUser, type ChatMessage as TwitchChatMessage } from "$lib/twitch-api";
-    import { sendChatMessageWithDuplicateHandling, cleanMessage } from "$lib/chat-utils";
+    import { cleanMessage } from "$lib/chat-utils";
     import type { Emote, EmoteDataStore } from "$lib/emote-api";
     import Spinner from "./Spinner.svelte";
     import ParsedMessage from "./ParsedMessage.svelte";
@@ -34,12 +34,9 @@
     });
     let isAtBottom = $state(true);
 
-    // Message input state
-    let messageInput = $state("");
-    let sendingMessage = $state(false);
+    // User state
     let currentUser = $state<{ id: string; login: string } | null>(null);
     let broadcasterUser = $state<{ id: string; login: string } | null>(null);
-    let lastSentMessage = $state<string>("");
 
     let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
     let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
@@ -166,64 +163,6 @@
 
         $chatHeightStore = newHeight;
     }
-
-    // Message sending functions
-    async function sendMessage() {
-        if (!messageInput.trim() || sendingMessage || !currentUser || !broadcasterUser) {
-            return;
-        }
-
-        const message = messageInput.trim();
-        messageInput = "";
-        sendingMessage = true;
-
-        try {
-            const token = await requireAuth();
-            await sendChatMessageWithDuplicateHandling(
-                token,
-                broadcasterUser.id,
-                currentUser.id,
-                message,
-            );
-
-            // Track successfully sent message for potential copypasta saving
-            lastSentMessage = message;
-        } catch (err) {
-            // Error notification is shown by the utility, just restore the message
-            messageInput = message;
-        } finally {
-            sendingMessage = false;
-        }
-    }
-
-    function handleMessageInput(value: string) {
-        messageInput = value;
-    }
-
-    function saveCopypasta() {
-        const messageToSave = messageInput.trim() || lastSentMessage.trim();
-
-        if (!messageToSave) return;
-
-        const cleanedMessage = cleanMessage(messageToSave);
-
-        if (cleanedMessage in $allEmotesStore) {
-            // Save as favorite emote instead
-            if (!$favoriteEmotesStore.includes(cleanedMessage)) {
-                $favoriteEmotesStore = [...$favoriteEmotesStore, cleanedMessage];
-            }
-        } else {
-            // Save as copypasta
-            if (!$favoriteCopypastasStore.includes(cleanedMessage)) {
-                $favoriteCopypastasStore = [...$favoriteCopypastasStore, cleanedMessage];
-            }
-        }
-
-        // Clear message input if we saved from text box
-        if (messageInput.trim()) {
-            messageInput = "";
-        }
-    }
 </script>
 
 <div
@@ -292,18 +231,13 @@
         </div>
 
         <!-- Message input -->
-        {#if chatState.connected && currentUser && broadcasterUser}
-            <ChatInput
-                value={messageInput}
-                {allEmotesStore}
-                disabled={sendingMessage}
-                {sendingMessage}
-                {lastSentMessage}
-                onInput={handleMessageInput}
-                onSend={sendMessage}
-                onSaveCopypasta={saveCopypasta}
-            />
-        {/if}
+        <ChatInput
+            {channel}
+            {allEmotesStore}
+            {currentUser}
+            {broadcasterUser}
+            disabled={!chatState.connected}
+        />
     {/if}
 </div>
 

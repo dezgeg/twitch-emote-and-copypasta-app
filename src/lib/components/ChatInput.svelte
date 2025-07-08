@@ -2,49 +2,52 @@
     import type { Emote, EmoteDataStore } from "$lib/emote-api";
     import Button from "./Button.svelte";
     import Spinner from "./Spinner.svelte";
+    import { sendChatMessageWithDuplicateHandling, cleanMessage } from "$lib/chat-utils";
+    import { requireAuth } from "$lib/auth-guard";
+    import { getFavoriteEmotesStore, getFavoriteCopypastasStore } from "$lib/stores";
 
     interface Props {
-        // Input value
-        value: string;
+        // Channel for store lookups
+        channel: string;
 
         // Emotes for autocomplete
         allEmotesStore: EmoteDataStore;
 
+        // User info for sending messages
+        currentUser: { id: string } | null;
+        broadcasterUser: { id: string } | null;
+
         // Input state
         disabled?: boolean;
-        sendingMessage?: boolean;
-
-        // Save button state
-        lastSentMessage?: string;
-
-        // Event callbacks
-        onInput: (value: string) => void;
-        onSend: () => void;
-        onSaveCopypasta: () => void;
     }
 
     let {
-        value,
+        channel,
         allEmotesStore,
+        currentUser,
+        broadcasterUser,
         disabled = false,
-        sendingMessage = false,
-        lastSentMessage = "",
-        onInput,
-        onSend,
-        onSaveCopypasta,
     }: Props = $props();
+
+    // Internal state
+    let messageInput = $state("");
+    let sendingMessage = $state(false);
+    let lastSentMessage = $state("");
+
+    // Channel-specific stores
+    let favoriteEmotesStore = $derived(getFavoriteEmotesStore(channel));
+    let favoriteCopypastasStore = $derived(getFavoriteCopypastasStore(channel));
 
     // Input element and autocomplete state
     let inputElement = $state<HTMLInputElement>();
     let autocompleteVisible = $state(false);
     let autocompleteQuery = $state("");
-    let autocompletePosition = $state({ x: 0, y: 0 });
     let autocompleteSelectedIndex = $state(0);
     let autocompleteStartIndex = $state(0);
 
     // Filter emotes based on query
     let filteredEmotes = $derived.by(() => {
-        if (!autocompleteQuery || autocompleteQuery.length < 2) {
+        if (autocompleteQuery.length < 2) {
             console.log("[DEBUG] No autocomplete query or too short:", autocompleteQuery);
             return [];
         }
@@ -83,7 +86,7 @@
 
         const input = inputElement;
         const cursorPos = input.selectionStart ?? 0;
-        const text = value;
+        const text = messageInput;
 
         console.log("[DEBUG] updateAutocomplete called:", {
             text,
@@ -125,12 +128,6 @@
                 autocompleteStartIndex = colonIndex;
                 autocompleteSelectedIndex = 0;
 
-                // Position dropdown below the input within the container
-                autocompletePosition = {
-                    x: 0,
-                    y: 0, // Will be positioned with CSS instead
-                };
-
                 autocompleteVisible = true;
                 console.log(
                     "[DEBUG] Set autocompleteVisible to true, filteredEmotes.length will be:",
@@ -148,11 +145,11 @@
         if (!inputElement) return;
 
         // Replace from the : to the current cursor position with the emote name
-        const beforeColon = value.slice(0, autocompleteStartIndex);
-        const afterCursor = value.slice(inputElement.selectionStart ?? 0);
+        const beforeColon = messageInput.slice(0, autocompleteStartIndex);
+        const afterCursor = messageInput.slice(inputElement.selectionStart ?? 0);
 
         const newValue = beforeColon + emote.name + afterCursor;
-        onInput(newValue);
+        messageInput = newValue;
 
         // Set cursor position after the emote name
         setTimeout(() => {
@@ -169,8 +166,68 @@
     function handleInput(event: Event) {
         const target = event.target as HTMLInputElement;
         console.log("[DEBUG] handleInput called with value:", target.value);
-        onInput(target.value);
+        messageInput = target.value;
         updateAutocomplete();
+    }
+
+    // Message sending functions
+    async function sendMessage() {
+        if (
+            !messageInput.trim() ||
+            sendingMessage ||
+            !currentUser ||
+            !broadcasterUser ||
+            disabled
+        ) {
+            return;
+        }
+
+        const message = messageInput.trim();
+        messageInput = "";
+        sendingMessage = true;
+
+        try {
+            const token = await requireAuth();
+            await sendChatMessageWithDuplicateHandling(
+                token,
+                broadcasterUser.id,
+                currentUser.id,
+                message,
+            );
+
+            // Track successfully sent message for potential copypasta saving
+            lastSentMessage = message;
+        } catch (err) {
+            // Error notification is shown by the utility, just restore the message
+            messageInput = message;
+        } finally {
+            sendingMessage = false;
+        }
+    }
+
+    function saveCopypasta() {
+        const messageToSave = messageInput.trim() || lastSentMessage.trim();
+
+        if (!messageToSave) return;
+
+        const cleanedMessage = cleanMessage(messageToSave);
+
+        if (cleanedMessage in $allEmotesStore) {
+            // Save as favorite emote instead
+            if (!$favoriteEmotesStore.includes(cleanedMessage)) {
+                $favoriteEmotesStore = [...$favoriteEmotesStore, cleanedMessage];
+            }
+        } else {
+            // Save as copypasta
+            if (!$favoriteCopypastasStore.includes(cleanedMessage)) {
+                $favoriteCopypastasStore = [...$favoriteCopypastasStore, cleanedMessage];
+            }
+        }
+
+        // Clear message input if we saved from text box
+        if (messageInput.trim()) {
+            messageInput = "";
+        }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -199,7 +256,7 @@
     function handleKeyPress(event: KeyboardEvent) {
         if (event.key === "Enter" && !event.shiftKey && !autocompleteVisible) {
             event.preventDefault();
-            onSend();
+            sendMessage();
         }
     }
 
@@ -213,24 +270,24 @@
     <div class="message-input-wrapper">
         <input
             bind:this={inputElement}
+            bind:value={messageInput}
             type="text"
-            {value}
             oninput={handleInput}
             onkeydown={handleKeyDown}
             onkeypress={handleKeyPress}
             placeholder="Type a message... (use :emoteName for autocomplete)"
-            {disabled}
+            disabled={disabled || sendingMessage || !currentUser || !broadcasterUser}
             class="message-input"
             maxlength="500"
         />
         <Button
             variant="icon"
-            onclick={onSaveCopypasta}
-            disabled={!value.trim() && !lastSentMessage.trim()}
-            aria-label={value.trim()
+            onclick={saveCopypasta}
+            disabled={!messageInput.trim() && !lastSentMessage.trim()}
+            aria-label={messageInput.trim()
                 ? "Save current text as copypasta"
                 : "Save last sent message as copypasta"}
-            title={value.trim()
+            title={messageInput.trim()
                 ? "Save current text as copypasta"
                 : "Save last sent message as copypasta"}
         >
@@ -238,8 +295,12 @@
         </Button>
         <Button
             variant="icon"
-            onclick={onSend}
-            disabled={!value.trim() || sendingMessage}
+            onclick={sendMessage}
+            disabled={!messageInput.trim() ||
+                sendingMessage ||
+                disabled ||
+                !currentUser ||
+                !broadcasterUser}
             aria-label="Send message"
         >
             {#if sendingMessage}
@@ -255,12 +316,7 @@
     <!-- Emote autocomplete dropdown -->
     {#if autocompleteVisible && filteredEmotes.length > 0}
         <div class="autocomplete-dropdown">
-            {console.log(
-                "[DEBUG] Rendering dropdown with",
-                filteredEmotes.length,
-                "emotes at position",
-                autocompletePosition,
-            )}
+            {console.log("[DEBUG] Rendering dropdown with", filteredEmotes.length, "emotes")}
             {#each filteredEmotes as emote, index}
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <div
