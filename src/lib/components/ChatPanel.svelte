@@ -121,15 +121,11 @@
         }
     }
 
-    function checkIfAtBottom() {
+    function handleScroll() {
         if (!messagesContainer) return;
         const { scrollTop, scrollHeight, clientHeight } = messagesContainer;
         // Consider "at bottom" if within 50px of the bottom to account for slight variations
         isAtBottom = scrollTop + clientHeight >= scrollHeight - 50;
-    }
-
-    function handleScroll() {
-        checkIfAtBottom();
     }
 
     // Auto-scroll to bottom when new messages arrive, but only if user is at the bottom

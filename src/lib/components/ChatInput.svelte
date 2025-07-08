@@ -48,51 +48,27 @@
     // Filter emotes based on query
     let filteredEmotes = $derived.by(() => {
         if (autocompleteQuery.length < 2) {
-            console.log("[DEBUG] No autocomplete query or too short:", autocompleteQuery);
             return [];
         }
 
         const lowerQuery = autocompleteQuery.toLowerCase();
         const emotes = Object.values($allEmotesStore) as Emote[];
 
-        console.log("[DEBUG] Filtering emotes:", {
-            query: autocompleteQuery,
-            lowerQuery,
-            totalEmotes: emotes.length,
-            sampleEmotes: emotes.slice(0, 5).map((e) => e.name),
-            allEmotesStore: $allEmotesStore,
-        });
-
-        const filtered = emotes
+        return emotes
             .filter((emote) => emote.name.toLowerCase().startsWith(lowerQuery))
             .slice(0, 25) // Limit to 25 results
             .sort((a, b) => {
                 // Sort by length (shorter names first)
                 return a.name.length - b.name.length;
             });
-
-        console.log(
-            "[DEBUG] Filtered emotes:",
-            filtered.map((e) => e.name),
-        );
-        return filtered;
     });
 
     function updateAutocomplete() {
-        if (!inputElement) {
-            console.log("[DEBUG] No input element");
-            return;
-        }
+        if (!inputElement) return;
 
         const input = inputElement;
         const cursorPos = input.selectionStart ?? 0;
         const text = messageInput;
-
-        console.log("[DEBUG] updateAutocomplete called:", {
-            text,
-            cursorPos,
-            textLength: text.length,
-        });
 
         // Find the last : before or at cursor position
         let colonIndex = -1;
@@ -106,8 +82,6 @@
             }
         }
 
-        console.log("[DEBUG] Found colon at index:", colonIndex);
-
         // Check if we found a : and have at least 2 characters after it
         if (colonIndex >= 0) {
             const afterColon = text.slice(colonIndex + 1, cursorPos);
@@ -115,29 +89,15 @@
             // Only show autocomplete if we're at the end of the word and have 2+ chars
             const isAtWordEnd = cursorPos === text.length || text[cursorPos] === " ";
 
-            console.log("[DEBUG] Autocomplete check:", {
-                afterColon,
-                afterColonLength: afterColon.length,
-                isAtWordEnd,
-                hasWhitespace: /\s/.test(afterColon),
-            });
-
             if (afterColon.length >= 2 && isAtWordEnd && !/\s/.test(afterColon)) {
-                console.log("[DEBUG] Showing autocomplete for:", afterColon);
                 autocompleteQuery = afterColon;
                 autocompleteStartIndex = colonIndex;
                 autocompleteSelectedIndex = 0;
-
                 autocompleteVisible = true;
-                console.log(
-                    "[DEBUG] Set autocompleteVisible to true, filteredEmotes.length will be:",
-                    filteredEmotes.length,
-                );
                 return;
             }
         }
 
-        console.log("[DEBUG] Hiding autocomplete");
         autocompleteVisible = false;
     }
 
@@ -165,7 +125,6 @@
 
     function handleInput(event: Event) {
         const target = event.target as HTMLInputElement;
-        console.log("[DEBUG] handleInput called with value:", target.value);
         messageInput = target.value;
         updateAutocomplete();
     }
@@ -239,9 +198,11 @@
                 autocompleteSelectedIndex + 1,
                 filteredEmotes.length - 1,
             );
+            scrollSelectedIntoView();
         } else if (event.key === "ArrowUp") {
             event.preventDefault();
             autocompleteSelectedIndex = Math.max(autocompleteSelectedIndex - 1, 0);
+            scrollSelectedIntoView();
         } else if (event.key === "Tab" || event.key === "Enter") {
             if (filteredEmotes[autocompleteSelectedIndex]) {
                 event.preventDefault();
@@ -251,6 +212,19 @@
             event.preventDefault();
             autocompleteVisible = false;
         }
+    }
+
+    function scrollSelectedIntoView() {
+        setTimeout(() => {
+            const dropdown = document.querySelector(".autocomplete-dropdown");
+            const selectedItem = dropdown?.querySelector(".autocomplete-item.selected");
+            if (selectedItem) {
+                selectedItem.scrollIntoView({
+                    block: "nearest",
+                    behavior: "smooth",
+                });
+            }
+        }, 0);
     }
 
     function handleKeyPress(event: KeyboardEvent) {
@@ -316,7 +290,6 @@
     <!-- Emote autocomplete dropdown -->
     {#if autocompleteVisible && filteredEmotes.length > 0}
         <div class="autocomplete-dropdown">
-            {console.log("[DEBUG] Rendering dropdown with", filteredEmotes.length, "emotes")}
             {#each filteredEmotes as emote, index}
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <div
