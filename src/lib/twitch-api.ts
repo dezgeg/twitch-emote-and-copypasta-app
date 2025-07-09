@@ -37,6 +37,19 @@ export interface Stream {
     is_mature: boolean;
 }
 
+export interface ChatBadge {
+    type:
+        | "broadcaster"
+        | "moderator"
+        | "vip"
+        | "subscriber"
+        | "premium"
+        | "staff"
+        | "global_mod"
+        | "admin";
+    info?: string; // For subscriber months, etc.
+}
+
 export interface ChatMessage {
     id: string;
     user_id: string;
@@ -45,6 +58,15 @@ export interface ChatMessage {
     message: string;
     timestamp: string;
     color?: string;
+    badges: ChatBadge[];
+}
+
+export interface ChannelNotification {
+    id: string;
+    type: "notification";
+    event_type: string;
+    message: string;
+    timestamp: string;
 }
 
 /**

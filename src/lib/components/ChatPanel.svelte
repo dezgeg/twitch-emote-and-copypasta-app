@@ -4,8 +4,13 @@
     import { getFavoriteCopypastasStore, getFavoriteEmotesStore } from "$lib/stores";
     import { requireAuth } from "$lib/auth-guard";
     import { persisted } from "svelte-persisted-store";
-    import { ChatWebSocket, type ChatWebSocketState } from "$lib/chat-websocket";
-    import { getUser, type ChatMessage as TwitchChatMessage } from "$lib/twitch-api";
+    import { ChatWebSocket, type ChatWebSocketState, type ChatItem } from "$lib/chat-websocket";
+    import {
+        getUser,
+        type ChatMessage as TwitchChatMessage,
+        type ChannelNotification,
+        type ChatBadge,
+    } from "$lib/twitch-api";
     import { cleanMessage } from "$lib/chat-utils";
     import type { Emote, EmoteDataStore } from "$lib/emote-api";
     import Spinner from "./Spinner.svelte";
@@ -26,7 +31,7 @@
     let chatError = $state("");
     let chatWS: ChatWebSocket | null = null;
     let messagesContainer = $state<HTMLDivElement>();
-    let messages = $state<TwitchChatMessage[]>([]);
+    let messages = $state<ChatItem[]>([]);
     let chatState = $state<ChatWebSocketState>({
         connected: false,
         error: null,
@@ -76,8 +81,8 @@
             chatWS = new ChatWebSocket(token, channel);
 
             // Set up message callback
-            chatWS.setOnMessage((message) => {
-                messages = [...messages.slice(-499), message]; // Keep last 500 messages
+            chatWS.setOnMessage((item) => {
+                messages = [...messages.slice(-499), item]; // Keep last 500 messages
             });
 
             // Subscribe to state changes
@@ -119,6 +124,47 @@
             // Check if copypasta is favorited
             return $favoriteCopypastasStore.includes(cleanedText);
         }
+    }
+
+    function isNotification(item: ChatItem): item is ChannelNotification {
+        return "type" in item && item.type === "notification";
+    }
+
+    function isChatMessage(item: ChatItem): item is TwitchChatMessage {
+        return !isNotification(item);
+    }
+
+    function getBadgeDisplay(badge: ChatBadge): { text: string; class: string } {
+        switch (badge.type) {
+            case "broadcaster":
+                return { text: "BROADCASTER", class: "badge-broadcaster" };
+            case "moderator":
+                return { text: "MOD", class: "badge-moderator" };
+            case "vip":
+                return { text: "VIP", class: "badge-vip" };
+            case "subscriber":
+                const months = badge.info ? parseInt(badge.info) : 0;
+                return {
+                    text: months > 0 ? `SUB (${months})` : "SUB",
+                    class: "badge-subscriber",
+                };
+            case "premium":
+                return { text: "PRIME", class: "badge-premium" };
+            case "staff":
+                return { text: "STAFF", class: "badge-staff" };
+            case "global_mod":
+                return { text: "GLOBAL MOD", class: "badge-global-mod" };
+            case "admin":
+                return { text: "ADMIN", class: "badge-admin" };
+        }
+    }
+
+    function getImportantBadges(badges: ChatBadge[]): ChatBadge[] {
+        // Prioritize certain badges and only show the most important ones
+        const priority = ["broadcaster", "moderator", "vip"];
+        return badges
+            .filter((badge) => priority.includes(badge.type))
+            .sort((a, b) => priority.indexOf(a.type) - priority.indexOf(b.type));
     }
 
     function handleScroll() {
@@ -202,27 +248,43 @@
         {/if}
 
         <div class="chat-messages" bind:this={messagesContainer} onscroll={handleScroll}>
-            {#each messages as chatMessage (chatMessage.id)}
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div
-                    class="chat-message"
-                    class:favorited={isCopypastaFavorited(chatMessage.message)}
-                    onclick={() => toggleCopypasta(chatMessage)}
-                >
-                    <span
-                        class="username"
-                        style="color: {chatMessage.color || 'var(--accent-primary)'}"
-                        >{chatMessage.user_name}:</span
+            {#each messages as item (item.id)}
+                {#if isNotification(item)}
+                    <div class="notification-message">
+                        <span class="notification-content">
+                            {item.message}
+                        </span>
+                    </div>
+                {:else if isChatMessage(item)}
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_no_static_element_interactions -->
+                    <div
+                        class="chat-message"
+                        class:favorited={isCopypastaFavorited(item.message)}
+                        onclick={() => toggleCopypasta(item)}
                     >
-                    <span class="message-content">
-                        <ParsedMessage
-                            message={chatMessage.message}
-                            {allEmotesStore}
-                            emoteClass="chat-emote"
-                        />
-                    </span>
-                </div>
+                        <div class="message-header">
+                            {#each getImportantBadges(item.badges) as badge}
+                                {@const badgeInfo = getBadgeDisplay(badge)}
+                                <span class="badge {badgeInfo.class}">
+                                    {badgeInfo.text}
+                                </span>
+                            {/each}
+                            <span
+                                class="username"
+                                style="color: {item.color || 'var(--accent-primary)'}"
+                                >{item.user_name}:</span
+                            >
+                            <span class="message-content">
+                                <ParsedMessage
+                                    message={item.message}
+                                    {allEmotesStore}
+                                    emoteClass="chat-emote"
+                                />
+                            </span>
+                        </div>
+                    </div>
+                {/if}
             {/each}
         </div>
 
@@ -399,6 +461,85 @@
         color: var(--text-primary);
         word-wrap: break-word;
         overflow-wrap: break-word;
+    }
+
+    .notification-message {
+        padding: 0.5rem;
+        margin: 0.25rem 0;
+        background: rgba(255, 165, 0, 0.15);
+        border: 1px solid rgba(255, 165, 0, 0.3);
+        border-radius: 6px;
+        text-align: center;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+        flex-shrink: 0;
+    }
+
+    .notification-content {
+        font-style: italic;
+        opacity: 0.9;
+    }
+
+    .message-header {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        font-size: 0.625rem;
+        font-weight: bold;
+        padding: 0.1rem 0.3rem;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        flex-shrink: 0;
+    }
+
+    .badge-broadcaster {
+        background: #e91916;
+        color: white;
+    }
+
+    .badge-moderator {
+        background: #00ad03;
+        color: white;
+    }
+
+    .badge-vip {
+        background: #e005b9;
+        color: white;
+    }
+
+    .badge-subscriber {
+        background: #0099fe;
+        color: white;
+    }
+
+    .badge-premium {
+        background: #009cdc;
+        color: white;
+    }
+
+    .badge-staff {
+        background: #200f33;
+        color: white;
+    }
+
+    .badge-global-mod {
+        background: #0099fe;
+        color: white;
+    }
+
+    .badge-admin {
+        background: #faaf19;
+        color: black;
+    }
+
+    .badge-default {
+        background: #666;
+        color: white;
     }
 
     /* Desktop layout - sidebar */
