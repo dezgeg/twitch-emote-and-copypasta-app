@@ -48,8 +48,8 @@
     // ==========================================
 
     // Configuration - Update this URL to match your GitHub Pages deployment
-    //const EMOTE_APP_URL = 'https://dezgeg.github.io/twitch-emote-and-copypasta-app';
-    const EMOTE_APP_URL = "http://localhost:5173";
+    const EMOTE_APP_URL = "https://dezgeg.github.io/twitch-emote-and-copypasta-app";
+    //const EMOTE_APP_URL = "http://localhost:5173";
 
     let overlay = null;
     let isVisible = false;
